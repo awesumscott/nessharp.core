@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -111,10 +109,10 @@ namespace NESSharp.Core {
 				CPU6502.LDY(o);
 			return this;
 		}
-		public RegisterY Set(IResolvable<Address> ra) {
-			Use(Asm.LDY.Absolute, ra); //TODO: see if this will be used, and if it'll be correct
-			return this;
-		}
+		//public RegisterY Set(IResolvable<Address> ra) {
+		//	Use(Asm.LDY.Absolute, ra); //TODO: see if this will be used, and if it'll be correct
+		//	return this;
+		//}
 
 		public static RegisterY operator ++(RegisterY y) {
 			if (y.Number != null)

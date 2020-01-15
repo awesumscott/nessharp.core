@@ -11,8 +11,6 @@ namespace NESSharp.Core {
 		public AddrLo(Address a, byte b) : base(b) {
 			Address = a;
 		}
-		//public static implicit operator AddrHi(byte s) => new AddrHi(s);
-		//public static implicit operator byte(AddrHi p) => p.Value;
 		public override string ToString() {
 			U16 u16 = Address;
 			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == u16.Hi && x.Lo == this)).Select(x => new {Key = x.Key, Index = System.Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
@@ -41,8 +39,6 @@ namespace NESSharp.Core {
 		public AddrHi(Address a, byte b) : base(b) {
 			Address = a;
 		}
-		//public static implicit operator AddrHi(byte s) => new AddrHi(s);
-		//public static implicit operator byte(AddrHi p) => p.Value;
 		public override string ToString() {
 			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == this && x.Lo == Address.Lo)).Select(x => new {Key = x.Key, Index = System.Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
 			
@@ -66,17 +62,11 @@ namespace NESSharp.Core {
 
 		public bool IsZP() => Hi == 0;
 		public static Address operator ++(Address addr) {
-			if (addr.IsZP())
-				Use(Asm.INC.ZeroPage, addr.Lo);
-			else
-				Use(Asm.INC.Absolute, addr);
+			CPU6502.INC(addr);
 			return addr;
 		}
 		public static Address operator --(Address addr) {
-			if (addr.IsZP())
-				Use(Asm.DEC.ZeroPage, addr.Lo);
-			else
-				Use(Asm.DEC.Absolute, addr);
+			CPU6502.DEC(addr);
 			return addr;
 		}
 		public virtual Address Set(IResolvable<U8> n) {
@@ -104,17 +94,11 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public virtual Address Set(RegisterX x) {
-			if (IsZP())
-				Use(Asm.STX.ZeroPage, Lo);
-			else
-				Use(Asm.STX.Absolute, this);
+			CPU6502.STX(this);
 			return this;
 		}
 		public virtual Address Set(RegisterY y) {
-			if (IsZP())
-				Use(Asm.STY.ZeroPage, Lo);
-			else
-				Use(Asm.STY.Absolute, this);
+			CPU6502.STY(this);
 			return this;
 		}
 		public Address Set(Func<Address, RegisterA> func) => Set(func.Invoke(this));
@@ -130,24 +114,18 @@ namespace NESSharp.Core {
 
 		[Obsolete]
 		public virtual RegisterA BitTest() {
-			Use(Asm.BIT.Absolute, this);
+			CPU6502.BIT(this);
 			return A;
 		}
 		
 		[Obsolete]
 		public virtual Address SetRotateLeft() {
-			if (IsZP())
-				Use(Asm.ROL.ZeroPage, Lo);
-			else
-				Use(Asm.ROL.Absolute, this);
+			CPU6502.ROL(this);
 			return this;
 		}
 		[Obsolete]
 		public virtual Address SetRotateRight() {
-			if (IsZP())
-				Use(Asm.ROR.ZeroPage, Lo);
-			else
-				Use(Asm.ROR.Absolute, this);
+			CPU6502.ROR(this);
 			return this;
 		}
 		public static Address New(ushort value) => new Address(value);
@@ -233,21 +211,9 @@ namespace NESSharp.Core {
 			if (Index is RegisterX) {// throw new Exception("Must be indexed by X");
 				rol();
 			} else if (Index is RegisterY) {
-				//TODO: remove all lock stuff, this should be done explicitly in user code
-				//if (X.IsLocked) {
-				//	Temp[0].Set(X); //preserve X
-				//	Temp[1].Set(Y);
-				//	X.Set(Temp[1]); //X = Y
-				//} else { //use tmp to preserve A
-					Temp[0].Set(Y);
-					X.Set(Temp[0]);
-				//}
-
+				Temp[0].Set(Y);
+				X.Set(Temp[0]);
 				rol();
-					
-				//if (X.IsLocked) {
-				//	X.Set(Temp[0]); //restore X
-				//}
 			}
 			return this;
 		}
@@ -262,20 +228,9 @@ namespace NESSharp.Core {
 			if (Index is RegisterX) {// throw new Exception("Must be indexed by X");
 				ror();
 			} else if (Index is RegisterY) {
-				//if (X.IsLocked) {
-				//	Temp[0].Set(X); //preserve X
-				//	Temp[1].Set(Y);
-				//	X.Set(Temp[1]); //X = Y
-				//} else { //use tmp to preserve A
-					Temp[0].Set(Y);
-					X.Set(Temp[0]);
-				//}
-				
+				Temp[0].Set(Y);
+				X.Set(Temp[0]);
 				ror();
-					
-				//if (X.IsLocked) {
-				//	X.Set(Temp[0]); //restore X
-				//}
 			}
 			return this;
 		}

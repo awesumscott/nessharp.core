@@ -74,6 +74,9 @@ namespace NESSharp.Core {
 		public static void CPY(object o) {
 			GenericAssembler(Asm.OC["CPY"], o);
 		}
+		public static void DEC(object o) {
+			GenericAssembler(Asm.OC["DEC"], o);
+		}
 		public static void DEX() {
 			AL.Use(Asm.DEX);
 		}
@@ -82,6 +85,9 @@ namespace NESSharp.Core {
 		}
 		public static void EOR(object o) {
 			GenericAssembler(Asm.OC["EOR"], o);
+		}
+		public static void INC(object o) {
+			GenericAssembler(Asm.OC["INC"], o);
 		}
 		public static void INX() {
 			AL.Use(Asm.INX);
@@ -101,6 +107,12 @@ namespace NESSharp.Core {
 		public static void ORA(object o) {
 			GenericAssembler(Asm.OC["ORA"], o);
 		}
+		public static void ROL(object o) {
+			GenericAssembler(Asm.OC["ROR"], o);
+		}
+		public static void ROR(object o) {
+			GenericAssembler(Asm.OC["ROR"], o);
+		}
 		public static void SBC(object o) {
 			GenericAssembler(Asm.OC["SBC"], o);
 			Carry.State = CarryState.Unknown;
@@ -110,6 +122,9 @@ namespace NESSharp.Core {
 		}
 		public static void STX(object o) {
 			GenericAssembler(Asm.OC["STX"], o);
+		}
+		public static void STY(object o) {
+			GenericAssembler(Asm.OC["STY"], o);
 		}
 		public static void TAX() {
 			AL.Use(Asm.TAX);
@@ -147,7 +162,7 @@ namespace NESSharp.Core {
 					} else if (oli.Index is RegisterY) {
 						if (opModes.ContainsKey(Asm.Mode.AbsoluteY))
 							AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), oli.Label);
-					}
+					} else throw new Exception("Invalid indexing register");
 					break;
 				case OpLabel lbl:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))
@@ -246,6 +261,7 @@ namespace NESSharp.Core {
 			}
 			public OpCode Use() => new OpCode(Byte, Length);
 		}
+		//TODO: replace format strings with generic strings per addressing mode with op as another param. Then make format string lists replaceable to support different assembler syntaxes.
 		public static readonly List<OpRef> OpRefs = new List<OpRef>{
 			new OpRef(	0x00, "BRK", Mode.Implied,		"BRK"),
 			new OpRef(	0x01, "ORA", Mode.IndirectX,	"ORA ({0}, X)"),
@@ -474,60 +490,6 @@ namespace NESSharp.Core {
 		}
 		#endregion
 		#region Math
-		public static class BIT {
-			public static OpCode ZeroPage		=> OC["BIT"][Mode.ZeroPage].Use();
-			public static OpCode Absolute		=> OC["BIT"][Mode.Absolute].Use();
-		}
-		public static class ADC {
-			public static OpCode Immediate		=> OC["ADC"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["ADC"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["ADC"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["ADC"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["ADC"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["ADC"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["ADC"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["ADC"][Mode.IndirectY].Use();
-		}
-		public static class SBC {
-			public static OpCode Immediate		=> OC["SBC"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["SBC"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["SBC"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["SBC"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["SBC"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["SBC"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["SBC"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["SBC"][Mode.IndirectY].Use();
-		}
-		public static class AND {
-			public static OpCode Immediate		=> OC["AND"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["AND"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["AND"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["AND"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["AND"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["AND"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["AND"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["AND"][Mode.IndirectY].Use();
-		}
-		public static class EOR {
-			public static OpCode Immediate		=> OC["EOR"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["EOR"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["EOR"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["EOR"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["EOR"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["EOR"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["EOR"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["EOR"][Mode.IndirectY].Use();
-		}
-		public static class ORA {
-			public static OpCode Immediate		=> OC["ORA"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["ORA"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["ORA"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["ORA"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["ORA"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["ORA"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["ORA"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["ORA"][Mode.IndirectY].Use();
-		}
 		public static class INC {
 			public static OpCode ZeroPage		=> OC["INC"][Mode.ZeroPage].Use();
 			public static OpCode ZeroPageX		=> OC["INC"][Mode.ZeroPageX].Use();
@@ -567,51 +529,6 @@ namespace NESSharp.Core {
 			public static OpCode ZeroPageX		=> OC["ZeroPageX"][Mode.Accumulator].Use();
 			public static OpCode Absolute		=> OC["Absolute"][Mode.Accumulator].Use();
 			public static OpCode AbsoluteX		=> OC["AbsoluteX"][Mode.Accumulator].Use();
-		}
-		#endregion
-		#region Storing and loading
-		public static class LDA {
-			public static OpCode Immediate		=> OC["LDA"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["LDA"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["LDA"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["LDA"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["LDA"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["LDA"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["LDA"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["LDA"][Mode.IndirectY].Use();
-		}
-		public static class STA {
-			public static OpCode ZeroPage		=> OC["STA"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["STA"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["STA"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["STA"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["STA"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["STA"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["STA"][Mode.IndirectY].Use();
-		}
-		public static class LDX {
-			public static OpCode Immediate		=> OC["LDX"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["LDX"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageY		=> OC["LDX"][Mode.ZeroPageY].Use();
-			public static OpCode Absolute		=> OC["LDX"][Mode.Absolute].Use();
-			public static OpCode AbsoluteY		=> OC["LDX"][Mode.AbsoluteY].Use();
-		}
-		public static class STX {
-			public static OpCode ZeroPage		=> OC["STX"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageY		=> OC["STX"][Mode.ZeroPageY].Use();
-			public static OpCode Absolute		=> OC["STX"][Mode.Absolute].Use();
-		}
-		public static class LDY {
-			public static OpCode Immediate		=> OC["LDY"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["LDY"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["LDY"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["LDY"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["LDY"][Mode.AbsoluteX].Use();
-		}
-		public static class STY {
-			public static OpCode ZeroPage		=> OC["STY"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["STY"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["STY"][Mode.Absolute].Use();
 		}
 		#endregion
 	}

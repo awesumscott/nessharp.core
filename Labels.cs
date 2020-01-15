@@ -73,22 +73,18 @@ namespace NESSharp.Core {
 			Index = reg;
 		}
 		public OpLabelIndexed Set(RegisterA a) {
-			if (Index is RegisterY) {
-				Use(Asm.STA.AbsoluteY);
-				return this;
-			}
-			throw new NotImplementedException();
+			CPU6502.STA(Label);
+			return this;
+			//if (Index is RegisterY) {
+			//	Use(Asm.STA.AbsoluteY);
+			//	return this;
+			//}
+			//throw new NotImplementedException();
 		}
 		public OpLabelIndexed Set(OpLabelIndexed oli) {
 			A.Set(oli);
-			if (Index is RegisterY) {
-				Use(Asm.STA.AbsoluteY, Label);
-				return this;
-			} else if (Index is RegisterX) {
-				Use(Asm.STA.AbsoluteX, Label);
-				return this;
-			}
-			throw new NotImplementedException();
+			CPU6502.STA(Label);
+			return this;
 		}
 		public override string ToString() {
 			return $"{ AL.Label.NameByRef(Label) } [{ (Index is RegisterX ? "X" : Index is RegisterY ? "Y" : "?") }]";
