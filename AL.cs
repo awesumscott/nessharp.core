@@ -102,9 +102,9 @@ namespace NESSharp.Core {
 
 		public static void GoTo(OpLabel label) => Use(Asm.JMP.Absolute, label);
 		public static void GoTo_Indirect(Ptr p) => Use(Asm.JMP.Indirect, p.Lo);
-		public static void GoTo_Indirect(Var16 p) {
-			if (p.Lo.Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
-			Use(Asm.JMP.Indirect, p.Lo);
+		public static void GoTo_Indirect(Var16 vn) {
+			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
+			Use(Asm.JMP.Indirect, vn.Lo);
 		}
 
 		public static void GoSub(OpLabel label) {

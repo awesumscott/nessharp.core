@@ -230,7 +230,7 @@ namespace NESSharp.Core {
 				Mode.IndirectY			=> 2,
 				Mode.Relative			=> 2,
 				Mode.Accumulator		=> 1,
-				_              => throw new Exception("Invalid addressing mode")
+				_						=> throw new Exception("Invalid addressing mode")
 			});
 			public OpRef(byte b, string token, Mode mode, string format) {
 				Byte = b;

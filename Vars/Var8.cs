@@ -136,6 +136,12 @@ namespace NESSharp.Core {
 				return A.Add(Address[0]);
 			return A.Add(Address[0][OffsetRegister]);
 		}
+		public RegisterA Add(OpLabelIndexed oli) {
+			Carry.Clear();
+			if (OffsetRegister == null)
+				return Address[0].ToA().ADC(oli);
+			return Address[0][OffsetRegister].ToA().ADC(oli);
+		}
 		public RegisterA Subtract(U8 v) {
 			Carry.Set();
 			if (OffsetRegister == null)

@@ -35,9 +35,10 @@ namespace NESSharp.Core {
 			Address[1].Set(addr.Hi);
 			A.Reset();
 		}
-		public void PointTo(Var16 addr) {
-			Address[0].Set(addr.Lo);
-			Address[1].Set(addr.Hi);
+		public void PointTo(VarN vn) {
+			if (vn.Size != 2) throw new Exception("Value must have a size of 2 bytes");
+			Address[0].Set(vn.Address[0]);
+			Address[1].Set(vn.Address[1]);
 			A.Reset();
 		}
 		public void PointTo(OpLabel lbl) {

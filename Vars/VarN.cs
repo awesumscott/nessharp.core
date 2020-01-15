@@ -32,6 +32,10 @@ namespace NESSharp.Core {
 					Address[0].Set(b);
 				} else
 					Set((U8)b);
+			} else if (o is Address addr) {
+				Address[0].Set(addr);
+				foreach (var a in Address.Skip(1))
+					a.Set(0);
 			} else if (o is IVarAddressArray iva) {
 				var srcLen = iva.Address.Length;
 				if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
@@ -93,6 +97,15 @@ namespace NESSharp.Core {
 			}
 			yield break;
 		}
+		public IEnumerable<RegisterA> Add(RegisterA a) {
+			//var srcLen = iva.Address.Length;
+			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
+			yield return A.Add(Address[0]);
+			for (var i = 1; i < Size; i++) {
+				yield return Address[i].ToA().ADC(0);
+			}
+			yield break;
+		}
 		public IEnumerable<RegisterA> Subtract(IVarAddressArray iva) {
 			var srcLen = iva.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
@@ -120,6 +133,20 @@ namespace NESSharp.Core {
 					return Var8.Ref(Address[index]);
 				throw new IndexOutOfRangeException();
 			}
+		}
+
+		
+		public Condition NotEquals(U8 v) {
+			if (v == 0) {
+				//fast way to check != 0
+				A.Set(Address[0]);
+				for (var i = 1; i < Size; i++) {
+					A.Or(Address[i]);
+				}
+				return A.NotEquals(0);
+			}
+			//TODO: Any(Address[0].NotEquals(0), Address[1].NotEquals(v))
+			throw new NotImplementedException();
 		}
 	}
 }
