@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -111,23 +109,7 @@ namespace NESSharp.Core {
 
 		public virtual RegisterA SBC(U8 v) => A.Set(this).SBC(v);
 		public virtual RegisterA SBC(IU8 v) => A.Set(this).SBC(v);
-
-		[Obsolete]
-		public virtual RegisterA BitTest() {
-			CPU6502.BIT(this);
-			return A;
-		}
 		
-		[Obsolete]
-		public virtual Address SetRotateLeft() {
-			CPU6502.ROL(this);
-			return this;
-		}
-		[Obsolete]
-		public virtual Address SetRotateRight() {
-			CPU6502.ROR(this);
-			return this;
-		}
 		public static Address New(ushort value) => new Address(value);
 		//public static implicit operator Address(ushort s) => new Address(s);
 		public static implicit operator ushort(Address p) => (ushort)((p.Hi << 8) + p.Lo);
@@ -144,10 +126,7 @@ namespace NESSharp.Core {
 
 		public new Address IncrementedValue => New((ushort)((U16)this + 1));
 		public Condition Equals(RegisterA a) {
-			if (IsZP())
-				Use(Asm.CMP.ZeroPage, Lo);
-			else
-				Use(Asm.CMP.Absolute, this);
+			CPU6502.CMP(this);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(RegisterA a) {
@@ -180,58 +159,6 @@ namespace NESSharp.Core {
 		public override Address Set(IPtrIndexed p) => Set(A.Set(p));
 		public override Address Set(OpLabelIndexed o) {
 			A.Set(o).STA(this);
-			return this;
-		}
-		[Obsolete]
-		public Address Increment() {
-			if (!(Index is RegisterX)) throw new Exception("INC only allowed with X index");
-			if (IsZP())
-				Use(Asm.INC.ZeroPageX, Lo);
-			else
-				Use(Asm.INC.AbsoluteX, this);
-			return this;
-		}
-		[Obsolete]
-		public Address Decrement() {
-			if (!(Index is RegisterX)) throw new Exception("DEC only allowed with X index");
-			if (IsZP())
-				Use(Asm.DEC.ZeroPageX, Lo);
-			else
-				Use(Asm.DEC.AbsoluteX, this);
-			return this;
-		}
-		[Obsolete]
-		public override Address SetRotateLeft() {
-			void rol() {
-				if (IsZP())
-					Use(Asm.ROL.ZeroPageX, Lo);
-				else
-					Use(Asm.ROL.AbsoluteX, this);
-			}
-			if (Index is RegisterX) {// throw new Exception("Must be indexed by X");
-				rol();
-			} else if (Index is RegisterY) {
-				Temp[0].Set(Y);
-				X.Set(Temp[0]);
-				rol();
-			}
-			return this;
-		}
-		[Obsolete]
-		public override Address SetRotateRight() {
-			void ror() {
-				if (IsZP())
-					Use(Asm.ROR.ZeroPageX, Lo);
-				else
-					Use(Asm.ROR.AbsoluteX, this);
-			}
-			if (Index is RegisterX) {// throw new Exception("Must be indexed by X");
-				ror();
-			} else if (Index is RegisterY) {
-				Temp[0].Set(Y);
-				X.Set(Temp[0]);
-				ror();
-			}
 			return this;
 		}
 	}

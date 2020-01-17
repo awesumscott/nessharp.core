@@ -52,7 +52,7 @@ namespace NESSharp.Core {
 					if (i >= Address.Length) throw new Exception("Source var length is greater than destination var length");
 					Address[i++].Set(v);
 				}
-				for (i = i; i < Address.Length; i++) {
+				for (; i < Address.Length; i++) {
 					Address[i].Set(0);
 				}
 			} else throw new Exception("Type not supported by VarN: " + o.GetType().ToString());

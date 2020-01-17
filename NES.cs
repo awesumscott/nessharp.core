@@ -42,8 +42,8 @@ namespace NESSharp.Core {
 			public static Address	Scroll =			Addr(0x2005);
 			public static Var8		LazyScrollX =		Var8.New(zp, "ppuLazyScrollX");
 			public static Var8		LazyScrollY =		Var8.New(zp, "ppuLazyScrollY");
-			public static Stream	Address =			new Stream(0x2006);
-			public static Stream	Data =				new Stream(0x2007);
+			public static Stream	Address =			Stream.Ref(0x2006);
+			public static Stream	Data =				Stream.Ref(0x2007);
 			public static void ScrollTo(U8 x, U8 y) {
 				Scroll.Set(x);
 				Scroll.Set(y);
@@ -139,7 +139,7 @@ namespace NESSharp.Core {
 
 				public static void Disable() => Settings.Set(0);
 			}
-			public static Stream Status =				new Stream(0x4015);
+			public static Stream Status =				Stream.Ref(0x4015);
 			public static Address FrameCounter =		Addr(0x4017);
 			public enum Channels : byte {
 				Pulse1 =	0b00001,

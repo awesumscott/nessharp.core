@@ -73,17 +73,12 @@ namespace NESSharp.Core {
 			Index = reg;
 		}
 		public OpLabelIndexed Set(RegisterA a) {
-			CPU6502.STA(Label);
+			CPU6502.STA(this);
 			return this;
-			//if (Index is RegisterY) {
-			//	Use(Asm.STA.AbsoluteY);
-			//	return this;
-			//}
-			//throw new NotImplementedException();
 		}
 		public OpLabelIndexed Set(OpLabelIndexed oli) {
 			A.Set(oli);
-			CPU6502.STA(Label);
+			CPU6502.STA(this);
 			return this;
 		}
 		public override string ToString() {

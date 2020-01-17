@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace NESSharp.Core {
 	public interface IConstant {
@@ -11,28 +10,22 @@ namespace NESSharp.Core {
 	public class ConstU8 : IConstant, IResolvable<U8> {
 		public string Name { get; set; }
 		public object Value { get; set; }
-		//public U8 Value;
 		public ConstU8(string name, U8 val) {
 			Name = name;
 			Value = val;
 		}
 
-		public U8 Resolve() {
-			return (U8)Value;
-		}
+		public U8 Resolve() => (U8)Value;
 	}
 	public class ConstU16 : IConstant, IResolvable<U16> {
 		public string Name { get; set; }
 		public object Value { get; set; }
-		//public U16 Value;
 		public ConstU16(string name, U16 val) {
 			Name = name;
 			Value = val;
 		}
 
-		public U16 Resolve() {
-			return (U16)Value;
-		}
+		public U16 Resolve() => (U16)Value;
 	}
 	public class ConstantCollection {
 		private  Dictionary<string, IConstant> _consts = new Dictionary<string, IConstant>();
@@ -49,9 +42,8 @@ namespace NESSharp.Core {
 				return _consts[key];
 			}
 			set {
-				if (!_consts.ContainsKey(key)) {
+				if (!_consts.ContainsKey(key))
 					_consts.Add(key, value);
-				}
 			}
 		}
 		public IConstant[] Items => _consts.Select(x => x.Value).ToArray();

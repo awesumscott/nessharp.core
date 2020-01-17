@@ -62,26 +62,37 @@ namespace NESSharp.Core {
 		public static void AND(object o) {
 			GenericAssembler(Asm.OC["AND"], o);
 		}
+		public static void ASL(object o) {
+			GenericAssembler(Asm.OC["ASL"], o);
+			Carry.State = CarryState.Unknown;
+		}
 		public static void BIT(object o) {
 			GenericAssembler(Asm.OC["BIT"], o);
 		}
+		public static void CLC() {
+			AL.Use(Asm.OC["CLC"][Asm.Mode.Implied].Use());
+			Carry.State = CarryState.Cleared;
+		}
 		public static void CMP(object o) {
 			GenericAssembler(Asm.OC["CMP"], o);
+			Carry.State = CarryState.Unknown;
 		}
 		public static void CPX(object o) {
 			GenericAssembler(Asm.OC["CPX"], o);
+			Carry.State = CarryState.Unknown;
 		}
 		public static void CPY(object o) {
 			GenericAssembler(Asm.OC["CPY"], o);
+			Carry.State = CarryState.Unknown;
 		}
 		public static void DEC(object o) {
 			GenericAssembler(Asm.OC["DEC"], o);
 		}
 		public static void DEX() {
-			AL.Use(Asm.DEX);
+			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
 		}
 		public static void DEY() {
-			AL.Use(Asm.DEY);
+			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
 		}
 		public static void EOR(object o) {
 			GenericAssembler(Asm.OC["EOR"], o);
@@ -90,10 +101,10 @@ namespace NESSharp.Core {
 			GenericAssembler(Asm.OC["INC"], o);
 		}
 		public static void INX() {
-			AL.Use(Asm.INX);
+			AL.Use(Asm.OC["INX"][Asm.Mode.Implied].Use());
 		}
 		public static void INY() {
-			AL.Use(Asm.INY);
+			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
 		}
 		public static void LDA(object o) {
 			GenericAssembler(Asm.OC["LDA"], o);
@@ -104,18 +115,28 @@ namespace NESSharp.Core {
 		public static void LDY(object o) {
 			GenericAssembler(Asm.OC["LDY"], o);
 		}
+		public static void LSR(object o) {
+			GenericAssembler(Asm.OC["LSR"], o);
+			Carry.State = CarryState.Unknown;
+		}
 		public static void ORA(object o) {
 			GenericAssembler(Asm.OC["ORA"], o);
 		}
 		public static void ROL(object o) {
-			GenericAssembler(Asm.OC["ROR"], o);
+			GenericAssembler(Asm.OC["ROL"], o);
+			Carry.State = CarryState.Unknown;
 		}
 		public static void ROR(object o) {
 			GenericAssembler(Asm.OC["ROR"], o);
+			Carry.State = CarryState.Unknown;
 		}
 		public static void SBC(object o) {
 			GenericAssembler(Asm.OC["SBC"], o);
 			Carry.State = CarryState.Unknown;
+		}
+		public static void SEC() {
+			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
+			Carry.State = CarryState.Set;
 		}
 		public static void STA(object o) {
 			GenericAssembler(Asm.OC["STA"], o);
@@ -127,19 +148,23 @@ namespace NESSharp.Core {
 			GenericAssembler(Asm.OC["STY"], o);
 		}
 		public static void TAX() {
-			AL.Use(Asm.TAX);
+			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
 		}
 		public static void TAY() {
-			AL.Use(Asm.TAY);
+			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
 		}
 		public static void TXA() {
-			AL.Use(Asm.TXA);
+			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
 		}
 		public static void TYA() {
-			AL.Use(Asm.TYA);
+			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
 		}
 		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object o) {
 			switch (o) {
+				case RegisterA ra:
+					if (opModes.ContainsKey(Asm.Mode.Accumulator))
+						AL.Use(opModes[Asm.Mode.Accumulator].Use());
+					break;
 				case AddressIndexed ai:
 					if (ai.Index is RegisterX) {
 						if (ai.Hi == 0 && opModes.ContainsKey(Asm.Mode.ZeroPageX))
@@ -148,6 +173,7 @@ namespace NESSharp.Core {
 							AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), ai);
 					} else if (ai.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY))
 						AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), ai); //no ZPY mode
+					else throw new Exception("Invalid indexing register");
 					break;
 				case Address addr:
 					if (addr.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPage))
@@ -418,25 +444,12 @@ namespace NESSharp.Core {
 
 		public static Dictionary<string, Dictionary<Mode, OpRef>> OC = OpRefs.Select(x => x.Token).Distinct().ToDictionary(x => x, x => OpRefs.Where(y => y.Token == x).ToDictionary(y => y.Mode, y => y));
 
-
-		#region Register instructions
-		public static OpCode TAX => OC["TAX"][Mode.Implied].Use();
-		public static OpCode TXA => OC["TXA"][Mode.Implied].Use();
-		public static OpCode DEX => OC["DEX"][Mode.Implied].Use();
-		public static OpCode INX => OC["INX"][Mode.Implied].Use();
-		public static OpCode TAY => OC["TAY"][Mode.Implied].Use();
-		public static OpCode TYA => OC["TYA"][Mode.Implied].Use();
-		public static OpCode DEY => OC["DEY"][Mode.Implied].Use();
-		public static OpCode INY => OC["INY"][Mode.Implied].Use();
-		#endregion
 		#region Flag instructions
-		public static OpCode CLC => OC["CLC"][Mode.Implied].Use();
-		public static OpCode SEC => OC["SEC"][Mode.Implied].Use();
-		public static OpCode CLI => OC["CLI"][Mode.Implied].Use();
+		//public static OpCode CLI => OC["CLI"][Mode.Implied].Use();
 		public static OpCode SEI => OC["SEI"][Mode.Implied].Use();
-		public static OpCode CLV => OC["CLV"][Mode.Implied].Use();
+		//public static OpCode CLV => OC["CLV"][Mode.Implied].Use();
 		public static OpCode CLD => OC["CLD"][Mode.Implied].Use();
-		public static OpCode SED => OC["SED"][Mode.Implied].Use();
+		//public static OpCode SED => OC["SED"][Mode.Implied].Use();
 		#endregion
 		#region Stack instructions
 		public static OpCode TXS => OC["TXS"][Mode.Implied].Use();
@@ -449,8 +462,8 @@ namespace NESSharp.Core {
 		#region Branching
 		public static OpCode BPL => OC["BPL"][Mode.Relative].Use();
 		public static OpCode BMI => OC["BMI"][Mode.Relative].Use();
-		public static OpCode BVC => OC["BVC"][Mode.Relative].Use();
-		public static OpCode BVS => OC["BVS"][Mode.Relative].Use();
+		//public static OpCode BVC => OC["BVC"][Mode.Relative].Use();
+		//public static OpCode BVS => OC["BVS"][Mode.Relative].Use();
 		public static OpCode BCC => OC["BCC"][Mode.Relative].Use();
 		public static OpCode BCS => OC["BCS"][Mode.Relative].Use();
 		public static OpCode BNE => OC["BNE"][Mode.Relative].Use();
@@ -464,72 +477,8 @@ namespace NESSharp.Core {
 			public static OpCode Indirect		{get => new OpCode(0x6C,	3);}
 		}
 		public static OpCode JSR => OC["JSR"][Mode.Absolute].Use();
-		public static OpCode BRK => OC["BRK"][Mode.Implied].Use();
-		public static OpCode NOP => OC["NOP"][Mode.Implied].Use();
-		#endregion
-		#region Comparisons
-		public static class CMP {
-			public static OpCode Immediate		=> OC["CMP"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["CMP"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["CMP"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["CMP"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["CMP"][Mode.AbsoluteX].Use();
-			public static OpCode AbsoluteY		=> OC["CMP"][Mode.AbsoluteY].Use();
-			public static OpCode IndirectX		=> OC["CMP"][Mode.IndirectX].Use();
-			public static OpCode IndirectY		=> OC["CMP"][Mode.IndirectY].Use();
-		}
-		public static class CPX {
-			public static OpCode Immediate		=> OC["CPX"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["CPX"][Mode.ZeroPage].Use();
-			public static OpCode Absolute		=> OC["CPX"][Mode.Absolute].Use();
-		}
-		public static class CPY {
-			public static OpCode Immediate		=> OC["CPY"][Mode.Immediate].Use();
-			public static OpCode ZeroPage		=> OC["CPY"][Mode.ZeroPage].Use();
-			public static OpCode Absolute		=> OC["CPY"][Mode.Absolute].Use();
-		}
-		#endregion
-		#region Math
-		public static class INC {
-			public static OpCode ZeroPage		=> OC["INC"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["INC"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["INC"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["INC"][Mode.AbsoluteX].Use();
-		}
-		public static class DEC {
-			public static OpCode ZeroPage		=> OC["DEC"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["DEC"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["DEC"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["DEC"][Mode.AbsoluteX].Use();
-		}
-		public static class ASL {
-			public static OpCode Accumulator	=> OC["ASL"][Mode.Accumulator].Use();
-			public static OpCode ZeroPage		=> OC["ASL"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["ASL"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["ASL"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["ASL"][Mode.AbsoluteX].Use();
-		}
-		public static class LSR {
-			public static OpCode Accumulator	=> OC["LSR"][Mode.Accumulator].Use();
-			public static OpCode ZeroPage		=> OC["LSR"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["LSR"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["LSR"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["LSR"][Mode.AbsoluteX].Use();
-		}
-		public static class ROL {
-			public static OpCode Accumulator	=> OC["ROL"][Mode.Accumulator].Use();
-			public static OpCode ZeroPage		=> OC["ROL"][Mode.ZeroPage].Use();
-			public static OpCode ZeroPageX		=> OC["ROL"][Mode.ZeroPageX].Use();
-			public static OpCode Absolute		=> OC["ROL"][Mode.Absolute].Use();
-			public static OpCode AbsoluteX		=> OC["ROL"][Mode.AbsoluteX].Use();
-		}
-		public static class ROR {
-			public static OpCode Accumulator	=> OC["ROR"][Mode.Accumulator].Use();
-			public static OpCode ZeroPage		=> OC["ZeroPage"][Mode.Accumulator].Use();
-			public static OpCode ZeroPageX		=> OC["ZeroPageX"][Mode.Accumulator].Use();
-			public static OpCode Absolute		=> OC["Absolute"][Mode.Accumulator].Use();
-			public static OpCode AbsoluteX		=> OC["AbsoluteX"][Mode.Accumulator].Use();
-		}
+		//public static OpCode BRK => OC["BRK"][Mode.Implied].Use();
+		//public static OpCode NOP => OC["NOP"][Mode.Implied].Use();
 		#endregion
 	}
 }

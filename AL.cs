@@ -11,21 +11,21 @@ namespace NESSharp.Core {
 	};
 	public static class Carry {
 		public static CarryState State;
-		public static void Clear() => AL.Use(Asm.CLC);
-		public static void NewClear() {
-			if (State != CarryState.Cleared) {
-				AL.Use(Asm.CLC);
-				State = CarryState.Cleared;
-			}
-		}
+		public static void Clear() => CPU6502.CLC();
+		//public static void NewClear() {
+		//	if (State != CarryState.Cleared) {
+		//		CPU6502.CLC();
+		//		State = CarryState.Cleared;
+		//	}
+		//}
 
-		public static void Set() => AL.Use(Asm.SEC);
-		public static void NewSet() {
-			if (State != CarryState.Set) {
-				AL.Use(Asm.SEC);
-				State = CarryState.Set;
-			}
-		}
+		public static void Set() => CPU6502.SEC();
+		//public static void NewSet() {
+		//	if (State != CarryState.Set) {
+		//		CPU6502.SEC();
+		//		State = CarryState.Set;
+		//	}
+		//}
 		public static Condition IsClear() => Condition.IsCarryClear;
 		public static Condition IsSet() => Condition.IsCarrySet;
 	}

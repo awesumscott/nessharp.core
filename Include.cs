@@ -11,7 +11,6 @@ namespace NESSharp.Core {
 			var methods = classType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 			foreach (var m in methods.WithAttribute<Dependencies>().Select(x => x.method)) {
 				Reset();
-				//Use(m.Label());
 				m.Invoke(null, null);
 			}
 			foreach (var m in methods.WithAttribute<CodeSection>().Select(x => x.method)) {
@@ -47,7 +46,6 @@ namespace NESSharp.Core {
 			var methods = obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			foreach (var m in methods.WithAttribute<Dependencies>().Select(x => x.method)) {
 				Reset();
-				//Use(m.Label());
 				m.Invoke(obj, null);
 			}
 			foreach (var m in methods.WithAttribute<CodeSection>().Select(x => x.method)) {

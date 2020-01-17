@@ -8,6 +8,10 @@ namespace NESSharp.Core {
 		
 		public Stream(ushort value) : base(value) {}
 
+		public static Stream Ref(ushort addr) {
+			return new Stream(addr);
+		}
+
 		public void Send(Action dataSection, int len) {
 			if (len > 256) throw new Exception("Len > 256! Split up data until longer sends are supported.");
 			X.Set(0);

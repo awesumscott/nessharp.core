@@ -113,12 +113,12 @@ namespace NESSharp.Core {
 				X++;
 				if (Context.StartBranchable) {
 					if (length != 255)
-						Use(Asm.CPX.Immediate, length); //(U8)(max + 1)
+						CPU6502.CPX(length);
 					Use(Asm.BNE, Context.Start);
 				} else {
 					//TODO: verify this works!
 					if (length != 255)
-						Use(Asm.CPX.Immediate, length); //(U8)(max + 1)
+						CPU6502.CPX(length);
 					Use(Asm.BEQ, (U8)3);
 					Use(Asm.JMP.Absolute, lblStart);
 				}

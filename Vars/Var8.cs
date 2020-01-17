@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -194,20 +192,18 @@ namespace NESSharp.Core {
 				return A.Set(Address[0]).Xor(v);
 			return A.Set(Address[0][OffsetRegister]).Xor(v);
 		}
-		[Obsolete]
-		public virtual Var8 SetRotateLeft() {
+		public virtual Var8 SetROL() {
 			if (OffsetRegister == null)
-				Address[0].SetRotateLeft();
+				CPU6502.ROL(Address[0]);
 			else
-				Address[0][OffsetRegister].SetRotateLeft();
+				CPU6502.ROL(Address[0][OffsetRegister]);
 			return this;
 		}
-		[Obsolete]
-		public virtual Var8 SetRotateRight() {
+		public virtual Var8 SetROR() {
 			if (OffsetRegister == null)
-				Address[0].SetRotateRight();
+				CPU6502.ROR(Address[0]);
 			else
-				Address[0][OffsetRegister].SetRotateRight();
+				CPU6502.ROR(Address[0][OffsetRegister]);
 			return this;
 		}
 		public Condition Equals(U8 v) {
@@ -301,20 +297,20 @@ namespace NESSharp.Core {
 		public static Var8 operator ++(Var8 addr) => addr.Increment();
 		public Var8 Increment() {
 			if (OffsetRegister == null)
-				Address[0]++;
+				CPU6502.INC(Address[0]);
 			else
-				Address[0][OffsetRegister].Increment();
+				CPU6502.INC(Address[0][OffsetRegister]);
 			return this;
 		}
 		public Var8 Decrement() {
 			if (OffsetRegister == null)
-				Address[0]--;
+				CPU6502.DEC(Address[0]);
 			else
-				Address[0][OffsetRegister].Decrement();
+				CPU6502.DEC(Address[0][OffsetRegister]);
 			return this;
 		}
 		public static Var8 operator --(Var8 addr) {
-			addr.Address[0]--;
+			CPU6502.DEC(addr.Address[0]);
 			return addr;
 		}
 

@@ -43,10 +43,12 @@ namespace NESSharp.Core {
 			if (reg is RegisterA)
 				Use(Asm.PHA);
 			else if (reg is RegisterX) {
-				Use(Asm.TXA);
+				CPU6502.TXA();
+				//Use(Asm.TXA);
 				Use(Asm.PHA);
 			} else if (reg is RegisterY) {
-				Use(Asm.TYA);
+				CPU6502.TYA();
+				//Use(Asm.TYA);
 				Use(Asm.PHA);
 			}
 		}
@@ -56,11 +58,13 @@ namespace NESSharp.Core {
 			if (registers.HasFlag(Register.A))
 				Use(Asm.PHA);
 			if (registers.HasFlag(Register.X)) {
-				Use(Asm.TXA);
+				CPU6502.TXA();
+				//Use(Asm.TXA);
 				Use(Asm.PHA);
 			}
 			if (registers.HasFlag(Register.Y)) {
-				Use(Asm.TYA);
+				CPU6502.TYA();
+				//Use(Asm.TYA);
 				Use(Asm.PHA);
 			}
 		}

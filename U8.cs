@@ -4,6 +4,8 @@ using System.Text;
 
 namespace NESSharp.Core {
 	public interface IU8 {}
+	#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+	#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 	public class U8 : IU8 {
 		public U8(byte value) {
 			Value = value;

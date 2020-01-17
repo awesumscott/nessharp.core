@@ -137,18 +137,18 @@ namespace NESSharp.Core {
 			//TODO: CMP if Y wasn't last used register
 			if (v == 0)
 				return Condition.NotEqualsZero;
-			Use(Asm.CPY.Immediate, v);
+			CPU6502.CPY(v);
 			return Condition.NotEqualsZero;
 			throw new NotImplementedException();
 		}
 		public Condition Equals(Address addr) {
 			throw new NotImplementedException();
-			Use(Asm.CMP.Absolute, addr);
+			CPU6502.CMP(addr);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(Address addr) {
 			throw new NotImplementedException();
-			Use(Asm.CMP.Absolute, addr);
+			CPU6502.CMP(addr);
 			return Condition.NotEqualsZero;
 		}
 	}
@@ -235,22 +235,22 @@ namespace NESSharp.Core {
 		}
 		public RegisterA LogicalShiftRight() {
 			Number = null;
-			Use(Asm.LSR.Accumulator);
+			CPU6502.LSR(this);
 			return this;
 		}
 		public RegisterA ArithmeticShiftLeft() {
 			Number = null;
-			Use(Asm.ASL.Accumulator);
+			CPU6502.ASL(this);
 			return this;
 		}
 		public RegisterA ROR() {
 			Number = null;
-			Use(Asm.ROR.Accumulator);
+			CPU6502.ROR(this);
 			return this;
 		}
 		public RegisterA ROL() {
 			Number = null;
-			Use(Asm.ROL.Accumulator);
+			CPU6502.ROL(this);
 			return this;
 		}
 		public void CMP(object o) {
