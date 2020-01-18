@@ -15,9 +15,23 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 			return this;
 		}
+		
 		public static VarN New(RAM ram, int len, string name) {
 			return (VarN)new VarN(){Size = len}.Dim(ram, name);
 		}
+		public static VarN Ref(Address addr, ushort len) {
+			var v = new VarN();
+			v.Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray();
+			return v;
+		}
+		public VByte this[int index] {
+			get {
+				if (index >= 0 && index < Address.Length)
+					return VByte.Ref(Address[index]);
+				throw new Exception("Index out of range");
+			}
+		}
+
 		public VarN Set(Func<VarN, object> func) => Set(func.Invoke(this));
 		public VarN Set(object o) {
 			if (o is U8 u8) {
@@ -127,10 +141,10 @@ namespace NESSharp.Core {
 			}
 			yield break;
 		}
-		public Var8 this[U8 index] {
+		public VByte this[U8 index] {
 			get {
 				if (index >= 0 && index < Size)
-					return Var8.Ref(Address[index]);
+					return VByte.Ref(Address[index]);
 				throw new IndexOutOfRangeException();
 			}
 		}

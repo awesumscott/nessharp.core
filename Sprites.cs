@@ -14,20 +14,20 @@ namespace NESSharp.Core {
 			_spriteStruct = spriteStruct;
 		}
 		public Sprite Hide() { //vertical position ($EF-$FF = hidden)
-			((Var8)_spriteStruct["vert"]).Set(0xFF);
+			((VByte)_spriteStruct["vert"]).Set(0xFF);
 			return this;
 		}
-		public Var8 X {
-			get => (Var8)_spriteStruct["horiz"];
+		public VByte X {
+			get => (VByte)_spriteStruct["horiz"];
 		}
-		public Var8 Y {
-			get => (Var8)_spriteStruct["vert"];
+		public VByte Y {
+			get => (VByte)_spriteStruct["vert"];
 		}
-		public Var8 Tile {
-			get => (Var8)_spriteStruct["tile"];
+		public VByte Tile {
+			get => (VByte)_spriteStruct["tile"];
 		}
-		public Var8 Attr {
-			get => (Var8)_spriteStruct["attr"];
+		public VByte Attr {
+			get => (VByte)_spriteStruct["attr"];
 		}
 	}
 
@@ -37,10 +37,10 @@ namespace NESSharp.Core {
 				"sprite",
 				64,
 				//Struct.Field(typeof(Array<Var8>), "VarArray"),
-				Struct.Field(typeof(Var8), "vert"),
-				Struct.Field(typeof(Var8), "tile"),
-				Struct.Field(typeof(Var8), "attr"),
-				Struct.Field(typeof(Var8), "horiz")
+				Struct.Field(typeof(VByte), "vert"),
+				Struct.Field(typeof(VByte), "tile"),
+				Struct.Field(typeof(VByte), "attr"),
+				Struct.Field(typeof(VByte), "horiz")
 			).Dim(OAMRam);
 	
 		public new Sprite this[U8 key] {

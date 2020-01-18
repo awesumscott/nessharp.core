@@ -47,7 +47,7 @@ namespace NESSharp.Core {
 		public static RAM stackRam =	ram.Allocate(Addr(0x0100), Addr(0x01FF)); //eliminate stack page and shadow OAM from possible allocations
 		public static RAM OAMRam =		ram.Allocate(Addr(0x0200), Addr(0x02FF)); //eliminate stack page and shadow OAM from possible allocations
 		//public static Address[] Temp = zp.Dim(3);
-		public static Var8[] Temp = new Var8[] {Var8.New(zp, "Temp0"), Var8.New(zp, "Temp1"), Var8.New(zp, "Temp2")};
+		public static VByte[] Temp = new VByte[] {VByte.New(zp, "Temp0"), VByte.New(zp, "Temp1"), VByte.New(zp, "Temp2")};
 		public static Ptr TempPtr0 = new Ptr(null, null, "tempPtr0");
 
 		public static readonly short LOWEST_BRANCH_VAL = -128;
@@ -102,7 +102,7 @@ namespace NESSharp.Core {
 
 		public static void GoTo(OpLabel label) => Use(Asm.JMP.Absolute, label);
 		public static void GoTo_Indirect(Ptr p) => Use(Asm.JMP.Indirect, p.Lo);
-		public static void GoTo_Indirect(Var16 vn) {
+		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
 			Use(Asm.JMP.Indirect, vn.Lo);
 		}
@@ -146,17 +146,17 @@ namespace NESSharp.Core {
 		
 		public interface IOption {}
 		public class IfOption : IOption {
-			public object Condition;
-			public Action Block;
-			public Func<Condition> FallThroughCondition;
+			public object? Condition;
+			public Action? Block;
+			public Func<Condition>? FallThroughCondition;
 		}
 		public class IfDefault : IOption {
 			public Action Block;
 		}
 		public static Func<Condition> FallThroughIf(Func<Condition> condition) => condition;
-		public static IfOption Option(Func<object> condition, Action block, Func<Condition> fallThroughCondition = null)
+		public static IfOption Option(Func<object> condition, Action block, Func<Condition>? fallThroughCondition = null)
 						=> new IfOption() { Condition = condition, Block = block, FallThroughCondition = fallThroughCondition };
-		public static IfOption Option(Func<Condition> condition, Action block, Func<Condition> fallThroughCondition = null)
+		public static IfOption Option(Func<Condition> condition, Action block, Func<Condition>? fallThroughCondition = null)
 						=> new IfOption() { Condition = condition, Block = block, FallThroughCondition = fallThroughCondition };
 
 		//TODO: 3rd optional param for Option(): FallThroughIf(condition)--might this be a case to make a Switch block or something similar?
@@ -182,7 +182,7 @@ namespace NESSharp.Core {
 			var optionConditions = options.Where(x => x is IfOption).Cast<IfOption>().ToList();
 			var optionDefault = options.Where(x => x is IfDefault).Cast<IfDefault>().ToList();
 			var hasElse = optionDefault.Any();
-			OpLabel lblEnd = null;
+			OpLabel? lblEnd = null;
 			if (numOptions > 1 || hasElse)
 				lblEnd = Label.New();
 			var lastCondition = optionConditions.Last();
@@ -263,7 +263,7 @@ namespace NESSharp.Core {
 			ac.Conditions = conditions;
 			return () => ac;
 		}
-		private static void _WriteIfCondition(Condition condition, Action block, OpLabel lblEndIf = null, Func<Condition> fallThroughCondition = null, bool invert = false) {
+		private static void _WriteIfCondition(Condition condition, Action block, OpLabel? lblEndIf = null, Func<Condition>? fallThroughCondition = null, bool invert = false) {
 			Context.Push();
 			block.Invoke();
 			//Skip to "EndIf" if the condition succeeded

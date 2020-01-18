@@ -18,10 +18,10 @@ namespace NESSharp.Core {
 		public void SwitchTo(object o);
 	}
 	public abstract class BankSwitcher {
-		public static Var8 Bank;
+		public static VByte Bank;
 
 		public BankSwitcher() {
-			Bank = Var8.New(zp, "bank_current");
+			Bank = VByte.New(zp, "bank_current");
 		}
 		protected abstract void Load();
 		public abstract void Step();

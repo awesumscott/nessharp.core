@@ -2,17 +2,17 @@
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Var16 : VarN {
-		public Var8 Lo => Var8.Ref(Address[0]);
-		public Var8 Hi => Var8.Ref(Address[1]);
+	public class VWord : VarN {
+		public VByte Lo => VByte.Ref(Address[0]);
+		public VByte Hi => VByte.Ref(Address[1]);
 	
-		public static Var16 New(RAM ram, string name) {
-			return (Var16)new Var16(){Size = 2}.Dim(ram, name);
+		public static VWord New(RAM ram, string name) {
+			return (VWord)new VWord(){Size = 2}.Dim(ram, name);
 		}
 		public override Var Copy(Var v) {
-			if (!(v is Var16))
+			if (!(v is VWord))
 				throw new Exception("Type must be Var16");
-			var v16 = (Var16)v;
+			var v16 = (VWord)v;
 			Address = v16.Address;
 			Name = v16.Name;
 			OffsetRegister = v16.OffsetRegister;

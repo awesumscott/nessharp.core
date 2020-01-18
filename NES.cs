@@ -35,13 +35,13 @@ namespace NESSharp.Core {
 				NMIEnabled		= 0b10000000,
 			};
 			public static Address	Control =			Addr(0x2000);
-			public static Var8		LazyControl =		Var8.New(zp, "ppuLazyCtrl");
-			public static Var8		LazyMask =			Var8.New(zp, "ppuLazyMask");
+			public static VByte		LazyControl =		VByte.New(zp, "ppuLazyCtrl");
+			public static VByte		LazyMask =			VByte.New(zp, "ppuLazyMask");
 			public static Address	Mask =				Addr(0x2001);
 			public static Address	Status =			Addr(0x2002);
 			public static Address	Scroll =			Addr(0x2005);
-			public static Var8		LazyScrollX =		Var8.New(zp, "ppuLazyScrollX");
-			public static Var8		LazyScrollY =		Var8.New(zp, "ppuLazyScrollY");
+			public static VByte		LazyScrollX =		VByte.New(zp, "ppuLazyScrollX");
+			public static VByte		LazyScrollY =		VByte.New(zp, "ppuLazyScrollY");
 			public static Stream	Address =			Stream.Ref(0x2006);
 			public static Stream	Data =				Stream.Ref(0x2007);
 			public static void ScrollTo(U8 x, U8 y) {

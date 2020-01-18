@@ -2,11 +2,11 @@
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Var8 : Var, IU8 {
+	public class VByte : Var, IU8 {
 		public override int Size => 1;
 
-		public Var8() {}
-		public static implicit operator Address(Var8 v) => v.OffsetRegister == null ? v.Address[0] : v.Address[0][v.OffsetRegister];
+		public VByte() {}
+		public static implicit operator Address(VByte v) => v.OffsetRegister == null ? v.Address[0] : v.Address[0][v.OffsetRegister];
 
 		public override Var Dim(RAM ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
@@ -16,18 +16,18 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 			return this;
 		}
-		public static Var8 New(RAM ram, string name) {
-			return (Var8)new Var8().Dim(ram, name);
+		public static VByte New(RAM ram, string name) {
+			return (VByte)new VByte().Dim(ram, name);
 		}
-		public static Var8 Ref(Address addr) {
-			var v = new Var8();
+		public static VByte Ref(Address addr) {
+			var v = new VByte();
 			v.Address = new Address[]{ addr };
 			return v;
 		}
 		public override Var Copy(Var v) {
-			if (!(v is Var8))
+			if (!(v is VByte))
 				throw new Exception("Type must be Var8");
-			var v8 = (Var8)v;
+			var v8 = (VByte)v;
 			Address = v8.Address;
 			Name = v8.Name;
 			OffsetRegister = v8.OffsetRegister;
@@ -39,7 +39,7 @@ namespace NESSharp.Core {
 		//		return v.Address[0];
 		//	return v.Address[0].Offset(v.OffsetRegister);
 		//}
-		public Var8 Set(Var8 v) {
+		public VByte Set(VByte v) {
 			if (OffsetRegister == null) {
 				//Address[0].Set(getVar8Addr(v));
 				if (v.OffsetRegister == null)
@@ -54,28 +54,28 @@ namespace NESSharp.Core {
 			}
 			return this;
 		}
-		public Var8 Set(Address addr) {
+		public VByte Set(Address addr) {
 			if (OffsetRegister == null)
 				Address[0].Set(addr);
 			else
 				Address[0][OffsetRegister].Set(addr);
 			return this;
 		}
-		public Var8 Set(IResolvable<U8> v) {
+		public VByte Set(IResolvable<U8> v) {
 			if (OffsetRegister == null)
 				Address[0].Set(v);
 			else
 				Address[0][OffsetRegister].Set(v);
 			return this;
 		}
-		public Var8 Set(OpLabelIndexed oli) {
+		public VByte Set(OpLabelIndexed oli) {
 			if (OffsetRegister == null)
 				Address[0].Set(oli);
 			else
 				Address[0][OffsetRegister].Set(oli);
 			return this;
 		}
-		public Var8 Set(IPtrIndexed p) {
+		public VByte Set(IPtrIndexed p) {
 			if (OffsetRegister == null)
 				Address[0].Set(A.Set(p));
 			else {
@@ -85,14 +85,14 @@ namespace NESSharp.Core {
 			}
 			return this;
 		}
-		public Var8 Set(RegisterA a) {
+		public VByte Set(RegisterA a) {
 			if (OffsetRegister == null)
 				Address[0].Set(a);
 			else
 				Address[0][OffsetRegister].Set(a);
 			return this;
 		}
-		public Var8 Set(RegisterX a) {
+		public VByte Set(RegisterX a) {
 			if (OffsetRegister == null)
 				Address[0].Set(a);
 			else if (OffsetRegister is RegisterY)
@@ -100,7 +100,7 @@ namespace NESSharp.Core {
 			else throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
 			return this;
 		}
-		public Var8 Set(RegisterY a) {
+		public VByte Set(RegisterY a) {
 			if (OffsetRegister == null)
 				Address[0].Set(a);
 			else if (OffsetRegister is RegisterX)
@@ -108,14 +108,14 @@ namespace NESSharp.Core {
 			else throw new NotImplementedException(); //do some swapping to preserve Y if this is worth it
 			return this;
 		}
-		public Var8 Set(U8 v) {
+		public VByte Set(U8 v) {
 			if (OffsetRegister == null)
 				Address[0].Set(v);
 			else
 				Address[0][OffsetRegister].Set(v);
 			return this;
 		}
-		public Var8 Set(Func<Var8, RegisterA> func) => Set(func.Invoke(this));
+		public VByte Set(Func<VByte, RegisterA> func) => Set(func.Invoke(this));
 		public RegisterA Add(U8 v) {
 			Carry.Clear();
 			if (OffsetRegister == null)
@@ -143,14 +143,14 @@ namespace NESSharp.Core {
 		public RegisterA Subtract(U8 v) {
 			Carry.Set();
 			if (OffsetRegister == null)
-				return Address[0].SBC(v);
-			return Address[0][OffsetRegister].SBC(v);
+				return Address[0].ToA().SBC(v);
+			return Address[0][OffsetRegister].ToA().SBC(v);
 		}
 		public RegisterA Subtract(IU8 v) {
 			Carry.Set();
 			if (OffsetRegister == null)
-				return Address[0].SBC(v);
-			return Address[0][OffsetRegister].SBC(v);
+				return Address[0].ToA().SBC(v);
+			return Address[0][OffsetRegister].ToA().SBC(v);
 		}
 		public RegisterA Subtract(RegisterA a) {
 			Temp[0].Set(a);
@@ -192,18 +192,32 @@ namespace NESSharp.Core {
 				return A.Set(Address[0]).Xor(v);
 			return A.Set(Address[0][OffsetRegister]).Xor(v);
 		}
-		public virtual Var8 SetROL() {
+		public virtual VByte SetROL() {
 			if (OffsetRegister == null)
 				CPU6502.ROL(Address[0]);
-			else
+			else if (OffsetRegister is RegisterX) {
 				CPU6502.ROL(Address[0][OffsetRegister]);
+			} else if (OffsetRegister is RegisterY) {
+				Temp[0].Set(Y);
+				X.Set(Temp[0]);
+				OffsetRegister = X;
+				CPU6502.ROL(Address[0][OffsetRegister]);
+				OffsetRegister = Y;
+			} else throw new Exception("Invalid index register");
 			return this;
 		}
-		public virtual Var8 SetROR() {
+		public virtual VByte SetROR() {
 			if (OffsetRegister == null)
 				CPU6502.ROR(Address[0]);
-			else
+			else if (OffsetRegister is RegisterX) {
 				CPU6502.ROR(Address[0][OffsetRegister]);
+			} else if (OffsetRegister is RegisterY) {
+				Temp[0].Set(Y);
+				X.Set(Temp[0]);
+				OffsetRegister = X;
+				CPU6502.ROR(Address[0][OffsetRegister]);
+				OffsetRegister = Y;
+			} else throw new Exception("Invalid index register");
 			return this;
 		}
 		public Condition Equals(U8 v) {
@@ -215,7 +229,7 @@ namespace NESSharp.Core {
 				A.CMP(v);
 			return Condition.EqualsZero;
 		}
-		public Condition Equals(Var8 v) {
+		public Condition Equals(VByte v) {
 			if (OffsetRegister == null)
 				A.Set(Address[0]);//.Equals(v);
 			else
@@ -228,7 +242,7 @@ namespace NESSharp.Core {
 			Equals(v);
 			return Condition.NotEqualsZero;
 		}
-		public Condition NotEquals(Var8 v) {
+		public Condition NotEquals(VByte v) {
 			Equals(v);
 			return Condition.NotEqualsZero;
 		}
@@ -241,7 +255,7 @@ namespace NESSharp.Core {
 			A.CMP(Temp[0]);
 			return Condition.IsGreaterThan;
 		}
-		public Condition GreaterThan(Var8 v) {
+		public Condition GreaterThan(VByte v) {
 			if (OffsetRegister != null) throw new NotImplementedException();
 			Temp[0].Set(Address[0]);
 			A.Set(v);
@@ -262,7 +276,7 @@ namespace NESSharp.Core {
 			A.CMP(v);
 			return Condition.IsGreaterThanOrEqualTo;
 		}
-		public Condition GreaterThanOrEqualTo(Var8 v) {
+		public Condition GreaterThanOrEqualTo(VByte v) {
 			if (OffsetRegister != null)
 				A.Set(Address[0][OffsetRegister]);
 			else
@@ -275,7 +289,7 @@ namespace NESSharp.Core {
 			GreaterThanOrEqualTo(v);
 			return Condition.IsLessThan;
 		}
-		public Condition LessThan(Var8 v) {
+		public Condition LessThan(VByte v) {
 			GreaterThanOrEqualTo(v);
 			return Condition.IsLessThan;
 		}
@@ -283,7 +297,7 @@ namespace NESSharp.Core {
 			GreaterThan(v);
 			return Condition.IsLessThanOrEqualTo;
 		}
-		public Condition LessThanOrEqualTo(Var8 v) {
+		public Condition LessThanOrEqualTo(VByte v) {
 			GreaterThan(v);
 			return Condition.IsLessThanOrEqualTo;
 		}
@@ -294,22 +308,22 @@ namespace NESSharp.Core {
 
 
 
-		public static Var8 operator ++(Var8 addr) => addr.Increment();
-		public Var8 Increment() {
+		public static VByte operator ++(VByte addr) => addr.Increment();
+		public VByte Increment() {
 			if (OffsetRegister == null)
 				CPU6502.INC(Address[0]);
 			else
 				CPU6502.INC(Address[0][OffsetRegister]);
 			return this;
 		}
-		public Var8 Decrement() {
+		public VByte Decrement() {
 			if (OffsetRegister == null)
 				CPU6502.DEC(Address[0]);
 			else
 				CPU6502.DEC(Address[0][OffsetRegister]);
 			return this;
 		}
-		public static Var8 operator --(Var8 addr) {
+		public static VByte operator --(VByte addr) {
 			CPU6502.DEC(addr.Address[0]);
 			return addr;
 		}

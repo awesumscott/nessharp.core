@@ -17,10 +17,11 @@ namespace NESSharp.Core {
 			_start = _next = startOffset;
 			_end = endOffset;
 		}
-		private void ValidateNext() {
+		private void ValidateNext(int len = 1) {
 			while (true) {
 				//if _next is in a taken range,
-				var inRange = Taken.Where(x => _next >= x.Start && _next <= x.End).Take(1);
+				var end = (U16)(_next + len - 1);
+				var inRange = Taken.Where(x => (_next >= x.Start && _next <= x.End) || (end >= x.Start && end <= x.End)).Take(1);
 				if (inRange.Any()) {
 					//skip to the end of it
 					_next = inRange.First().End.IncrementedValue;
@@ -42,7 +43,7 @@ namespace NESSharp.Core {
 			return addr;
 		}
 		public Address[] Dim(int numBytes) {
-			ValidateNext();
+			ValidateNext(numBytes);
 			var addr0 = _next;
 			var addrs = new List<Address>(){ addr0 };
 			_next = _next.IncrementedValue;

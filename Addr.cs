@@ -107,9 +107,6 @@ namespace NESSharp.Core {
 		}
 		public RegisterA ToA() => A.Set(this);
 
-		public virtual RegisterA SBC(U8 v) => A.Set(this).SBC(v);
-		public virtual RegisterA SBC(IU8 v) => A.Set(this).SBC(v);
-		
 		public static Address New(ushort value) => new Address(value);
 		//public static implicit operator Address(ushort s) => new Address(s);
 		public static implicit operator ushort(Address p) => (ushort)((p.Hi << 8) + p.Lo);
@@ -120,7 +117,8 @@ namespace NESSharp.Core {
 				return base.ToString();
 
 			var matchVar = VarRegistry[matchName];
-			int? index = matchVar.Address.Count() > 1 ? matchVar.Address.ToList().IndexOf(this) : (int?)null;
+			var matchByteInstance = matchVar.Address.Where(x => x.Hi == Hi && x.Lo == Lo).FirstOrDefault(); //necessary instead of "this" because instance refs may be different
+			int? index = (matchVar.Address.Count() > 1  && matchByteInstance != null) ? matchVar.Address.ToList().IndexOf(matchByteInstance) : (int?)null;
 			return matchName + (index!=null ? $"[{index}]" : "");
 		}
 
