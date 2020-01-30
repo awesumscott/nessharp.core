@@ -41,6 +41,7 @@ namespace NESSharp.Core {
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
 		public static ConstantCollection					Constants			= new ConstantCollection();
 		public static short									CodeContextIndex;
+		private static Dictionary<Type, IScene>				_Modules			= new Dictionary<Type, IScene>();
 		
 		public static RAM ram =	new RAM(Addr(0), Addr(0x07FF));
 		public static RAM zp =	ram.Allocate(Addr(0), Addr(0xFF));
@@ -60,6 +61,14 @@ namespace NESSharp.Core {
 			Code = new List<List<Operation>>(); //clear code to prepare for next bank definition
 			CodeContextIndex = 0;
 			Code.Add(new List<Operation>());
+		}
+		public static T Module<T>() {
+			var instance = (T)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+			if (instance == null) {
+				instance = (T)Activator.CreateInstance(typeof(T));
+				_Modules.Add(typeof(T), (IScene)instance);
+			}
+			return instance;
 		}
 
 		public static OpLabel LabelFor(Action method) => Label[ROMManager.LabelNameFromMethodInfo(method.GetMethodInfo())];

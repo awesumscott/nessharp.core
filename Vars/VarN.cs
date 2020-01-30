@@ -32,6 +32,12 @@ namespace NESSharp.Core {
 			}
 		}
 
+		int[] Slice(int start, int length) { 
+			var slice = new int[length];
+			//Array.Copy(_array, start, slice, 0, length);
+			return slice;
+		}
+
 		public VarN Set(Func<VarN, object> func) => Set(func.Invoke(this));
 		public VarN Set(object o) {
 			if (o is U8 u8) {
@@ -97,8 +103,7 @@ namespace NESSharp.Core {
 			for (var i = 1; i < Size; i++) {
 				if (i < srcLen)
 					yield return Address[i].ToA().ADC(iva.Address[i]);
-				else
-					yield return Address[i].ToA().ADC(0);
+				yield return Address[i].ToA().ADC(0);
 			}
 			yield break;
 		}
