@@ -5,7 +5,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public static class Context {
-		private static Stack<OpLabel> _startLabels = new Stack<OpLabel>();
+		private static readonly Stack<OpLabel> _startLabels = new Stack<OpLabel>();
 		public static void New(Action body) {
 			Push();
 			body.Invoke();

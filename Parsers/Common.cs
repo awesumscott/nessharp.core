@@ -12,35 +12,57 @@ namespace NESSharp.Core.Parsers {
 		public interface ILine {}
 		public class ByteList : ILine {
 			public List<object> List;
+			public ByteList(List<object> list) {
+				List = list;
+			}
 		}
 		public class WordList : ILine {
 			public List<object> List;
+			public WordList(List<object> list) {
+				List = list;
+			}
 		}
 		public class Label : ILine {
 			public string Name;
 			//public boo
+			public Label(string name) {
+				Name = name;
+			}
 		}
 		public class Instruction : ILine {
 			public OpCode Op;
-			public List<Param> Params;
+			//public List<Param> Params;
+			public Instruction(OpCode op) {
+				Op = op;
+			}
 		}
 		public class Constant : ILine {
 			public string Name;
 			public object Value;
+			public Constant(string name, object value) {
+				Name = name;
+				Value = value;
+			}
 		}
 		public class Hi : ILine {
 			public object Value;
+			public Hi(object value) {
+				Value = value;
+			}
 		}
 		public class Lo : ILine {
 			public object Value;
+			public Lo(object value) {
+				Value = value;
+			}
 		}
-		public class Offset : ILine {
-			public object Value;
-		}
+		//public class Offset : ILine {
+		//	public object Value;
+		//}
 		public static List<string> Lines(string asm) => asm.Replace("\r\n", "\n").Replace("\r", "\n").Split("\n").Select(RemoveComment).Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
 		public static List<string> Tokens(string line) => line.Split(' ').SelectMany(x => x.Split(',')).Where(x => !string.IsNullOrEmpty(x)).ToList();
 		public static string RemoveComment(string line) => line.Split(';').First();
-		public static bool IsLabel(string line) => line.Last() == ':';
+		public static bool IsLabelLine(string line) => line.Last() == ':';
 
 		//private static List<object> ParseParams(IEnumerable<string> tokens) {
 		//	var ps = new List<object>();
@@ -49,13 +71,13 @@ namespace NESSharp.Core.Parsers {
 		//}
 		
 		
-		private static List<string> labels = new List<string>();
-		private static bool isLabel(string s) => labels.Contains(s);
-		private static bool isConstant(string s) => AL.Constants.Contains(s);
+		private static readonly List<string> labels = new List<string>();
+		private static bool IsExistingLabel(string s) => labels.Contains(s);
+		private static bool IsConstant(string s) => AL.Constants.Contains(s);
 		private static object ParseToken(object o) {
 			if (o is string s) {
-				if (isLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
-				if (isConstant(s)) {
+				if (IsExistingLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
+				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return (byte)((U8)AL.Constants[s].Value).Value;
 							
@@ -92,9 +114,9 @@ namespace NESSharp.Core.Parsers {
 			//expressions / functions need more work than this, but this is to expedite song file parsing to test ggsound:
 			if (token.EndsWith(")")) {
 				if (token.StartsWith("low(")) {
-					return new Lo(){ Value = ParseParam(token[4..^1]) };
+					return new Lo(ParseParam(token[4..^1]));
 				} else if (token.StartsWith("high(")) {
-					return new Hi(){ Value = ParseParam(token[5..^1]) };
+					return new Hi(ParseParam(token[5..^1]));
 			
 				}
 			}
@@ -115,23 +137,26 @@ namespace NESSharp.Core.Parsers {
 		}
 		private static object getByteParam(object o) {
 			if (o is string s) {
-				if (isLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
-				if (isConstant(s)) {
+				if (IsExistingLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
+				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return (byte)((U8)AL.Constants[s].Value).Value;
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
-				return (byte)0;//throw new Exception("Unknown value: " + o.ToString());
+				//return (byte)0;
+				throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is Hi hi) {
 				var val = getByteParam(hi.Value);
 				if (val is Address a) return (byte)a.Hi;
 				if (val is LabelRef lbl) return lbl.Lbl.Hi();
+				//return val;
 				throw new NotImplementedException();
 			} else if (o is Lo lo) {
 				var val = getByteParam(lo.Value);
 				if (val is Address a) return (byte)a.Lo;
 				if (val is LabelRef lbl) return lbl.Lbl.Lo();
+				//return val;
 				throw new NotImplementedException();
 			} else if (o is U8 u8) {
 				return u8.Value;
@@ -140,8 +165,8 @@ namespace NESSharp.Core.Parsers {
 		}
 		private static IEnumerable<object> getWordParam(object o) {
 			if (o is string s) {
-				if (isLabel(s)) return new List<object>{AL.Label[s].Lo(), AL.Label[s].Hi()};
-				if (isConstant(s)) {
+				if (IsExistingLabel(s)) return new List<object>{AL.Label[s].Lo(), AL.Label[s].Hi()};
+				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return new List<object>{(byte)AL.Constants[s].Value};
 					else if (AL.Constants[s].GetType() == typeof(ConstU8))
@@ -165,21 +190,21 @@ namespace NESSharp.Core.Parsers {
 			var parsed = new List<ILine>(); //string versions of values before figuring out the real data type
 			var constants = new Dictionary<string, string>(); //string versions of values before figuring out the real data type
 			foreach (var line in Lines(asm)) {
-				if (IsLabel(line)) {
-					parsed.Add(new Label(){ Name = line[0..^1] });
+				if (IsLabelLine(line)) {
+					parsed.Add(new Label(line[0..^1]));
 				} else {
 					var tokens = Tokens(line);
 					if (tokens[1] == "=") {
 						//probably a constant
 						//constants.Add(tokens[0], tokens[2]);
-						parsed.Add(new Constant() { Name = tokens[0], Value = ParseParam(tokens[2]) });
+						parsed.Add(new Constant(tokens[0], ParseParam(tokens[2])));
 					} else if (tokens[0].StartsWith('.')) {
 						switch (tokens[0]) {
 							case ".db": case ".byte": case ".byt":
-								parsed.Add(new ByteList(){ List = tokens.Skip(1).Select(ParseParam).ToList() });
+								parsed.Add(new ByteList(tokens.Skip(1).Select(ParseParam).ToList()));
 								break;
 							case ".dw": case ".word": case ".addr":
-								parsed.Add(new WordList(){ List = tokens.Skip(1).Select(ParseParam).ToList() });
+								parsed.Add(new WordList(tokens.Skip(1).Select(ParseParam).ToList()));
 								break;
 						}
 					} else {
@@ -187,7 +212,7 @@ namespace NESSharp.Core.Parsers {
 							if (tokens.Count == 1) {
 								//if (options.Count > 1) throw new Exception();
 								if (options.TryGetValue(Asm.Mode.Implied, out var opRef)) {
-									parsed.Add(new Instruction(){ Op = opRef.Use() });
+									parsed.Add(new Instruction(opRef.Use()));
 								} else throw new Exception($"No Implied mode for instruction { tokens[0] }");
 							} else if (tokens.Count == 2) {
 								if (tokens[1].StartsWith("#")) {
@@ -203,7 +228,7 @@ namespace NESSharp.Core.Parsers {
 				}
 			}
 			
-			var prefix = "testasm_";
+			//var prefix = "testasm_";
 			foreach (var p in parsed) {
 				if (p is Label lbl) {
 					labels.Add(lbl.Name);
@@ -233,9 +258,7 @@ namespace NESSharp.Core.Parsers {
 			//			Asm.NOP.Value; //throw new NotImplementedException();
 			//object[] getParamArray(List<object> list) =>
 			//			list.Select(x => x is string ? getParam((string)x) : x).ToArray();
-			
-			
-			
+
 			foreach (var p in parsed) {
 				if (p is ByteList bl) {
 					AL.Raw(bl.List.Select(getByteParam).ToArray());

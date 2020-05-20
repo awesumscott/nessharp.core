@@ -3,7 +3,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class DoLoop {
-		private Action? _block;
+		private readonly Action? _block;
 		public DoLoop(Action? block = null) {
 			_block = block;
 		}
@@ -23,14 +23,14 @@ namespace NESSharp.Core {
 			if (len >= LOWEST_BRANCH_VAL) {
 				Branch(c, (U8)len);
 			} else {
-				Branch(c, (U8)Asm.JMP.Absolute.Length, true);
-				Use(Asm.JMP.Absolute, Context.StartLabel);
+				Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length, true);
+				CPU6502.JMP(Context.StartLabel); //Use(Asm.JMP.Absolute, Context.StartLabel);
 			}
 			Context.Pop();
 		}
 	}
 	public static class Loop {
-		public static void Infinite(Action block = null) {
+		public static void Infinite(Action? block = null) {
 			var lbl = Label.New();
 			Use(lbl);
 			if (block != null) {
@@ -41,7 +41,7 @@ namespace NESSharp.Core {
 			GoTo(lbl);
 		}
 		public static DoLoop Do(Action? block = null) => new DoLoop(block);
-		public static void For(Action initialize, Action condition, Action each, Action block) => throw new NotImplementedException();
+		//public static void For(Action initialize, Action condition, Action each, Action block) => throw new NotImplementedException();
 		public static void Descend(RegisterX reg, Action block) {
 			Do(() => {
 				block.Invoke();
@@ -90,7 +90,7 @@ namespace NESSharp.Core {
 				var lblEnd = Label.New();
 				var lblOptionEnd = Label.New();
 				Context.Parent(() => {
-					Branch(c, (U8)Asm.JMP.Absolute.Length);
+					Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length);
 					GoTo(lblEnd);
 				});
 				Use(lblEnd);
@@ -120,7 +120,7 @@ namespace NESSharp.Core {
 					if (length != 255)
 						CPU6502.CPX(length);
 					Use(Asm.BEQ, (U8)3);
-					Use(Asm.JMP.Absolute, lblStart);
+					CPU6502.JMP(lblStart); //Use(Asm.JMP.Absolute, lblStart);
 				}
 			});
 		}

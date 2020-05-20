@@ -38,7 +38,7 @@ namespace NESSharp.Core {
 	}
 	public class OpCode : Operation {
 		public byte Value;
-		public string Description;
+		//public string Description = string.Empty;
 		public OpCode(byte opVal, byte len = 1) {
 			Value = opVal;
 			Length = len;
@@ -55,49 +55,55 @@ namespace NESSharp.Core {
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>
 	public static class CPU6502 {
-		public static void ADC(object o) {
+		public static void ADC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["ADC"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void AND(object o) {
+		public static void AND(object o) {						//N Z
 			GenericAssembler(Asm.OC["AND"], o);
 		}
-		public static void ASL(object o) {
+		public static void ASL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ASL"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void BIT(object o) {
+		public static void BIT(object o) {						//N V Z
 			GenericAssembler(Asm.OC["BIT"], o);
 		}
-		public static void CLC() {
+		public static void BRK() {								//B
+			AL.Use(Asm.OC["BRK"][Asm.Mode.Implied].Use());
+		}
+		public static void CLC() {								//C
 			AL.Use(Asm.OC["CLC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Cleared;
 		}
-		public static void CMP(object o) {
+		public static void CLD() {								//
+			AL.Use(Asm.OC["CLD"][Asm.Mode.Implied].Use());
+		}
+		public static void CMP(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CMP"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void CPX(object o) {
+		public static void CPX(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CPX"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void CPY(object o) {
+		public static void CPY(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CPY"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void DEC(object o) {
+		public static void DEC(object o) {						//N Z
 			GenericAssembler(Asm.OC["DEC"], o);
 		}
-		public static void DEX() {
+		public static void DEX() {								//
 			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
 		}
 		public static void DEY() {
 			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
 		}
-		public static void EOR(object o) {
+		public static void EOR(object o) {						//N Z
 			GenericAssembler(Asm.OC["EOR"], o);
 		}
-		public static void INC(object o) {
+		public static void INC(object o) {						//N Z
 			GenericAssembler(Asm.OC["INC"], o);
 		}
 		public static void INX() {
@@ -106,62 +112,100 @@ namespace NESSharp.Core {
 		public static void INY() {
 			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
 		}
-		public static void LDA(object o) {
+		public static void JMP(object o) {						//none
+			GenericAssembler(Asm.OC["JMP"], o);
+		}
+		public static void JSR(object o) {						//none
+			GenericAssembler(Asm.OC["JSR"], o);
+		}
+		public static void LDA(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDA"], o);
 		}
-		public static void LDX(object o) {
+		public static void LDX(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDX"], o);
 		}
-		public static void LDY(object o) {
+		public static void LDY(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDY"], o);
 		}
-		public static void LSR(object o) {
+		public static void LSR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["LSR"], o);
 			Carry.State = CarryState.Unknown;
 		}
-		public static void ORA(object o) {
+		public static void NOP() {								//none
+			AL.Use(Asm.OC["NOP"][Asm.Mode.Implied].Use());
+		}
+		public static void PHA() {
+			AL.Use(Asm.OC["PHA"][Asm.Mode.Implied].Use());
+		}
+		public static void PHP() {
+			AL.Use(Asm.OC["PHP"][Asm.Mode.Implied].Use());
+		}
+		public static void PLA() {
+			AL.Use(Asm.OC["PLA"][Asm.Mode.Implied].Use());
+		}
+		public static void PLP() {
+			AL.Use(Asm.OC["PLP"][Asm.Mode.Implied].Use());
+		}
+		public static void ORA(object o) {						//N Z
 			GenericAssembler(Asm.OC["ORA"], o);
 		}
-		public static void ROL(object o) {
+		public static void ROL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROL"], o);
-			Carry.State = CarryState.Unknown;
+			Carry.Reset();
 		}
-		public static void ROR(object o) {
+		public static void ROR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROR"], o);
-			Carry.State = CarryState.Unknown;
+			Carry.Reset();
 		}
-		public static void SBC(object o) {
+		public static void RTI() {								//all
+			AL.Use(Asm.OC["RTI"][Asm.Mode.Implied].Use());
+			AL.Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
+		}
+		public static void RTS() {
+			AL.Use(Asm.OC["RTS"][Asm.Mode.Implied].Use());
+			AL.Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
+		}
+		public static void SBC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["SBC"], o);
-			Carry.State = CarryState.Unknown;
+			Carry.Reset();
 		}
-		public static void SEC() {
+		public static void SEC() {								//C
 			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Set;
 		}
-		public static void STA(object o) {
+		public static void SEI() {
+			AL.Use(Asm.OC["SEI"][Asm.Mode.Implied].Use());
+		}
+		public static void STA(object o) {						//none
 			GenericAssembler(Asm.OC["STA"], o);
 		}
-		public static void STX(object o) {
+		public static void STX(object o) {						//none
 			GenericAssembler(Asm.OC["STX"], o);
 		}
-		public static void STY(object o) {
+		public static void STY(object o) {						//none
 			GenericAssembler(Asm.OC["STY"], o);
 		}
-		public static void TAX() {
+		public static void TAX() {								//N Z
 			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
 		}
-		public static void TAY() {
+		public static void TAY() {								//N Z
 			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
 		}
-		public static void TXA() {
+		public static void TSX() {								//?
+			AL.Use(Asm.OC["TSX"][Asm.Mode.Implied].Use());
+		}
+		public static void TXA() {								//N Z
 			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
 		}
-		public static void TYA() {
+		public static void TXS() {								//?
+			AL.Use(Asm.OC["TXS"][Asm.Mode.Implied].Use());
+		}
+		public static void TYA() {								//N Z
 			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
 		}
 		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object o) {
 			switch (o) {
-				case RegisterA ra:
+				case RegisterA _:
 					if (opModes.ContainsKey(Asm.Mode.Accumulator))
 						AL.Use(opModes[Asm.Mode.Accumulator].Use());
 					break;
@@ -171,6 +215,7 @@ namespace NESSharp.Core {
 							AL.Use(opModes[Asm.Mode.ZeroPageX].Use(), ai.Lo);
 						else if (opModes.ContainsKey(Asm.Mode.AbsoluteX))
 							AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), ai);
+						else throw new Exception("Invalid addressing mode");
 					} else if (ai.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY))
 						AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), ai); //no ZPY mode
 					else throw new Exception("Invalid indexing register");
@@ -182,22 +227,20 @@ namespace NESSharp.Core {
 						AL.Use(opModes[Asm.Mode.Absolute].Use(), addr);
 					break;
 				case OpLabelIndexed oli:
-					if (oli.Index is RegisterX) {
-						if (opModes.ContainsKey(Asm.Mode.AbsoluteX))
-							AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), oli.Label);
-					} else if (oli.Index is RegisterY) {
-						if (opModes.ContainsKey(Asm.Mode.AbsoluteY))
-							AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), oli.Label);
-					} else throw new Exception("Invalid indexing register");
+					if (oli.Index is RegisterX && opModes.ContainsKey(Asm.Mode.AbsoluteX))
+						AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), oli.Label);
+					else if (oli.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY))
+						AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), oli.Label);
+					else throw new Exception("Invalid addressing mode");
 					break;
 				case OpLabel lbl:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))
 						AL.Use(opModes[Asm.Mode.Absolute].Use(), lbl);
 					break;
-				case Ptr ptr:
+				case Ptr _:
 					//AL.Use(Asm.LDA.IndirectY, ptr.Lo.Lo);
 					throw new Exception("Pointers must be indexed with X or Y");
-					break;
+					//break;
 				case PtrY ptrY:
 					if (opModes.ContainsKey(Asm.Mode.IndirectY))
 						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo.Lo);
@@ -282,7 +325,7 @@ namespace NESSharp.Core {
 
 			public static OpCode Use(string code, Mode mode) {
 				var opcodeRef = OpRefs.FirstOrDefault(x => x.Token == code.ToUpper() && x.Mode == mode);
-				if (opcodeRef == null) throw new Exception($"Illegal opcode or addressing mode: { code } { mode.ToString() }");
+				if (opcodeRef == null) throw new Exception($"Illegal opcode or addressing mode: { code } { mode }");
 				return new OpCode(opcodeRef.Byte, opcodeRef.Length);
 			}
 			public OpCode Use() => new OpCode(Byte, Length);
@@ -445,19 +488,8 @@ namespace NESSharp.Core {
 		public static Dictionary<string, Dictionary<Mode, OpRef>> OC = OpRefs.Select(x => x.Token).Distinct().ToDictionary(x => x, x => OpRefs.Where(y => y.Token == x).ToDictionary(y => y.Mode, y => y));
 
 		#region Flag instructions
-		//public static OpCode CLI => OC["CLI"][Mode.Implied].Use();
-		public static OpCode SEI => OC["SEI"][Mode.Implied].Use();
 		//public static OpCode CLV => OC["CLV"][Mode.Implied].Use();
-		public static OpCode CLD => OC["CLD"][Mode.Implied].Use();
 		//public static OpCode SED => OC["SED"][Mode.Implied].Use();
-		#endregion
-		#region Stack instructions
-		public static OpCode TXS => OC["TXS"][Mode.Implied].Use();
-		public static OpCode TSX => OC["TSX"][Mode.Implied].Use();
-		public static OpCode PHA => OC["PHA"][Mode.Implied].Use();
-		public static OpCode PLA => OC["PLA"][Mode.Implied].Use();
-		public static OpCode PHP => OC["PHP"][Mode.Implied].Use();
-		public static OpCode PLP => OC["PLP"][Mode.Implied].Use();
 		#endregion
 		#region Branching
 		public static OpCode BPL => OC["BPL"][Mode.Relative].Use();
@@ -468,17 +500,6 @@ namespace NESSharp.Core {
 		public static OpCode BCS => OC["BCS"][Mode.Relative].Use();
 		public static OpCode BNE => OC["BNE"][Mode.Relative].Use();
 		public static OpCode BEQ => OC["BEQ"][Mode.Relative].Use();
-		#endregion
-		#region Jumping and returns
-		public static OpCode RTI => OC["RTI"][Mode.Implied].Use();
-		public static OpCode RTS => OC["RTS"][Mode.Implied].Use();
-		public static class JMP {
-			public static OpCode Absolute		{get => new OpCode(0x4C,	3);}
-			public static OpCode Indirect		{get => new OpCode(0x6C,	3);}
-		}
-		public static OpCode JSR => OC["JSR"][Mode.Absolute].Use();
-		//public static OpCode BRK => OC["BRK"][Mode.Implied].Use();
-		//public static OpCode NOP => OC["NOP"][Mode.Implied].Use();
 		#endregion
 	}
 }

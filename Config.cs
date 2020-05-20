@@ -9,7 +9,7 @@ using System.Text;
 namespace NESSharp.Core {
 	public static class Config {
 		public static T Load<T>(string json) => JsonConvert.DeserializeObject<T>(json, ConfigConverter.Settings);
-		public static bool TryLoad<T>(string path, out T configObj) {
+		public static bool TryLoad<T>(string path, out T? configObj) where T : class {
 			path = "./config/" + path;
 			configObj = default;
 			if (!File.Exists(path)) return false;

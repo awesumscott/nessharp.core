@@ -19,7 +19,7 @@ namespace NESSharp.Core {
 			Hi = Address[1];
 			VarRegistry.Add(name, this);
 		}
-		public Ptr(Address pointToAddr = null, U8 index = null, string name = "?") {
+		public Ptr(Address? pointToAddr = null, string name = "?") {
 			Address = zp.Dim(2);
 			Lo = Address[0];
 			Hi = Address[1];

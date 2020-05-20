@@ -2,7 +2,7 @@
 
 namespace NESSharp.Core {
 	public class Array : Var {
-		private Var[] Vars;
+		private Var[]? Vars;
 		public Var BaseVar;
 		private Type _varType;
 		public override int Length { get; set; } = 0;
@@ -17,13 +17,15 @@ namespace NESSharp.Core {
 			return arr;
 		}
 		public override Var Dim(RAM ram, string name) {
-			if (Vars != null) throw new Exception("Array already dimmed");
+			if (!(Vars is null)) throw new Exception("Array already dimmed");
 			if (Length <= 0) throw new Exception("Set Length before dimming");
 			Vars = new Var[Length];
 			for (var i = 0; i < Length; i++) {
-				var v = (Var)Activator.CreateInstance(_varType);
-				v.Dim(ram, $"{ name }_{ i.ToString() }");
-				Vars[i] = v;
+				var v = (Var?)Activator.CreateInstance(_varType);
+				if (v != null) {
+					v.Dim(ram, $"{ name }_{ i }");
+					Vars[i] = v;
+				} else throw new Exception("Dim failed");
 			}
 			BaseVar = Vars[0];
 			Name = name;
@@ -31,6 +33,7 @@ namespace NESSharp.Core {
 		}
 		public Var this[int index] {
 			get {
+				if (Vars is null) throw new Exception("Array hasn't been dimmed");
 				if (index >= 0 && index < Vars.Length)
 					return Vars[index];
 				throw new Exception("Index out of range");
@@ -38,7 +41,7 @@ namespace NESSharp.Core {
 		}
 	}
 	public class Array<T> : Var where T : Var, new() {
-		private T[] Vars;
+		private T[]? Vars;
 
 		public Array() {}
 		//public Array(RAM ram, int len, string name) {
@@ -59,11 +62,11 @@ namespace NESSharp.Core {
 
 		public override int Size => throw new NotImplementedException();
 		public override Var Dim(RAM ram, string name) {
-			if (Vars != null) throw new Exception("Array already dimmed");
+			if (!(Vars is null)) throw new Exception("Array already dimmed");
 			Vars = new T[Length];
 			for (var i = 0; i < Length; i++) {
 				var v = new T();
-				v.Dim(ram, $"{ name }_{ i.ToString() }");
+				v.Dim(ram, $"{ name }_{ i }");
 				Vars[i] = v;
 			}
 			Name = name;
@@ -75,6 +78,7 @@ namespace NESSharp.Core {
 		//}
 		public T this[int index] {
 			get {
+				if (Vars is null) throw new Exception("Array hasn't been dimmed");
 				if (index >= 0 && index < Vars.Length)
 					return Vars[index];
 				throw new Exception("Index out of range");

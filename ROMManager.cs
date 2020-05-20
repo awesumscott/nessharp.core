@@ -13,7 +13,7 @@ namespace NESSharp.Core {
 		public static HeaderOptions Header;
 		public static List<Bank> PrgBank = new List<Bank>();
 		public static List<Bank> ChrBank = new List<Bank>();
-		public static List<LabelRef> Interrupts = new List<LabelRef>();
+		public static List<LabelRef?> Interrupts = new List<LabelRef?>();
 		public static string AsmOutput = string.Empty;
 
 		public static void SetInfinite() {
@@ -26,13 +26,13 @@ namespace NESSharp.Core {
 			Mapper.Init(PrgBank, ChrBank, Header);
 		}
 
-		public static void SetInterrupts(OpLabel NMI, OpLabel Reset, OpLabel IRQ) {
-			Interrupts.Add(NMI != null ? NMI.Reference() : null);
-			Interrupts.Add(Reset != null ? Reset.Reference() : null);
-			Interrupts.Add(IRQ != null ? IRQ.Reference() : null);
+		public static void SetInterrupts(OpLabel? NMI, OpLabel? Reset, OpLabel? IRQ) {
+			Interrupts.Add(NMI?.Reference());
+			Interrupts.Add(Reset?.Reference());
+			Interrupts.Add(IRQ?.Reference());
 		}
 
-		public static string LabelNameFromMethodInfo(MethodInfo methodInfo) => $"{methodInfo.DeclaringType.Name}_{methodInfo.Name}";
+		public static string LabelNameFromMethodInfo(MethodInfo methodInfo) => $"{methodInfo.DeclaringType?.Name ?? "???"}_{methodInfo.Name}";
 		public static OpLabel ToLabel(this MethodInfo methodInfo) => Label[LabelNameFromMethodInfo(methodInfo)];
 
 		public static void SetInterrupts(Action NMI, Action Reset, Action IRQ) {
@@ -144,10 +144,9 @@ namespace NESSharp.Core {
 			}
 
 			if (Mapper != null) {
-				using (var f = File.Open(fileName + ".mlb", FileMode.Create)) {
-					var debugFileBytes = Encoding.ASCII.GetBytes(DebugFile.Contents);
-					f.Write(debugFileBytes, 0, debugFileBytes.Length);
-				}
+				using var f = File.Open(fileName + ".mlb", FileMode.Create);
+				var debugFileBytes = Encoding.ASCII.GetBytes(DebugFile.Contents);
+				f.Write(debugFileBytes, 0, debugFileBytes.Length);
 			}
 
 			using (var f = File.Open(fileName + ".asm", FileMode.Create)) {
@@ -179,6 +178,37 @@ namespace NESSharp.Core {
 				bank.Rom[bank.Rom.Length - 1 - i] = interrupts[lenInterrupts - 1 - i];
 		}
 
+		public static void AddPrgBank(int id, Action<U8, Bank> bankSetup) {
+			CurrentBank = PrgBank[id];
+			//Use(mwa.method.ToLabel());
+			bankSetup((U8)id, CurrentBank);
+			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
+			CurrentBank.WriteContext();
+		}
+		public static void AddChrBank(int id, Action<U8, Bank> bankSetup) {
+			CurrentBank = ChrBank[id];
+			//Use(mwa.method.ToLabel());
+			bankSetup((U8)id, CurrentBank);
+			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
+			CurrentBank.WriteContext();
+		}
+
+		public static void CompileRom<T>() {
+			var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+			foreach (var mwa in methods.WithAttribute<PrgBankDef>()) {
+				CurrentBank = PrgBank[mwa.attribute.Id];
+				Use(mwa.method.ToLabel());
+				mwa.method.Invoke(null, null);
+				//ROMManager.FillBank();//prgBankLayoutAttr.Id);
+				CurrentBank.WriteContext();
+			}
+			foreach (var mwa in methods.WithAttribute<ChrBankDef>()) {
+				CurrentBank = ChrBank[mwa.attribute.Id];
+				Use(mwa.method.ToLabel());
+				mwa.method.Invoke(null, null);
+				CurrentBank.WriteContext();
+			}
+		}
 		public static void CompileRom(Type romType) {
 			var methods = romType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 			foreach (var mwa in methods.WithAttribute<PrgBankDef>()) {

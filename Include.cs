@@ -30,7 +30,7 @@ namespace NESSharp.Core {
 				Reset();
 				Use(m.ToLabel());
 				m.Invoke(null, null);
-				Use(Core.Asm.RTI);
+				CPU6502.RTI();
 			}
 			foreach (var m in methods.WithAttribute<DataSection>().Select(x => x.method)) {
 				Reset();
@@ -38,7 +38,7 @@ namespace NESSharp.Core {
 				m.Invoke(null, null);
 			}
 		}
-		public static void Module(object obj) {
+		public static T Module<T>(T obj) {
 			Module(obj.GetType()); //add all static methods from this type
 
 			//TODO: Each of these should change a context, so all classes within a bank can fill up "code sections", "subs" etc,
@@ -46,6 +46,11 @@ namespace NESSharp.Core {
 			var methods = obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			foreach (var m in methods.WithAttribute<Dependencies>().Select(x => x.method)) {
 				Reset();
+				m.Invoke(obj, null);
+			}
+			foreach (var m in methods.WithAttribute<DataSection>().Select(x => x.method)) {
+				Reset();
+				Use(m.ToLabel());
 				m.Invoke(obj, null);
 			}
 			foreach (var m in methods.WithAttribute<CodeSection>().Select(x => x.method)) {
@@ -65,13 +70,9 @@ namespace NESSharp.Core {
 				Reset();
 				Use(m.ToLabel());
 				m.Invoke(obj, null);
-				Use(Core.Asm.RTI);
+				CPU6502.RTI();
 			}
-			foreach (var m in methods.WithAttribute<DataSection>().Select(x => x.method)) {
-				Reset();
-				Use(m.ToLabel());
-				m.Invoke(obj, null);
-			}
+			return obj;
 		}
 		
 		public static void Module(params Type[] classTypes) {

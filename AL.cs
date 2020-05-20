@@ -4,6 +4,16 @@ using System.Linq;
 using System.Reflection;
 
 namespace NESSharp.Core {
+	public abstract class Module {
+		public U8 Bank;
+		public RAM Ram;
+		public RAM Zp;
+		public void Init(U8 bank, RAM? zpChunk = null, RAM? ramChunk = null) {
+			Bank = bank;
+			Ram = ramChunk ?? AL.ram;
+			Zp = zpChunk ?? AL.zp;
+		}
+	}
 	public enum CarryState {
 		Set,
 		Cleared,
@@ -28,6 +38,7 @@ namespace NESSharp.Core {
 		//}
 		public static Condition IsClear() => Condition.IsCarryClear;
 		public static Condition IsSet() => Condition.IsCarrySet;
+		public static void Reset() => State = CarryState.Unknown;
 	}
 	public static class AL {
 		public static RegisterA A = new RegisterA();
@@ -41,7 +52,7 @@ namespace NESSharp.Core {
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
 		public static ConstantCollection					Constants			= new ConstantCollection();
 		public static short									CodeContextIndex;
-		private static Dictionary<Type, IScene>				_Modules			= new Dictionary<Type, IScene>();
+		private static readonly Dictionary<Type, Module>	_Modules			= new Dictionary<Type, Module>();
 		
 		public static RAM ram =	new RAM(Addr(0), Addr(0x07FF));
 		public static RAM zp =	ram.Allocate(Addr(0), Addr(0xFF));
@@ -49,7 +60,7 @@ namespace NESSharp.Core {
 		public static RAM OAMRam =		ram.Allocate(Addr(0x0200), Addr(0x02FF)); //eliminate stack page and shadow OAM from possible allocations
 		//public static Address[] Temp = zp.Dim(3);
 		public static VByte[] Temp = new VByte[] {VByte.New(zp, "Temp0"), VByte.New(zp, "Temp1"), VByte.New(zp, "Temp2")};
-		public static Ptr TempPtr0 = new Ptr(null, null, "tempPtr0");
+		public static Ptr TempPtr0 = new Ptr(null, "tempPtr0");
 
 		public static readonly short LOWEST_BRANCH_VAL = -128;
 		public static readonly short HIGHEST_BRANCH_VAL = 127;
@@ -62,11 +73,13 @@ namespace NESSharp.Core {
 			CodeContextIndex = 0;
 			Code.Add(new List<Operation>());
 		}
-		public static T Module<T>() {
-			var instance = (T)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+		public static T? Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
+			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			if (instance == null) {
-				instance = (T)Activator.CreateInstance(typeof(T));
-				_Modules.Add(typeof(T), (IScene)instance);
+				instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
+				instance.Init(0, Zp, Ram); //TODO: bank needs to get set correctly
+				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
+				_Modules.Add(typeof(T), instance);
 			}
 			return instance;
 		}
@@ -109,26 +122,19 @@ namespace NESSharp.Core {
 		public static void Raw(params IResolvable<Address>[] addrs) => Use(new OpRaw(addrs));
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));
 
-		public static void GoTo(OpLabel label) => Use(Asm.JMP.Absolute, label);
-		public static void GoTo_Indirect(Ptr p) => Use(Asm.JMP.Indirect, p.Lo);
+		public static void GoTo(OpLabel label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
+		public static void GoTo_Indirect(Ptr p) => CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
 		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
-			Use(Asm.JMP.Indirect, vn.Lo);
+			//CPU6502.JMP(vn.Lo);
+			Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), vn.Lo);
 		}
 
-		public static void GoSub(OpLabel label) {
-			Use(Asm.JSR, label);
-			Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
-		}
-		public static void GoSub(Address addr) {
-			Use(Asm.JSR, addr);
-			Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
-		}
+		public static void GoSub(OpLabel label) => CPU6502.JSR(label);
+		public static void GoSub(Address addr) => CPU6502.JSR(addr);
 		public static void GoSub(Action method) => GoSub(LabelFor(method));
 		//public static void Inline(Action method) => method.Invoke();
-		public static void Return() => Use(Asm.RTS);
-
-
+		public static void Return() => CPU6502.RTS();
 
 		public static int Length(Action a) {
 			Context.Push();
@@ -155,22 +161,31 @@ namespace NESSharp.Core {
 		
 		public interface IOption {}
 		public class IfOption : IOption {
-			public object? Condition;
-			public Action? Block;
+			public object Condition;
+			public Action Block;
 			public Func<Condition>? FallThroughCondition;
+
+			public IfOption(object condition, Action block) {
+				Condition = condition;
+				Block = block;
+			}
 		}
 		public class IfDefault : IOption {
 			public Action Block;
+
+			public IfDefault(Action block) {
+				Block = block;
+			}
 		}
 		public static Func<Condition> FallThroughIf(Func<Condition> condition) => condition;
 		public static IfOption Option(Func<object> condition, Action block, Func<Condition>? fallThroughCondition = null)
-						=> new IfOption() { Condition = condition, Block = block, FallThroughCondition = fallThroughCondition };
+						=> new IfOption(condition, block) { FallThroughCondition = fallThroughCondition };
 		public static IfOption Option(Func<Condition> condition, Action block, Func<Condition>? fallThroughCondition = null)
-						=> new IfOption() { Condition = condition, Block = block, FallThroughCondition = fallThroughCondition };
+						=> new IfOption(condition, block) { FallThroughCondition = fallThroughCondition };
 
 		//TODO: 3rd optional param for Option(): FallThroughIf(condition)--might this be a case to make a Switch block or something similar?
 
-		public static IfDefault Default(Action block) => new IfDefault() { Block = block };
+		public static IfDefault Default(Action block) => new IfDefault(block);
 		/// <summary>Multi-condition If block</summary>
 		/// <example>
 		/// If(
@@ -203,8 +218,9 @@ namespace NESSharp.Core {
 			}
 			if (numOptions > 1) {
 				if (hasElse)
-					optionDefault[0].Block.Invoke();
-				Use(lblEnd);
+					optionDefault[0].Block?.Invoke();
+				if (lblEnd != null) //always true in this block, suppressing nullable complaint
+					Use(lblEnd);
 			}
 		}
 		public static void If(Func<object> expression, Action block) {
@@ -259,26 +275,21 @@ namespace NESSharp.Core {
 			public enum ConditionType {Any, All, Expression};
 			public ConditionType Type;
 			public object[] Conditions;
+
+			public AdvancedCondition(ConditionType type, object[] conditions) {
+				Type = type;
+				Conditions = conditions;
+			}
 		}
-		public static Func<AdvancedCondition> Any(params Func<object>[] conditions) {
-			var ac = new AdvancedCondition();
-			ac.Type = AdvancedCondition.ConditionType.Any;
-			ac.Conditions = conditions;
-			return () => ac;
-		}
-		public static Func<AdvancedCondition> All(params Func<object>[] conditions) {
-			var ac = new AdvancedCondition();
-			ac.Type = AdvancedCondition.ConditionType.All;
-			ac.Conditions = conditions;
-			return () => ac;
-		}
+		public static Func<AdvancedCondition> Any(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.Any, conditions);
+		public static Func<AdvancedCondition> All(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.All, conditions);
 		private static void _WriteIfCondition(Condition condition, Action block, OpLabel? lblEndIf = null, Func<Condition>? fallThroughCondition = null, bool invert = false) {
 			Context.Push();
 			block.Invoke();
 			//Skip to "EndIf" if the condition succeeded
 			if (lblEndIf != null) {
 				if (fallThroughCondition != null)
-					Branch(fallThroughCondition.Invoke(), (U8)Asm.JMP.Absolute.Length, invert);
+					Branch(fallThroughCondition.Invoke(), Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
 				GoTo(lblEndIf);
 			}
 			var len = Context.Length;
@@ -289,7 +300,7 @@ namespace NESSharp.Core {
 			} else {
 				var lblOptionEnd = Label.New();
 				Context.Parent(() => {
-					Branch(condition, (U8)Asm.JMP.Absolute.Length, invert);
+					Branch(condition, Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
 					GoTo(lblOptionEnd);
 				});
 				Use(lblOptionEnd);
@@ -297,7 +308,7 @@ namespace NESSharp.Core {
 			Context.Pop();
 		}
 
-		public static void _WriteAnyCondition(object[] conditions, Action block, OpLabel lblEndIf = null, OpLabel lblShortCircuitSuccess = null) {
+		public static void _WriteAnyCondition(object[] conditions, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null) {
 			var lblSuccess = lblShortCircuitSuccess ?? Label.New();
 			var lblEnd = Label.New();
 			void successBlock() => GoTo(lblSuccess);
@@ -322,11 +333,11 @@ namespace NESSharp.Core {
 			Comment("after goto endif and before writeany's lblend");
 			Use(lblEnd);
 		}
-		public static void _WriteAllCondition(object[] conditions, Action block, OpLabel lblEndIf = null, OpLabel lblShortCircuitSuccess = null) {
+		public static void _WriteAllCondition(object[] conditions, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null) {
 			var currentCondition = conditions.First();
 			_WriteCondition(currentCondition, conditions.Length > 1 ? () => _WriteAllCondition(conditions.Skip(1).ToArray(), block, lblEndIf) : block, conditions.Length == 1 ? lblEndIf : null);
 		}
-		public static void _WriteCondition(object condition, Action block, OpLabel lblEndIf = null, OpLabel lblShortCircuitSuccess = null, bool invert = false) {
+		public static void _WriteCondition(object condition, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null, bool invert = false) {
 			if (condition is Func<Condition> fc)
 				_WriteIfCondition(fc.Invoke(), block, lblEndIf, null, invert);
 			else if (condition is Func<object> fo)

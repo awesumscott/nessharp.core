@@ -11,7 +11,7 @@ namespace NESSharp.Core {
 			public static Address Attributes =			Addr(0x23C0);
 		}
 		public static class IRQ {
-			public static void Disable() => Use(Asm.SEI);
+			public static void Disable() => CPU6502.SEI();
 		}
 		//public static VariableSpace ZeroPage = new VariableSpace(U16.Addr("0"), U16.Addr("FF"));
 		public static class PPU {

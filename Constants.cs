@@ -28,7 +28,7 @@ namespace NESSharp.Core {
 		public U16 Resolve() => (U16)Value;
 	}
 	public class ConstantCollection {
-		private  Dictionary<string, IConstant> _consts = new Dictionary<string, IConstant>();
+		private readonly Dictionary<string, IConstant> _consts = new Dictionary<string, IConstant>();
 		public IConstant Add(IConstant constant) {
 			_consts.Add(constant.Name, constant);
 			return constant;
