@@ -77,10 +77,10 @@ namespace NESSharp.Core {
 			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			if (instance == null) {
 				instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
-				instance.Init(0, Zp, Ram); //TODO: bank needs to get set correctly
 				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
 				_Modules.Add(typeof(T), instance);
 			}
+			instance.Init(0, Zp, Ram); //TODO: bank needs to get set correctly
 			return instance;
 		}
 
@@ -123,7 +123,7 @@ namespace NESSharp.Core {
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));
 
 		public static void GoTo(OpLabel label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
-		public static void GoTo_Indirect(Ptr p) => CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
+		public static void GoTo_Indirect(Ptr p) => Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
 		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
 			//CPU6502.JMP(vn.Lo);

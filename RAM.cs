@@ -67,7 +67,12 @@ namespace NESSharp.Core {
 			//Taken = Taken.OrderBy(x => x.Start).ToList();
 		}
 
+		public RAM Remainder() {
+			return new RAM(_next, _end){Taken = new List<RAMChunk>(Taken)};
+		}
+
 		public int Size => _end - _start;
+		//TODO: include Taken sizes
 		public int Used => _next - _start;
 	}
 }
