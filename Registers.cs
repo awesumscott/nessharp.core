@@ -9,7 +9,8 @@ namespace NESSharp.Core {
 			Number = null;
 		}
 	}
-	public class RegisterX : RegisterBase {
+	public abstract class IndexingRegisterBase : RegisterBase {}
+	public class RegisterX : IndexingRegisterBase {
 		public RegisterX Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;
 			return Set((object)v);
@@ -72,7 +73,7 @@ namespace NESSharp.Core {
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
 	}
-	public class RegisterY : RegisterBase {
+	public class RegisterY : IndexingRegisterBase {
 		//TODO: consolidate these Set()'s even further in Set(object) using type testing
 		public RegisterY Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;

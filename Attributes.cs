@@ -13,13 +13,13 @@ namespace NESSharp.Core {
 			Id = bankId;
 		}
 	}
-	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-	public class ChrBankDef : Attribute {
-		public int Id { get; private set; }
-		public ChrBankDef(int bankId) {
-			Id = bankId;
-		}
-	}
+	//[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+	//public class ChrBankDef : Attribute {
+	//	public int Id { get; private set; }
+	//	public ChrBankDef(int bankId) {
+	//		Id = bankId;
+	//	}
+	//}
 
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 	public class Subroutine : Attribute {}

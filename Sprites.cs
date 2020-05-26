@@ -5,59 +5,52 @@ using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Sprite {
-		//private U8 _index;
-		private Dictionary<string, Var> _spriteStruct;
-		public Sprite(Dictionary<string, Var> spriteStruct) {
-			//_index = index;
-			//_offset = Addr((U16)(index * 4 + 0x200));
-			_spriteStruct = spriteStruct;
+
+	public interface IWritable {
+		void Write();
+	}
+	public class AnimationModel : IWritable {
+		public U8 Offset { get; set; }
+		public List<FrameModel> Frames { get; set; }
+		public void Write() {}
+	}
+	public class FrameModel : IWritable {
+		public string Name { get; set; }
+		public List<SObjectModel> Tiles { get; set; }
+		public void Write() {}
+	}
+	public class SObjectModel : IWritable {
+		public U8 Y { get; set; }
+		public U8 Tile { get; set; }
+		public U8 Attr { get; set; }
+		public U8 X { get; set; }
+		
+		public SObjectModel() {}
+		public SObjectModel(U8 y, U8 tile, U8 attr, U8 x) {
+			X = x; Y = y; Tile = tile; Attr = attr;
 		}
-		public Sprite Hide() { //vertical position ($EF-$FF = hidden)
-			((VByte)_spriteStruct["vert"]).Set(0xFF);
-			return this;
-		}
-		public VByte X {
-			get => (VByte)_spriteStruct["horiz"];
-		}
-		public VByte Y {
-			get => (VByte)_spriteStruct["vert"];
-		}
-		public VByte Tile {
-			get => (VByte)_spriteStruct["tile"];
-		}
-		public VByte Attr {
-			get => (VByte)_spriteStruct["attr"];
-		}
+
+		public void Write() => Raw(Y, Tile, Attr, X);
 	}
 
-	public class SpriteDictionary : Dictionary<U8, Sprite> {
-		//public static RAM ShadowOAM = OAMRam.Allocate(Addr(0x200), Addr(0x2FF));
-		public static ArrayOfStructs Refs = ArrayOfStructs.New(
-				"sprite",
-				64,
-				//Struct.Field(typeof(Array<Var8>), "VarArray"),
-				Struct.Field(typeof(VByte), "vert"),
-				Struct.Field(typeof(VByte), "tile"),
-				Struct.Field(typeof(VByte), "attr"),
-				Struct.Field(typeof(VByte), "horiz")
-			).Dim(OAMRam);
-	
-		public new Sprite this[U8 key] {
-			get {
-				if (!ContainsKey(key)) {
-					var item = new Sprite(Refs.FieldsArray[key]);
-					Add(key, item);
-				}
-				return base[key];
-			}
+	public class SObject : Struct {
+		public VByte Y { get; set; }
+		public VByte Tile { get; set; }
+		public VByte Attr { get; set; }
+		public VByte X { get; set; }
+	}
+
+	public class OAMDictionary {
+		public ArrayOfStructs<SObject> Object;
+		public OAMDictionary(RAM ram) {
+			Object = ArrayOfStructs<SObject>.New("OAMObj", 64).Dim(ram);
 		}
 		public void HideAll() {
 			//Refs.ForEach(() => {
 			//	Refs.
 			//});
 			Loop.RepeatX(0, 255, () => {
-				Addr(0x0200)[X].Set(0xFE);
+				Object[0].Y[X].Set(0xFE);
 			});
 		}
 	}

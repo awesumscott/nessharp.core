@@ -84,13 +84,13 @@ namespace NESSharp.Core {
 				throw new Exception("Index out of range");
 			}
 		}
-		public T this[RegisterBase reg] {
+		public T this[IndexingRegisterBase reg] {
 			get {
 				var copy = new T();
 				copy.Copy(Vars[0]);
 				//copy.Address = Vars[0].Address;
 				copy.Name = Name;
-				copy.OffsetRegister = reg;
+				copy.Index = reg;
 				return copy;
 			}
 		}

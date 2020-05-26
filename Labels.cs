@@ -105,6 +105,7 @@ namespace NESSharp.Core {
 		//public Address Resolve() => Addr((U16)(Label.ById(ID).Address + Offset));
 		public Address Resolve() {
 			if (Label.ById(ID).Address == null) {
+				throw new Exception($"Label { Label.NameByRef(Label.ById(ID)) } is referenced but not used");
 				Console.WriteLine($"Label { Label.NameByRef(Label.ById(ID)) } is referenced but not used");
 				Environment.Exit(0);
 			}

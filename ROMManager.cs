@@ -90,50 +90,20 @@ namespace NESSharp.Core {
 
 				bytesUsed += outputIndex;
 				bytesTotal += bank.Rom.Length;
-				Console.WriteLine(
-					string.Format(
-						"Bank {0}:\t{1} / {2}\t{3}%",
-						bankId.ToString().PadLeft(2),
-						outputIndex.ToString().PadLeft(5),
-						bank.Rom.Length.ToString().PadLeft(5),
-						Math.Round((decimal)outputIndex / bank.Rom.Length * 100).ToString().PadLeft(4)
-					)
-				);
+				Console.WriteLine($"Bank { bankId,-2 }:\t{ outputIndex,-5 } / { bank.Rom.Length,-5 }\t{ Math.Round((decimal)outputIndex / bank.Rom.Length * 100),-4 }%");
 				bankId++;
 			}
 			if (bytesTotal != 0)
-				Console.WriteLine(
-					string.Format(
-						"\nTotal:\t\t{0} / {1}\t{2}%\n",
-						bytesUsed.ToString().PadLeft(2),
-						bytesTotal.ToString().PadLeft(5),
-						Math.Round((decimal)bytesUsed / bytesTotal * 100).ToString().PadLeft(4)
-					)
-				);
+				Console.WriteLine($"\nTotal:\t\t{ bytesUsed,-2 } / { bytesTotal,-5 }\t{ Math.Round((decimal)bytesUsed / bytesTotal * 100),-4 }%\n");
 			
-			Console.WriteLine(
-				string.Format(
-					"ZP:\t\t{0} / {1}\t{2}%",
-					zp.Used.ToString().PadLeft(5),
-					zp.Size.ToString().PadLeft(5),
-					Math.Round((decimal)zp.Used / zp.Size * 100).ToString().PadLeft(4)
-				)
-			);
-			Console.WriteLine(
-				string.Format(
-					"RAM:\t\t{0} / {1}\t{2}%",
-					ram.Used.ToString().PadLeft(5),
-					ram.Size.ToString().PadLeft(5),
-					Math.Round((decimal)ram.Used / ram.Size * 100).ToString().PadLeft(4)
-				)
-			);
+			Console.WriteLine($"ZP:\t\t{ GlobalZp.Used,-5 } / { GlobalZp.Size,-5 }\t{ Math.Round((decimal)GlobalZp.Used / GlobalZp.Size * 100),-4 }%");
+			Console.WriteLine($"RAM:\t\t{ GlobalRam.Used,-5 } / { GlobalRam.Size,-5 }\t{ Math.Round((decimal)GlobalRam.Used / GlobalRam.Size * 100),-4 }%");
 
 			if (Interrupts.Any())
 				WriteInterrupts();
 
-			foreach (var lbl in Label) {
+			foreach (var lbl in Label)
 				DebugFile.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
-			}
 
 			using (var f = File.Open(fileName + ".nes", FileMode.Create)) {
 				f.Write(header, 0, header.Length);
@@ -144,15 +114,23 @@ namespace NESSharp.Core {
 			}
 
 			if (Mapper != null) {
-				using var f = File.Open(fileName + ".mlb", FileMode.Create);
-				var debugFileBytes = Encoding.ASCII.GetBytes(DebugFile.Contents);
-				f.Write(debugFileBytes, 0, debugFileBytes.Length);
+				//using var f = File.Open(fileName + ".mlb", FileMode.Create);
+				//var debugFileBytes = Encoding.ASCII.GetBytes(DebugFile.Contents);
+				//f.Write(debugFileBytes, 0, debugFileBytes.Length);
+				WriteFile(fileName + ".mlb", DebugFile.Contents);
 			}
 
-			using (var f = File.Open(fileName + ".asm", FileMode.Create)) {
-				var asmFileBytes = Encoding.ASCII.GetBytes(AsmOutput);
-				f.Write(asmFileBytes, 0, asmFileBytes.Length);
-			}
+			//using (var f = File.Open(fileName + ".asm", FileMode.Create)) {
+			//	var asmFileBytes = Encoding.ASCII.GetBytes(AsmOutput);
+			//	f.Write(asmFileBytes, 0, asmFileBytes.Length);
+			//}
+			WriteFile(fileName + ".asm", AsmOutput);
+		}
+
+		private static void WriteFile(string filename, string contents) {
+			using var f = File.Open(filename, FileMode.Create);
+			var bytes = Encoding.ASCII.GetBytes(contents);
+			f.Write(bytes, 0, bytes.Length);
 		}
 
 		private static void WriteInterrupts() {
@@ -178,52 +156,19 @@ namespace NESSharp.Core {
 				bank.Rom[bank.Rom.Length - 1 - i] = interrupts[lenInterrupts - 1 - i];
 		}
 
-		public static void AddPrgBank(int id, Action<U8, Bank> bankSetup) {
+		public static void AddPrgBank(U8 id, Action<U8, Bank> bankSetup) {
 			CurrentBank = PrgBank[id];
 			//Use(mwa.method.ToLabel());
-			bankSetup((U8)id, CurrentBank);
+			bankSetup(id, CurrentBank);
 			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
 			CurrentBank.WriteContext();
 		}
-		public static void AddChrBank(int id, Action<U8, Bank> bankSetup) {
+		public static void AddChrBank(U8 id, Action<U8, Bank> bankSetup) {
 			CurrentBank = ChrBank[id];
 			//Use(mwa.method.ToLabel());
-			bankSetup((U8)id, CurrentBank);
+			bankSetup(id, CurrentBank);
 			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
 			CurrentBank.WriteContext();
-		}
-
-		public static void CompileRom<T>() {
-			var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-			foreach (var mwa in methods.WithAttribute<PrgBankDef>()) {
-				CurrentBank = PrgBank[mwa.attribute.Id];
-				Use(mwa.method.ToLabel());
-				mwa.method.Invoke(null, null);
-				//ROMManager.FillBank();//prgBankLayoutAttr.Id);
-				CurrentBank.WriteContext();
-			}
-			foreach (var mwa in methods.WithAttribute<ChrBankDef>()) {
-				CurrentBank = ChrBank[mwa.attribute.Id];
-				Use(mwa.method.ToLabel());
-				mwa.method.Invoke(null, null);
-				CurrentBank.WriteContext();
-			}
-		}
-		public static void CompileRom(Type romType) {
-			var methods = romType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-			foreach (var mwa in methods.WithAttribute<PrgBankDef>()) {
-				CurrentBank = PrgBank[mwa.attribute.Id];
-				Use(mwa.method.ToLabel());
-				mwa.method.Invoke(null, null);
-				//ROMManager.FillBank();//prgBankLayoutAttr.Id);
-				CurrentBank.WriteContext();
-			}
-			foreach (var mwa in methods.WithAttribute<ChrBankDef>()) {
-				CurrentBank = ChrBank[mwa.attribute.Id];
-				Use(mwa.method.ToLabel());
-				mwa.method.Invoke(null, null);
-				CurrentBank.WriteContext();
-			}
 		}
 
 		public static void CompileBin(Action PrgBankDef) {

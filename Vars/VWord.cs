@@ -20,7 +20,7 @@ namespace NESSharp.Core {
 			var v16 = (VWord)v;
 			Address = v16.Address;
 			Name = v16.Name;
-			OffsetRegister = v16.OffsetRegister;
+			Index = v16.Index;
 			return v16;
 		}
 

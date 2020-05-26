@@ -131,11 +131,11 @@ namespace NESSharp.Core {
 			Equals(a);
 			return Condition.NotEqualsZero;
 		}
-		public AddressIndexed this[RegisterBase r] => new AddressIndexed(this, r);
+		public AddressIndexed this[IndexingRegisterBase r] => new AddressIndexed(this, r);
 	}
 	public class AddressIndexed : Address {
-		public RegisterBase Index = null;
-		public AddressIndexed(ushort value, RegisterBase reg) : base(value) => Index = reg;
+		public IndexingRegisterBase Index = null;
+		public AddressIndexed(ushort value, IndexingRegisterBase reg) : base(value) => Index = reg;
 
 		public static implicit operator ushort(AddressIndexed p) => (ushort)((p.Hi << 8) + p.Lo);
 		
@@ -160,17 +160,4 @@ namespace NESSharp.Core {
 			return this;
 		}
 	}
-
-	
-	//public class AddressFuture : Address {
-	//	private LabelRef _labelRef;
-	//	public AddressFuture(ushort value) : base(value) {}
-
-	//	//private Address Resolve() {
-	//	//	return Labels[_labelRef.ID].Address;
-	//	//}
-
-	//	public override U8 Lo { get => base.Lo; }
-	//	public override U8 Hi { get => base.Hi; }
-	//}
 }

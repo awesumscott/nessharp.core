@@ -5,15 +5,27 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public static class NES {
+		public static RAM ram;
+		public static RAM zp;
+		public static RAM StackRam; //eliminate stack page from possible allocations
+
+		public static void Init() {
+			ram				= new RAM(Addr(0), Addr(0x07FF));
+			zp				= ram.Allocate(Addr(0), Addr(0xFF));
+			StackRam		= ram.Allocate(Addr(0x0100), Addr(0x01FF));
+			ShadowOAM.Ram	= ram.Allocate(Addr(0x0200), Addr(0x02FF));
+		}
+		public static class ShadowOAM {
+			public static RAM Ram; //eliminate shadow OAM from possible allocations
+		}
 		public static class MemoryMap {
-			public static Address Palette =				Addr(0x3F00);
-			public static Address Background =			Addr(0x2000);
-			public static Address Attributes =			Addr(0x23C0);
+			public static Address Palette		= Addr(0x3F00);
+			public static Address Background	= Addr(0x2000);
+			public static Address Attributes	= Addr(0x23C0);
 		}
 		public static class IRQ {
 			public static void Disable() => CPU6502.SEI();
 		}
-		//public static VariableSpace ZeroPage = new VariableSpace(U16.Addr("0"), U16.Addr("FF"));
 		public static class PPU {
 			[Flags]
 			public enum ControlFlags : byte {
@@ -59,10 +71,6 @@ namespace NESSharp.Core {
 				Reset();
 				Address.Write(addr.Hi, addr.Lo);
 			}
-			//public static void SetAddress(IU16 addr) {
-			//	Reset();
-			//	Address.Write(addr.Hi, addr.Lo);
-			//}
 			public static void SetAddress(IVarAddressArray iva) {
 				if (iva.Address.Length != 2) throw new ArgumentException();
 				Reset();

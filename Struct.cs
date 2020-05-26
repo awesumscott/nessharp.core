@@ -18,34 +18,56 @@ namespace NESSharp.Core {
 	};
 
 	public class Struct : Var {
+		//TODO: determine if Size should be a static property tallied and cached once. If so, remove tallying from New and use the static prop.
 		public override Var Dim(RAM ram, string name) => throw new Exception("Lazy-dimming of structs not yet supported. Use Struct.New<T> for now."); //TODO: try to implement this for struct-in-struct support
 
+		[Obsolete]
 		public static StructField Field(Type type, string name, int arrayLength = 1) {
 			return new StructField(type, name, arrayLength);
 		}
-		public static Struct New<T>(RAM ram) where T : Struct, new() {
+		public static T New<T>(RAM ram, string name) where T : Struct, new() {
 			var structInstance = new T();
+			var size = 0;
 			foreach (var p in structInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {
-				Console.WriteLine("Property type: " + p.PropertyType.ToString());
+				//Console.WriteLine("Property type: " + p.PropertyType.ToString());
 				var v = (Var)Activator.CreateInstance(p.PropertyType);
-				v.Dim(ram, $"{ structInstance.GetType().Name }_{ p.Name }");
+				v.Dim(ram, $"{ (string.IsNullOrEmpty(name) ? structInstance.GetType().Name : name) }_{ p.Name }");
+				size += v.Size;
 				structInstance.GetType().InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, structInstance, new object[]{ v });
 			}
+			structInstance.Size = size;
 			return structInstance;
 		}
-		public static Struct Get<T>(RegisterBase offset) where T : Struct, new() {
+		public static T Get<T>(IndexingRegisterBase offset) where T : Struct, new() {
 			//TODO: figure out a way to set this up for SoA first
 			//		-SoA should dim these already, then be able to instantiate one of these with the starting addrs and an offset register
 			//		DONE-InvokeMember for setting the OffsetRegister on each var
 			var structInstance = new T();
 			structInstance.GetType().InvokeMember("OffsetRegister", BindingFlags.SetField | BindingFlags.Instance | BindingFlags.Public, null, structInstance, new object[]{ offset });
 			foreach (var p in structInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {//.WithAttribute<FieldDef>()) {
-				Console.WriteLine("Property type: " + p.PropertyType.ToString());
+				//Console.WriteLine("Property type: " + p.PropertyType.ToString());
 				var v = (Var)Activator.CreateInstance(p.PropertyType);
 				//v.Init(ram, $"{ structInstance.GetType().Name }_{ p.Name }");
 				structInstance.GetType().InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, structInstance, new object[]{ v });
 			}
 			return structInstance;
+		}
+		public T Copy<T>(T original) where T : Struct, new() {
+			var newInstance = new T();
+			var newInstanceProperties = newInstance.GetType().GetProperties();
+
+			foreach (var prop in newInstanceProperties) {
+				if (prop.PropertyType.IsSubclassOf(typeof(Var))) {
+					var v = (Var)Activator.CreateInstance(prop.PropertyType);
+					prop.SetValue(newInstance, v.Copy((Var)prop.GetValue(original)));
+				//The following condition is probably not necessary because AoS now explicitly sets and unsets indexes on Var properties
+				//} else if (prop.Name == nameof(Index)) {
+				//	//don't copy
+				} else {
+					prop.SetValue(newInstance, prop.GetValue(original));
+				}
+			}
+			return newInstance;
 		}
 		
 	}
@@ -71,7 +93,7 @@ namespace NESSharp.Core {
 			_arrays = arrs.ToArray();
 			return this;
 		}
-		public StructType this[RegisterBase offset] {
+		public StructType this[IndexingRegisterBase offset] {
 			get {
 				var structType = _baseInstance.GetType();
 				var newInstance = (Struct)Activator.CreateInstance(structType);
@@ -82,7 +104,7 @@ namespace NESSharp.Core {
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
 					var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
 					v.Copy(_arrays[i].BaseVar);
-					v.OffsetRegister = offset;
+					v.Index = offset;
 					structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
 						v
 					});
@@ -90,7 +112,7 @@ namespace NESSharp.Core {
 				}
 				//TODO: see if copying is possible (if it seems necessary or helpful)
 				//var newInstance = _baseInstance.Copy();
-				newInstance.OffsetRegister = offset;
+				newInstance.Index = offset;
 				return (StructType)newInstance;
 			}
 		}
@@ -128,7 +150,7 @@ namespace NESSharp.Core {
 					var vType = _arrays[i].BaseVar.GetType();
 					var v = (Var)Activator.CreateInstance(vType);
 					v.Copy(_arrays[i].BaseVar);
-					v.OffsetRegister = X;
+					v.Index = X;
 					vType.InvokeMember("Set", BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public, null, v, new object[]{
 						(U8)clearValue
 					});
@@ -138,12 +160,104 @@ namespace NESSharp.Core {
 		}
 	}
 
-	public class ArrayOfStructs : Var {
+	public class ArrayOfStructs<StructType> : Var where StructType : Struct, new() {
+		private Struct _baseInstance;
+		private StructType[] _structs;
+		public static ArrayOfStructs<StructType> New(string name, int arrayLength) {
+			var aos = new ArrayOfStructs<StructType>();
+			aos.Name = name;
+			aos.Length = arrayLength;
+			aos._baseInstance = new StructType();
+			return aos;
+		}
+		//TODO: see if the Dim(ram,name) override could just set or use existing name, and call Dim(ram) (or preferably just consolidate them somehow!)
+		public ArrayOfStructs<StructType> Dim(RAM ram) {
+			//var arrs = new List<Array>();
+			//foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {
+			//	var a = Array.New(p.PropertyType);
+			//	a.Length = Length;
+			//	arrs.Add((Array)a.Dim(ram, $"{ _baseInstance.GetType().Name }_{ p.Name }"));
+			//}
+			//_arrays = arrs.ToArray();
+			var structs = new List<StructType>();
+			for (var i = 0; i < Length; i++) {
+				structs.Add(Struct.New<StructType>(ram, $"{ typeof(StructType).Name}_{i}" ));
+
+			}
+			_structs = structs.ToArray();
+			return this;
+		}
+
+
+		/*
+			TODO:
+
+			Indexing won't be useful with AOS. Instead, maybe there should be some iteration helpers:
+
+			//Iterate(numTimes, bodyFunc)
+			aosInstance.Iterate(5, sObj => {
+				sObj.X.Set(5);
+			});
+			//Iterate(numTimes, initFunc, incrementFunc, bodyFunc)
+			aosInstance.Iterate(5, Y.Set(5), () => Y.Increment(), sObj => {
+				sObj.X.Set(5);
+			});
+
+			Standalone Iterator class?
+
+		*/
+		//public StructType this[RegisterBase offset] {
+		//	get {
+		//		var structType = _baseInstance.GetType();
+		//		var newInstance = ((StructType)Activator.CreateInstance(structType)).Copy(_structs[0]);
+		//		newInstance.OffsetRegister = offset;
+		//		foreach (var p in newInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).Where(x => x.Name == nameof(Var.OffsetRegister)).ToList()) { //user-defined Var properties
+		//			structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
+		//				offset
+		//			});
+		//		}
+		//		return newInstance;
+		//	}
+		//}
+		public StructType this[U8 offset] {
+			get {
+				var structType = _baseInstance.GetType();
+				var newInstance = ((StructType)Activator.CreateInstance(structType)).Copy(_structs[offset]);
+				foreach (var p in newInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
+					((Var)p.GetGetMethod().Invoke(newInstance, null)).Index = null;
+				}
+				//foreach (var p in newInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).Where(x => x.Name == nameof(Var.OffsetRegister)).ToList()) { //user-defined Var properties
+				//	structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
+				//		offset
+				//	});
+				//}
+				return newInstance;
+			}
+		}
+		public StructType this[IndexingRegisterBase reg] {
+			//TODO: maybe only allow VByte indexing if struct.length is a power of two? or just do the damn multiply
+			//TODO: property references are the same as item[0]! make sure these get copied and not referenced, so Indexes don't hang around
+			get {
+				var structType = _baseInstance.GetType();
+				var newInstance = ((StructType)Activator.CreateInstance(structType)).Copy(_structs[0]);
+				foreach (var p in newInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
+					((Var)p.GetGetMethod().Invoke(newInstance, null)).Index = reg;
+					//structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
+					//	reg
+					//});
+				}
+				return newInstance;
+			}
+		}
+	}
+
+	[Obsolete]
+	public class ArrayOfStructs_old : Var {
 		public List<Dictionary<string, Var>> FieldsArray;
 		private StructField[] _fieldDefs;
 		private int _length;
-		public static ArrayOfStructs New(string name, int length, params StructField[] fields) {
-			var s = new ArrayOfStructs();
+		public static ArrayOfStructs_old New(string name, int length, params StructField[] fields) {
+			var s = new ArrayOfStructs_old();
 			s.Name = name;
 			s._fieldDefs = fields;
 			s._length = length;
@@ -152,7 +266,7 @@ namespace NESSharp.Core {
 		public static StructField Field(Type type, string name, int arrayLength = 1) {
 			return new StructField(type, name, arrayLength);
 		}
-		public ArrayOfStructs Dim(RAM ram) {
+		public ArrayOfStructs_old Dim(RAM ram) {
 			if (FieldsArray != null) throw new Exception("Struct already dimmed");
 			
 			FieldsArray = new List<Dictionary<string, Var>>();
@@ -168,7 +282,7 @@ namespace NESSharp.Core {
 							Type.DefaultBinder, newArray, new object[]{field.Length});
 						newVar = (Var)newArray;
 					}
-					newVar.Dim(ram, $"{ Name }{ i.ToString() }_{ field.Name }");
+					newVar.Dim(ram, $"{ Name }{ i }_{ field.Name }");
 
 					fields.Add(field.Name, newVar);
 				}

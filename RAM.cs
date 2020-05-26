@@ -35,21 +35,13 @@ namespace NESSharp.Core {
 				break;
 			}
 		}
-		
-		public Address Dim() {
-			ValidateNext();
-			var addr = _next;
-			_next = _next.IncrementedValue;
-			return addr;
-		}
+
 		public Address[] Dim(int numBytes) {
 			ValidateNext(numBytes);
 			var addr0 = _next;
 			var addrs = new List<Address>(){ addr0 };
 			_next = _next.IncrementedValue;
-			for (var i = 0; i < numBytes; i++) {
-				if (i == 0)
-					continue;
+			for (var i = 1; i < numBytes; i++) {
 				addrs.Add(_next);
 				_next = _next.IncrementedValue;
 			}

@@ -15,7 +15,7 @@ namespace NESSharp.Core {
 			Length = 1;
 			Value = new object[]{ v };
 		}
-		public OpRaw(byte[] v) {
+		public OpRaw(params byte[] v) {
 			Length = v.Length;
 			Value = v.Cast<object>().ToArray();
 		}
@@ -261,10 +261,10 @@ namespace NESSharp.Core {
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), (U8)b);
 					break;
 				case IVarAddressArray vaa: //TODO: there's probably a good reason to not support this in here
-					if (vaa.OffsetRegister == null)
+					if (vaa.Index == null)
 						GenericAssembler(opModes, vaa.Address[0]);
 					else
-						GenericAssembler(opModes, vaa.Address[0][vaa.OffsetRegister]);
+						GenericAssembler(opModes, vaa.Address[0][vaa.Index]);
 					break;
 				case IResolvable<Address> ra:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))

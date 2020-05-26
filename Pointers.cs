@@ -11,16 +11,25 @@ namespace NESSharp.Core {
 		//public Address[] Address;
 		//public U8 Index = null;
 		public string Name;
+		[Obsolete]
 		public Ptr(string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
-			Address = zp.Dim(2);
+			Address = GlobalZp.Dim(2);
+			Lo = Address[0];
+			Hi = Address[1];
+			VarRegistry.Add(name, this);
+		}
+		public Ptr(RAM Zp, string name) {
+			//Bytes = new Address[2];//Address();
+			Name = name;
+			Address = Zp.Dim(2);
 			Lo = Address[0];
 			Hi = Address[1];
 			VarRegistry.Add(name, this);
 		}
 		public Ptr(Address? pointToAddr = null, string name = "?") {
-			Address = zp.Dim(2);
+			Address = GlobalZp.Dim(2);
 			Lo = Address[0];
 			Hi = Address[1];
 			if (pointToAddr != null)
@@ -29,7 +38,9 @@ namespace NESSharp.Core {
 			DebugFile.WriteVariable(Address[0], Address[1], name);
 			VarRegistry.Add(name, this);
 		}
+		[Obsolete]
 		public static Ptr New(string name) => new Ptr(name);
+		public static Ptr New(RAM Zp, string name) => new Ptr(Zp, name);
 		public void PointTo(Address addr) {
 			Address[0].Set(addr.Lo);
 			Address[1].Set(addr.Hi);

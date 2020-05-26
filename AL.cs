@@ -5,13 +5,14 @@ using System.Reflection;
 
 namespace NESSharp.Core {
 	public abstract class Module {
+		//TODO: turn these into properties to check if initialized
 		public U8 Bank;
 		public RAM Ram;
 		public RAM Zp;
-		public void Init(U8 bank, RAM? zpChunk = null, RAM? ramChunk = null) {
+		public void Init(U8 bank, RAM zpChunk, RAM ramChunk) {
 			Bank = bank;
-			Ram = ramChunk ?? AL.ram;
-			Zp = zpChunk ?? AL.zp;
+			Ram = ramChunk ?? NES.ram;
+			Zp = zpChunk ?? NES.zp;
 		}
 	}
 	public enum CarryState {
@@ -44,28 +45,32 @@ namespace NESSharp.Core {
 		public static RegisterA A = new RegisterA();
 		public static RegisterX X = new RegisterX();
 		public static RegisterY Y = new RegisterY();
-
+		
+		//TODO: eliminate references to these in game code, and eventually remove them, so only hardware-specific code specifies its own allocators
+		public static RAM GlobalRam;
+		public static RAM GlobalZp;
 		public static Bank									CurrentBank;
 		public static List<List<Operation>>					Code;
 		public static LabelDictionary						Label				= new LabelDictionary();
-		public static SpriteDictionary						Sprites				= new SpriteDictionary();
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
 		public static ConstantCollection					Constants			= new ConstantCollection();
 		public static short									CodeContextIndex;
 		private static readonly Dictionary<Type, Module>	_Modules			= new Dictionary<Type, Module>();
-		
-		public static RAM ram =	new RAM(Addr(0), Addr(0x07FF));
-		public static RAM zp =	ram.Allocate(Addr(0), Addr(0xFF));
-		public static RAM stackRam =	ram.Allocate(Addr(0x0100), Addr(0x01FF)); //eliminate stack page and shadow OAM from possible allocations
-		public static RAM OAMRam =		ram.Allocate(Addr(0x0200), Addr(0x02FF)); //eliminate stack page and shadow OAM from possible allocations
+		public static OAMDictionary							OAM;
 		//public static Address[] Temp = zp.Dim(3);
-		public static VByte[] Temp = new VByte[] {VByte.New(zp, "Temp0"), VByte.New(zp, "Temp1"), VByte.New(zp, "Temp2")};
-		public static Ptr TempPtr0 = new Ptr(null, "tempPtr0");
+		public static VByte[] Temp;
+		public static Ptr TempPtr0;
 
 		public static readonly short LOWEST_BRANCH_VAL = -128;
 		public static readonly short HIGHEST_BRANCH_VAL = 127;
 
 		static AL() {
+			NES.Init(); //TODO: get rid of this when it's no longer static
+			GlobalZp	= NES.zp;
+			GlobalRam	= NES.ram;
+			OAM			= new OAMDictionary(NES.ShadowOAM.Ram);
+			Temp		= new VByte[] {VByte.New(NES.zp, "Temp0"), VByte.New(NES.zp, "Temp1"), VByte.New(NES.zp, "Temp2")};
+			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");//new Ptr((Address)null, "tempPtr0");
 			InitCode();
 		}
 		public static void InitCode() {
@@ -80,7 +85,7 @@ namespace NESSharp.Core {
 				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
 				_Modules.Add(typeof(T), instance);
 			}
-			instance.Init(0, Zp, Ram); //TODO: bank needs to get set correctly
+			instance.Init(0, Zp ?? NES.zp, Ram ?? NES.ram); //TODO: bank needs to get set correctly
 			return instance;
 		}
 
@@ -117,6 +122,7 @@ namespace NESSharp.Core {
 			op.Param = label;
 			Use(op);
 		}
+		public static void Raw(U16 u16) => Use(new OpRaw((byte)u16.Lo, (byte)u16.Hi));
 		public static void Raw(params byte[] bytes) => Use(new OpRaw(bytes));
 		public static void Raw(params IResolvable<U8>[] u8s) => Use(new OpRaw(u8s));
 		public static void Raw(params IResolvable<Address>[] addrs) => Use(new OpRaw(addrs));

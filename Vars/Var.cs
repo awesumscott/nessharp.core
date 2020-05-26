@@ -5,7 +5,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public abstract class IVarAddressArray {
-		public RegisterBase? OffsetRegister {get;set;}
+		public IndexingRegisterBase? Index {get;set;}
 		public Address[]? Address {get;set;}
 	}
 
@@ -19,6 +19,7 @@ namespace NESSharp.Core {
 	public class Var : IVarAddressArray {
 		public string Name = string.Empty;
 
+		//TODO: get rid of Length
 		public virtual int Length { get; set; } = 1;
 		public virtual int Size { get; set; } = 1;
 

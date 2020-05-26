@@ -75,7 +75,7 @@ namespace NESSharp.Core {
 			return obj;
 		}
 		
-		public static void Module(params Type[] classTypes) {
+		public static void Module_old(params Type[] classTypes) {
 			foreach (var t in classTypes)
 				Module(t);
 		}
