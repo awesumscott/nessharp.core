@@ -303,6 +303,7 @@ namespace NESSharp.Core {
 			CMP(v);
 			return Condition.IsGreaterThanOrEqualTo;
 		}
+		//TODO: fix and test this one:
 		public Condition GreaterThanOrEqualTo(Func<RegisterA> a) {
 			Temp[0].Set(A);
 			Temp[1].Set(a.Invoke());

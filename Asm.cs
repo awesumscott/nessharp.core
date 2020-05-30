@@ -244,6 +244,8 @@ namespace NESSharp.Core {
 				case PtrY ptrY:
 					if (opModes.ContainsKey(Asm.Mode.IndirectY))
 						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo.Lo);
+					else
+						throw new Exception("No addressing mode for pointers");
 					break;
 				case U8 u8:
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
