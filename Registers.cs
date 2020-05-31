@@ -148,8 +148,8 @@ namespace NESSharp.Core {
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(Address addr) {
-			throw new NotImplementedException();
-			CPU6502.CMP(addr);
+			//throw new NotImplementedException();
+			CPU6502.CPY(addr);
 			return Condition.NotEqualsZero;
 		}
 	}

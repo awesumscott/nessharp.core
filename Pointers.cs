@@ -41,6 +41,19 @@ namespace NESSharp.Core {
 		[Obsolete]
 		public static Ptr New(string name) => new Ptr(name);
 		public static Ptr New(RAM Zp, string name) => new Ptr(Zp, name);
+		public void PointTo(Ptr ptr2) { //Point to the indexed location
+			CPU6502.CLC();
+			Address[0].Set(A.Set(Y).ADC(ptr2.Lo));
+			Address[1].Set(A.Set(0).ADC(ptr2.Hi));
+			A.Reset();
+		}
+		//Be careful, vb.Index must contain a valid value before using this
+		public void PointTo(VByte vb) {
+			CPU6502.CLC();
+			Address[0].Set(A.Set(vb.Index).ADC(vb.Address[0].Lo));
+			Address[1].Set(A.Set(0).ADC(vb.Address[0].Hi));
+			A.Reset();
+		}
 		public void PointTo(Address addr) {
 			Address[0].Set(addr.Lo);
 			Address[1].Set(addr.Hi);
@@ -62,9 +75,9 @@ namespace NESSharp.Core {
 		public void PointTo(Action a) {
 			PointTo(LabelFor(a)); //TODO: check attribute with an IsSubroutine func
 		}
-		public IPtrIndexed this[RegisterBase offset] {
+		public PtrY this[RegisterY offset] {
 			get {
-				if (!(offset is RegisterY)) throw new NotImplementedException();
+				//if (!(offset is RegisterY)) throw new NotImplementedException();
 				return new PtrY(this);
 			}
 		}
@@ -88,6 +101,13 @@ namespace NESSharp.Core {
 		public Ptr Ptr { get; private set; }
 		public PtrY(Ptr p) {
 			Ptr = p;
+		}
+		public PtrY Set(object o) {
+			if (o is RegisterA)
+				CPU6502.STA(this);
+			else
+				throw new NotImplementedException();
+			return this;
 		}
 		public override string ToString() {
 			var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Ptr.Lo.Hi && x.Lo == Ptr.Lo.Lo)).FirstOrDefault().Key;

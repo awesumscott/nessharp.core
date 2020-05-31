@@ -59,7 +59,7 @@ namespace NESSharp.Core {
 		public static OAMDictionary							OAM;
 		//public static Address[] Temp = zp.Dim(3);
 		public static VByte[] Temp;
-		public static Ptr TempPtr0;
+		public static Ptr TempPtr0, TempPtr1;
 
 		public static readonly short LOWEST_BRANCH_VAL = -128;
 		public static readonly short HIGHEST_BRANCH_VAL = 127;
@@ -71,6 +71,7 @@ namespace NESSharp.Core {
 			OAM			= new OAMDictionary(NES.ShadowOAM.Ram);
 			Temp		= new VByte[] {VByte.New(NES.zp, "Temp0"), VByte.New(NES.zp, "Temp1"), VByte.New(NES.zp, "Temp2")};
 			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");//new Ptr((Address)null, "tempPtr0");
+			TempPtr1	= Ptr.New(NES.zp, "tempPtr1");
 			InitCode();
 		}
 		public static void InitCode() {

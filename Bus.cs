@@ -4,12 +4,12 @@ using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Stream : Address {
+	public class Bus : Address {
 		
-		public Stream(ushort value) : base(value) {}
+		public Bus(ushort value) : base(value) {}
 
-		public static Stream Ref(ushort addr) {
-			return new Stream(addr);
+		public static Bus Ref(ushort addr) {
+			return new Bus(addr);
 		}
 
 		public void Send(Action dataSection, int len) {
