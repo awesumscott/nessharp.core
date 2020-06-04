@@ -11,7 +11,7 @@ namespace NESSharp.Core {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(Size);
 			Name = name;
-			DebugFile.WriteVariable(Address[0], Address[Size - 1], name);
+			DebugFile.WriteVariable(ram, Address[0], Address[Size - 1], name);
 			VarRegistry.Add(name, this);
 			return this;
 		}

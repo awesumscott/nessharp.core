@@ -51,6 +51,13 @@ namespace NESSharp.Core {
 			Register = reg;
 		}
 	}
+	[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+	public class Clobbers : Attribute {
+		public Register[] Registers { get; private set; }
+		public Clobbers(params Register[] registers) {
+			Registers = registers;
+		}
+	}
 
 	public static class AttributeHelpers {
 		public class TypeAndAttribute<AttributeType> {

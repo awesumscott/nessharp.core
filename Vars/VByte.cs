@@ -12,7 +12,7 @@ namespace NESSharp.Core {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(1);
 			Name = name;
-			DebugFile.WriteVariable(Address[0], name);
+			DebugFile.WriteVariable(ram, Address[0], name);
 			VarRegistry.Add(name, this);
 			return this;
 		}
@@ -209,7 +209,7 @@ namespace NESSharp.Core {
 				Index = X;
 				CPU6502.ROL(Address[0][Index]);
 				Index = Y;
-			} else throw new Exception("Invalid index register");
+			}
 			return this;
 		}
 		public virtual VByte SetROR() {
@@ -223,7 +223,7 @@ namespace NESSharp.Core {
 				Index = X;
 				CPU6502.ROR(Address[0][Index]);
 				Index = Y;
-			} else throw new Exception("Invalid index register");
+			}
 			return this;
 		}
 		public Condition Equals(U8 v) {

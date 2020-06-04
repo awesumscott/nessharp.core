@@ -6,40 +6,26 @@ namespace NESSharp.Core {
 	public class Ptr : IVarAddressArray {
 		public virtual Address Lo { get; private set; }
 		public virtual Address Hi { get; private set; }
-		//public Address[] Address { get; set; }
-
-		//public Address[] Address;
-		//public U8 Index = null;
 		public string Name;
-		[Obsolete]
-		public Ptr(string name) {
-			//Bytes = new Address[2];//Address();
-			Name = name;
-			Address = GlobalZp.Dim(2);
-			Lo = Address[0];
-			Hi = Address[1];
-			VarRegistry.Add(name, this);
-		}
 		public Ptr(RAM Zp, string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
 			Address = Zp.Dim(2);
 			Lo = Address[0];
 			Hi = Address[1];
+			DebugFile.WriteVariable(Zp, Address[0], Address[1], name);
 			VarRegistry.Add(name, this);
 		}
-		public Ptr(Address? pointToAddr = null, string name = "?") {
-			Address = GlobalZp.Dim(2);
-			Lo = Address[0];
-			Hi = Address[1];
-			if (pointToAddr != null)
-				PointTo(pointToAddr);
-			//Index = index ?? 0;
-			DebugFile.WriteVariable(Address[0], Address[1], name);
-			VarRegistry.Add(name, this);
-		}
-		[Obsolete]
-		public static Ptr New(string name) => new Ptr(name);
+		//public Ptr(Address? pointToAddr = null, string name = "?") {
+		//	Address = GlobalZp.Dim(2);
+		//	Lo = Address[0];
+		//	Hi = Address[1];
+		//	if (pointToAddr != null)
+		//		PointTo(pointToAddr);
+		//	//Index = index ?? 0;
+		//	DebugFile.WriteVariable(Address[0], Address[1], name);
+		//	VarRegistry.Add(name, this);
+		//}
 		public static Ptr New(RAM Zp, string name) => new Ptr(Zp, name);
 		public void PointTo(Ptr ptr2) { //Point to the indexed location
 			CPU6502.CLC();

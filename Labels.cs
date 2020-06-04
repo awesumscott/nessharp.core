@@ -34,7 +34,7 @@ namespace NESSharp.Core {
 		public Address Address;
 		private static long _nextId = 0;
 		public OpLabel() {
-			ID = _nextId++; //DateTime.Now.Ticks;
+			ID = _nextId++;
 			Length = 0;
 		}
 		public OpLabel(OpLabel other) {
@@ -46,21 +46,11 @@ namespace NESSharp.Core {
 		//	//ID = DateTime.Now.Ticks;
 		//	Name = name;
 		//}
-		public LabelRef Reference(int offset = 0) { //LabelRefModifier mod = LabelRefModifier.None) {
-			return new LabelRef(this, offset);//, mod);
-		}
-		public LabelLo Lo(int offset = 0) {
-			return new LabelLo(Reference(offset));
-		}
-		public LabelHi Hi(int offset = 0) {
-			return new LabelHi(Reference(offset));
-		}
-		public OpLabelIndexed Offset(IndexingRegisterBase offset) {
-			return new OpLabelIndexed(this, offset);
-		}
-		public override string ToString() {
-			return Label.NameByRef(this);
-		}
+		public LabelRef Reference(int offset = 0) => new LabelRef(this, offset);
+		public LabelLo Lo(int offset = 0) => new LabelLo(Reference(offset));
+		public LabelHi Hi(int offset = 0) => new LabelHi(Reference(offset));
+		public OpLabelIndexed this[IndexingRegisterBase reg] => new OpLabelIndexed(this, reg);
+		public override string ToString() => Label.NameByRef(this);
 	}
 
 	//TODO: delete all this, and have labels act as addresses, handling Hi, Lo, and offsets through labelrefs to be replaced later //this idea may be obsolete
@@ -81,9 +71,7 @@ namespace NESSharp.Core {
 			CPU6502.STA(this);
 			return this;
 		}
-		public override string ToString() {
-			return $"{ AL.Label.NameByRef(Label) } [{ (Index is RegisterX ? "X" : Index is RegisterY ? "Y" : "?") }]";
-		}
+		public override string ToString() => $"{ AL.Label.NameByRef(Label) } [{ (Index is RegisterX ? "X" : Index is RegisterY ? "Y" : "?") }]";
 	}
 
 	public interface IResolvable<T> {

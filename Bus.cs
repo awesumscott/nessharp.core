@@ -16,7 +16,7 @@ namespace NESSharp.Core {
 			if (len > 256) throw new Exception("Len > 256! Split up data until longer sends are supported.");
 			X.Set(0);
 			Loop.Do(() => {
-				Set(LabelFor(dataSection).Offset(X));
+				Set(LabelFor(dataSection)[X]);
 				X++;
 			}).While(() => X.NotEquals((U8)(len == 256 ? 0 : len)));
 		}
