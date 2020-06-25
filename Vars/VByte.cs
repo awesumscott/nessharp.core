@@ -2,11 +2,13 @@
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
+	[VarSize(1)]
 	public class VByte : Var, IU8 {
 		public override int Size => 1;
 
 		public VByte() {}
 		public static implicit operator Address(VByte v) => v.Index == null ? v.Address[0] : v.Address[0][v.Index];
+		//public override int Size_New { get; set; } = 1;
 
 		public override Var Dim(RAM ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
@@ -19,9 +21,10 @@ namespace NESSharp.Core {
 		public static VByte New(RAM ram, string name) {
 			return (VByte)new VByte().Dim(ram, name);
 		}
-		public static VByte Ref(Address addr) {
+		public static VByte Ref(Address addr, IndexingRegisterBase index = null) {
 			var v = new VByte();
 			v.Address = new Address[]{ addr };
+			v.Index = index;
 			return v;
 		}
 		public override Var Copy(Var v) {

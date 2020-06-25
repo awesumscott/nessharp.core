@@ -5,18 +5,18 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class VDecimal : VarN {
-		private VarN _int, _frac;
-		private ushort _intLen, _fracLen;
-		public VarN Integer => _int;
-		public VarN Fractional => _frac;
+		//private VarN _int, _frac;
+		public ushort IntLen, FracLen;
+		public VarN Integer {get; protected set;}// => _int;
+		public VarN Fractional {get; protected set;}// => _frac;
 		public override Var Dim(RAM ram, string name) {
 			base.Dim(ram, name);
-			_int = VarN.Ref(Address[_fracLen], _intLen);
-			_frac = VarN.Ref(Address[0], _fracLen);
+			Integer = VarN.Ref(Address[FracLen], IntLen);
+			Fractional = VarN.Ref(Address[0], FracLen);
 			return this;
 		}
 		public static VDecimal New(RAM ram, ushort intLen, ushort fracLen, string name) {
-			return (VDecimal)new VDecimal(){Size = intLen + fracLen, _intLen = intLen, _fracLen = fracLen}.Dim(ram, name);
+			return (VDecimal)new VDecimal(){Size = intLen + fracLen, IntLen = intLen, FracLen = fracLen}.Dim(ram, name);
 		}
 
 		//TODO: verify this works

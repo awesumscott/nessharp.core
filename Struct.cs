@@ -86,14 +86,30 @@ namespace NESSharp.Core {
 		public StructOfArrays<StructType> Dim(RAM ram) {
 			var arrs = new List<Array>();
 			foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {
-				var a = Array.New(p.PropertyType);
-				a.Length = Length;
-				arrs.Add((Array)a.Dim(ram, $"{ _baseInstance.GetType().Name }_{ p.Name }"));
+				//TODO: if property type is derived from VarN, dim one array of VBytes per byte
+				//TODO: maybe have Size as a property attribute?
+
+				//var sizeAttr = (VarSize)Attribute.GetCustomAttribute(p.PropertyType, typeof(VarSize));
+				var numBytes = VarSize.GetSizeOf(p.PropertyType); //sizeAttr.Size; //(int)p.PropertyType.GetProperty(nameof(Size_New)).GetValue(null);
+
+				if (numBytes == -1) throw new Exception("Variable length types cannot be used in structs--make a new Var type with a fixed length"); //Alternative: a Size attribute on the property (may not work for Decimal, which has two size args)
+				if (numBytes > 1) {
+					//throw new Exception("in here");
+					for (var i = 0; i < numBytes; i++) {
+						var a = Array.New(typeof(VByte));
+						a.Length = Length;
+						arrs.Add((Array)a.Dim(ram, $"{ _baseInstance.GetType().Name }_{ p.Name }_{ i }"));
+					}
+				} else if (numBytes == 1) {
+					var a = Array.New(p.PropertyType);
+					a.Length = Length;
+					arrs.Add((Array)a.Dim(ram, $"{ _baseInstance.GetType().Name }_{ p.Name }"));
+				}
 			}
 			_arrays = arrs.ToArray();
 			return this;
 		}
-		public StructType this[IndexingRegisterBase offset] {
+		public StructType this[IndexingRegisterBase index] {
 			get {
 				var structType = _baseInstance.GetType();
 				var newInstance = (Struct)Activator.CreateInstance(structType);
@@ -102,9 +118,23 @@ namespace NESSharp.Core {
 				//newInstance.Size = _baseInstance.Size; //TODO: NYI
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
-					var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
-					v.Copy(_arrays[i].BaseVar);
-					v.Index = offset;
+					//TODO: if type is derived from VarN, grab values from appropriate arrays, create an instance, and set its address array properly
+					var numBytes = VarSize.GetSizeOf(p.PropertyType);
+					//var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
+					var v = (Var)Activator.CreateInstance(p.PropertyType);
+					if (numBytes > 1) {
+						//throw new Exception("in here");
+						var bytes = new List<Var>();
+						for (var byteIndex = 0; byteIndex < numBytes; byteIndex++) {
+							bytes.Add(_arrays[i].BaseVar);
+							i++;
+						}
+						i--;
+						v.Copy(bytes);
+					} else if (numBytes == 1) {
+						v.Copy(_arrays[i].BaseVar);
+					}
+					v.Index = index;
 					structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
 						v
 					});
@@ -112,11 +142,11 @@ namespace NESSharp.Core {
 				}
 				//TODO: see if copying is possible (if it seems necessary or helpful)
 				//var newInstance = _baseInstance.Copy();
-				newInstance.Index = offset;
+				newInstance.Index = index;
 				return (StructType)newInstance;
 			}
 		}
-		public StructType this[int offset] {
+		public StructType this[int index] {
 			get {
 				var structType = _baseInstance.GetType();
 				var newInstance = (Struct)Activator.CreateInstance(structType);
@@ -125,9 +155,9 @@ namespace NESSharp.Core {
 				//newInstance.Size = _baseInstance.Size; //TODO: NYI
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
+					//TODO: if type is derived from VarN, grab values from appropriate arrays, create an instance, and set its address array properly
 					var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
-					v.Copy(_arrays[i][offset]);
-					//v.OffsetRegister = offset;
+					v.Copy(_arrays[i][index]);
 					structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
 						v
 					});
@@ -135,7 +165,6 @@ namespace NESSharp.Core {
 				}
 				//TODO: see if copying is possible (if it seems necessary or helpful)
 				//var newInstance = _baseInstance.Copy();
-				//newInstance.OffsetRegister = offset;
 				return (StructType)newInstance;
 			}
 		}

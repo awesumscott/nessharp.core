@@ -58,6 +58,14 @@ namespace NESSharp.Core {
 			Registers = registers;
 		}
 	}
+	[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
+	public class VarSize : Attribute {
+		public int Size { get; private set; }
+		public VarSize(int reg) {
+			Size = reg;
+		}
+		public static int GetSizeOf(Type t) => ((VarSize)Attribute.GetCustomAttribute(t, typeof(VarSize))).Size;
+	}
 
 	public static class AttributeHelpers {
 		public class TypeAndAttribute<AttributeType> {

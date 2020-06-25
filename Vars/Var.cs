@@ -16,8 +16,11 @@ namespace NESSharp.Core {
 	//	}
 	//}
 
+	[VarSize(-1)]
 	public class Var : IVarAddressArray {
 		public string Name = string.Empty;
+
+		//public virtual static int Size_New { get; set; } = -1;
 
 		//TODO: get rid of Length
 		public virtual int Length { get; set; } = 1;
@@ -25,5 +28,6 @@ namespace NESSharp.Core {
 
 		public virtual Var Dim(RAM ram, string name) => throw new NotSupportedException();
 		public virtual Var Copy(Var v) => throw new NotSupportedException();
+		public virtual Var Copy(IEnumerable<Var> v) => throw new NotSupportedException();
 	}
 }

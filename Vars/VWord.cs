@@ -3,7 +3,9 @@ using System.Linq;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
+	[VarSize(2)]
 	public class VWord : VarN {
+		//public override int Size_New { get; set; } = 2;
 		public VByte Lo => VByte.Ref(Address[0]);
 		public VByte Hi => VByte.Ref(Address[1]);
 

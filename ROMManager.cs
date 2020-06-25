@@ -81,7 +81,7 @@ namespace NESSharp.Core {
 					} else if (type.GetInterfaces().Contains(typeof(IResolvable<U8>))) {
 						bank.Rom[outputIndex++] = ((IResolvable<U8>)item).Resolve();
 					} else
-						throw new Exception("Incorrect type in AsmWithRefs!");
+						throw new Exception($"Incorrect type in AsmWithRefs: {type}");
 				}
 
 				//If it's a sizeless bank, remove all unused padding
