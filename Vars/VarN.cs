@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -155,104 +154,55 @@ namespace NESSharp.Core {
 		//	return this;
 		//}
 		public IEnumerable<RegisterA> Add(IVarAddressArray iva) {
-			Func<int, object> operand = index => iva.Index == null ? iva.Address[index] : iva.Address[index][Index];
+			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
+			Func<int, object> operandRhs = index => iva.Index == null ? iva.Address[index] : iva.Address[index][Index];
 			var srcLen = iva.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			if (Index == null) {
-				yield return Address[0].ToA().Add(operand(0));
-			} else {
-				yield return Address[0][Index].ToA().Add(operand(0));
-			}
+			yield return operandLhs(0).Add(operandRhs(0));
 			for (var i = 1; i < Size; i++) {
-				if (i < srcLen) {
-					if (Index == null) {
-						yield return Address[i].ToA().ADC(operand(i));
-					} else {
-						yield return Address[i][Index].ToA().ADC(operand(i));
-					}
-				} else {
-					if (Index == null) {
-						yield return Address[i].ToA().ADC(0);
-					} else {
-						yield return Address[i][Index].ToA().ADC(0);
-					}
-				}
+				yield return operandLhs(i).ADC(i < srcLen ? operandRhs(i) : 0);
 			}
 			yield break;
 		}
 		public IEnumerable<RegisterA> Add(U8 u8) {
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			if (Index == null) {
-				yield return Address[0].ToA().Add(u8);
-			} else {
-				yield return Address[0][Index].ToA().Add(u8);
-			}
+			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
+
+			yield return operandLhs(0).Add(u8);
 			for (var i = 1; i < Size; i++) {
-				if (Index == null) {
-					yield return Address[i].ToA().ADC(0);
-				} else {
-					yield return Address[i][Index].ToA().ADC(0);
-				}
+				yield return operandLhs(i).ADC(0);
 			}
 			yield break;
 		}
 		public IEnumerable<RegisterA> Add(RegisterA a) {
+			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			if (Index == null) {
-				yield return A.Add(Address[0]);
-			} else {
-				yield return A.Add(Address[0][Index]);
-			}
+			yield return A.Add(operandLhs(0));
 			for (var i = 1; i < Size; i++) {
-				if (Index == null) {
-					yield return Address[i].ToA().ADC(0);
-				} else {
-					yield return Address[i][Index].ToA().ADC(0);
-				}
+				yield return operandLhs(i).ADC(0);
 			}
 			yield break;
 		}
 		public IEnumerable<RegisterA> Subtract(IVarAddressArray iva) {
+			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
+			Func<int, object> operandRhs = index => iva.Index == null ? iva.Address[index] : iva.Address[index][Index];
 			var srcLen = iva.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			if (Index == null) {
-				yield return Address[0].ToA().Subtract(iva.Address[0]);
-			} else {
-				yield return Address[0][Index].ToA().Subtract(iva.Address[0]);
-			}
+			yield return operandLhs(0).Subtract(operandRhs(0));
 			for (var i = 1; i < Size; i++) {
-				if (i < srcLen) {
-					if (Index == null) {
-						yield return Address[i].ToA().SBC(iva.Address[i]);
-					} else {
-						yield return Address[i][Index].ToA().SBC(iva.Address[i]);
-					}
-				} else {
-					if (Index == null) {
-						yield return Address[i].ToA().SBC(0);
-					} else {
-						yield return Address[i][Index].ToA().SBC(0);
-					}
-				}
+				yield return operandLhs(i).Subtract(i < srcLen ? operandRhs(i) : 0);
 			}
 			yield break;
 		}
 		public IEnumerable<RegisterA> Subtract(U8 u8) {
+			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			if (Index == null) {
-				yield return Address[0].ToA().Subtract(u8);
-			} else {
-				yield return Address[0][Index].ToA().Subtract(u8);
-			}
+			yield return operandLhs(0).Subtract(u8);
 			for (var i = 1; i < Size; i++) {
-				if (Index == null) {
-				yield return Address[i].ToA().SBC(0);
-				} else {
-				yield return Address[i][Index].ToA().SBC(0);
-				}
+				yield return operandLhs(i).SBC(0);
 			}
 			yield break;
 		}
