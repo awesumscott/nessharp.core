@@ -118,7 +118,7 @@ namespace NESSharp.Core {
 				//newInstance.Size = _baseInstance.Size; //TODO: NYI
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
-					//TODO: if type is derived from VarN, grab values from appropriate arrays, create an instance, and set its address array properly
+					//if type has >1 bytes, grab values from appropriate arrays, create an instance, and set its address array properly
 					var numBytes = VarSize.GetSizeOf(p.PropertyType);
 					//var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
 					var v = (Var)Activator.CreateInstance(p.PropertyType);
@@ -155,9 +155,23 @@ namespace NESSharp.Core {
 				//newInstance.Size = _baseInstance.Size; //TODO: NYI
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
-					//TODO: if type is derived from VarN, grab values from appropriate arrays, create an instance, and set its address array properly
-					var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
-					v.Copy(_arrays[i][index]);
+					//if type has >1 bytes, grab values from appropriate arrays, create an instance, and set its address array properly
+					var numBytes = VarSize.GetSizeOf(p.PropertyType);
+					//var v = (Var)Activator.CreateInstance(_arrays[i].BaseVar.GetType());
+					var v = (Var)Activator.CreateInstance(p.PropertyType);
+					if (numBytes > 1) {
+						//throw new Exception("in here");
+						var bytes = new List<Var>();
+						for (var byteIndex = 0; byteIndex < numBytes; byteIndex++) {
+							bytes.Add(_arrays[i].BaseVar); //TODO: verify this works in this particular indexing style
+							i++;
+						}
+						i--;
+						v.Copy(bytes);
+					} else if (numBytes == 1) {
+						v.Copy(_arrays[i][index]);
+					}
+
 					structType.InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, newInstance, new object[]{
 						v
 					});

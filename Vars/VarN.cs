@@ -155,26 +155,27 @@ namespace NESSharp.Core {
 		//	return this;
 		//}
 		public IEnumerable<RegisterA> Add(IVarAddressArray iva) {
+			Func<int, object> operand = index => iva.Index == null ? iva.Address[index] : iva.Address[index][Index];
 			var srcLen = iva.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
 			if (Index == null) {
+				yield return Address[0].ToA().Add(operand(0));
 			} else {
+				yield return Address[0][Index].ToA().Add(operand(0));
 			}
-			yield return Address[0].ToA().Add(iva.Address[0]);
 			for (var i = 1; i < Size; i++) {
 				if (i < srcLen) {
 					if (Index == null) {
-						yield return Address[i].ToA().ADC(iva.Address[i]);
+						yield return Address[i].ToA().ADC(operand(i));
 					} else {
-						yield return Address[i][Index].ToA().ADC(iva.Address[i]);
+						yield return Address[i][Index].ToA().ADC(operand(i));
 					}
-				}
-
-				
-				if (Index == null) {
-					yield return Address[i].ToA().ADC(0);
 				} else {
-					yield return Address[i][Index].ToA().ADC(0);
+					if (Index == null) {
+						yield return Address[i].ToA().ADC(0);
+					} else {
+						yield return Address[i][Index].ToA().ADC(0);
+					}
 				}
 			}
 			yield break;

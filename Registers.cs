@@ -49,13 +49,13 @@ namespace NESSharp.Core {
 			CPU6502.DEX();
 			return x;
 		}
-		public void CPX(object o) {
-			CPU6502.CPX(o);
-		}
+		//public void CPX(object o) {
+		//	CPU6502.CPX(o);
+		//}
 		public Condition Equals(U8 v) {
 			//TODO: CPX if X wasn't last used register
 			//if (v != 0)
-				CPX(v);
+				CPU6502.CPX(v);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(U8 v) {
@@ -63,7 +63,7 @@ namespace NESSharp.Core {
 			return Condition.NotEqualsZero;
 		}
 		public new Condition Equals(object o) {
-			CPX(o);
+			CPU6502.CPX(o);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(object o) {
@@ -72,6 +72,10 @@ namespace NESSharp.Core {
 		}
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
+		public Condition LessThan(U8 v) {
+			CPU6502.CPX(v);
+			return Condition.IsLessThan;
+		}
 	}
 	public class RegisterY : IndexingRegisterBase {
 		//TODO: consolidate these Set()'s even further in Set(object) using type testing
@@ -151,6 +155,10 @@ namespace NESSharp.Core {
 			//throw new NotImplementedException();
 			CPU6502.CPY(addr);
 			return Condition.NotEqualsZero;
+		}
+		public Condition LessThan(object o) {
+			CPU6502.CPY(o);
+			return Condition.IsLessThan;
 		}
 	}
 	public class RegisterA : RegisterBase {
