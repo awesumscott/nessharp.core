@@ -5,7 +5,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public abstract class IVarAddressArray {
-		public IndexingRegisterBase? Index {get;set;}
+		public IndexingRegister? Index {get;set;}
 		public Address[]? Address {get;set;}
 	}
 

@@ -21,7 +21,7 @@ namespace NESSharp.Core {
 		public static VByte New(RAM ram, string name) {
 			return (VByte)new VByte().Dim(ram, name);
 		}
-		public static VByte Ref(Address addr, IndexingRegisterBase index = null) {
+		public static VByte Ref(Address addr, IndexingRegister index = null) {
 			var v = new VByte();
 			v.Address = new Address[]{ addr };
 			v.Index = index;
@@ -95,7 +95,7 @@ namespace NESSharp.Core {
 				Address[0][Index].Set(a);
 			return this;
 		}
-		public VByte Set(IndexingRegisterBase reg) {
+		public VByte Set(IndexingRegister reg) {
 			if (reg is RegisterX)
 				return Set(X);
 			//else if (reg is RegisterY)
@@ -337,6 +337,6 @@ namespace NESSharp.Core {
 			return addr;
 		}
 
-		public AddressIndexed this[IndexingRegisterBase r] => Address[0][r];
+		public AddressIndexed this[IndexingRegister r] => Address[0][r];
 	}
 }

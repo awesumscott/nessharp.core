@@ -41,6 +41,43 @@ namespace NESSharp.Core {
 		public static Condition IsSet() => Condition.IsCarrySet;
 		public static void Reset() => State = CarryState.Unknown;
 	}
+	public class UniquenessState {
+		private long _state = 0, _nextState = 1;
+		public long Hash => _state;
+		private Stack<long> _stateStack = new Stack<long>();
+		public void Alter() {
+			_state = _nextState++;
+		}
+		public void Push() {
+			_stateStack.Push(_state);
+			_nextState = _state + 1;
+		}
+		public void Pop() {
+			_state = _stateStack.Pop();
+		}
+
+		/// <summary>
+		/// Ensure the integrity of the value after a code block.
+		/// </summary>
+		//TODO: check Clobber method attributes for calls to GoSub, and if none are specified, maybe throw an exception anyway to encourage their use for safety with this
+		//Maybe a non-exception way would be to have GoSubs/GoTos set an "unsure" bool on the reg states, then Ensure can clear it before and check afterwards to warn if an "unsure" was encountered
+		//Reset may already be the way to handle this, it is called in goto/gosub. Or maybe that's just where these changes should be located.
+		public void Ensure(Action block) {
+			var before = Hash;
+			block();
+			Verify(before);
+		}
+
+		public void Verify(long before) {
+			if (Hash != before) throw new Exception($"{GetType().Name} was modified while being used as a loop index! Use Stack.Preserve");
+		}
+
+		public void Unsafe(Action block) {
+			Push();
+			block();
+			Pop();
+		}
+	}
 	public static class AL {
 		public static RegisterA A = new RegisterA();
 		public static RegisterX X = new RegisterX();
@@ -291,28 +328,28 @@ namespace NESSharp.Core {
 		public static Func<AdvancedCondition> Any(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.Any, conditions);
 		public static Func<AdvancedCondition> All(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.All, conditions);
 		private static void _WriteIfCondition(Condition condition, Action block, OpLabel? lblEndIf = null, Func<Condition>? fallThroughCondition = null, bool invert = false) {
-			Context.Push();
-			block.Invoke();
-			//Skip to "EndIf" if the condition succeeded
-			if (lblEndIf != null) {
-				if (fallThroughCondition != null)
-					Branch(fallThroughCondition.Invoke(), Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
-				GoTo(lblEndIf);
-			}
-			var len = Context.Length;
-			if (len <= HIGHEST_BRANCH_VAL) {
-				Context.Parent(() => {
-					Branch(condition, (U8)len, !invert);
-				});
-			} else {
-				var lblOptionEnd = Label.New();
-				Context.Parent(() => {
-					Branch(condition, Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
-					GoTo(lblOptionEnd);
-				});
-				Use(lblOptionEnd);
-			}
-			Context.Pop();
+			Context.New(() => {
+				block.Invoke();
+				//Skip to "EndIf" if the condition succeeded
+				if (lblEndIf != null) {
+					if (fallThroughCondition != null)
+						Branch(fallThroughCondition.Invoke(), Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
+					GoTo(lblEndIf);
+				}
+				var len = Context.Length;
+				if (len <= HIGHEST_BRANCH_VAL) {
+					Context.Parent(() => {
+						Branch(condition, (U8)len, !invert);
+					});
+				} else {
+					var lblOptionEnd = Label.New();
+					Context.Parent(() => {
+						Branch(condition, Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
+						GoTo(lblOptionEnd);
+					});
+					Use(lblOptionEnd);
+				}
+			});
 		}
 
 		public static void _WriteAnyCondition(object[] conditions, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null) {

@@ -88,7 +88,7 @@ namespace NESSharp.Core {
 			public static void ClearNametable0() {
 				SetHorizontalWrite();
 				SetAddress(0x2000);
-				Loop.RepeatX(0, 255, () => {
+				Loop.RepeatX(0, 256, () => {
 					Data.Set(0);
 					Data.Set(0);
 					Data.Set(0);
@@ -107,7 +107,7 @@ namespace NESSharp.Core {
 			public static void ClearNametable2() {
 				SetHorizontalWrite();
 				SetAddress(0x2800);
-				Loop.RepeatX(0, 255, () => {
+				Loop.RepeatX(0, 256, () => {
 					Data.Set(0);
 					Data.Set(0);
 					Data.Set(0);

@@ -84,7 +84,7 @@ namespace NESSharp.Core {
 				throw new Exception("Index out of range");
 			}
 		}
-		public T this[IndexingRegisterBase reg] {
+		public T this[IndexingRegister reg] {
 			get {
 				var copy = new T();
 				copy.Copy(Vars[0]);

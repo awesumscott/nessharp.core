@@ -58,13 +58,16 @@ namespace NESSharp.Core {
 		public static void ADC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["ADC"], o);
 			Carry.State = CarryState.Unknown;
+			AL.A.State.Alter();
 		}
 		public static void AND(object o) {						//N Z
 			GenericAssembler(Asm.OC["AND"], o);
+			if (o is RegisterA) AL.A.State.Alter();
 		}
 		public static void ASL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ASL"], o);
 			Carry.State = CarryState.Unknown;
+			if (o is RegisterA) AL.A.State.Alter();
 		}
 		public static void BIT(object o) {						//N V Z
 			GenericAssembler(Asm.OC["BIT"], o);
@@ -96,21 +99,26 @@ namespace NESSharp.Core {
 		}
 		public static void DEX() {								//
 			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
+			AL.X.State.Alter();
 		}
 		public static void DEY() {
 			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
+			AL.Y.State.Alter();
 		}
 		public static void EOR(object o) {						//N Z
 			GenericAssembler(Asm.OC["EOR"], o);
+			if (o is RegisterA) AL.A.State.Alter();
 		}
 		public static void INC(object o) {						//N Z
 			GenericAssembler(Asm.OC["INC"], o);
 		}
 		public static void INX() {
 			AL.Use(Asm.OC["INX"][Asm.Mode.Implied].Use());
+			AL.X.State.Alter();
 		}
 		public static void INY() {
 			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
+			AL.Y.State.Alter();
 		}
 		public static void JMP(object o) {						//none
 			GenericAssembler(Asm.OC["JMP"], o);
@@ -120,16 +128,20 @@ namespace NESSharp.Core {
 		}
 		public static void LDA(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDA"], o);
+			AL.A.State.Alter();
 		}
 		public static void LDX(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDX"], o);
+			AL.X.State.Alter();
 		}
 		public static void LDY(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDY"], o);
+			AL.Y.State.Alter();
 		}
 		public static void LSR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["LSR"], o);
 			Carry.State = CarryState.Unknown;
+			if (o is RegisterA) AL.A.State.Alter();
 		}
 		public static void NOP() {								//none
 			AL.Use(Asm.OC["NOP"][Asm.Mode.Implied].Use());
@@ -142,20 +154,25 @@ namespace NESSharp.Core {
 		}
 		public static void PLA() {
 			AL.Use(Asm.OC["PLA"][Asm.Mode.Implied].Use());
+			AL.A.State.Alter();
 		}
 		public static void PLP() {
 			AL.Use(Asm.OC["PLP"][Asm.Mode.Implied].Use());
+			AL.A.State.Alter();
 		}
 		public static void ORA(object o) {						//N Z
 			GenericAssembler(Asm.OC["ORA"], o);
+			AL.A.State.Alter();
 		}
 		public static void ROL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROL"], o);
 			Carry.Reset();
+			if(o is RegisterA) AL.A.State.Alter();
 		}
 		public static void ROR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROR"], o);
 			Carry.Reset();
+			if(o is RegisterA) AL.A.State.Alter();
 		}
 		public static void RTI() {								//all
 			AL.Use(Asm.OC["RTI"][Asm.Mode.Implied].Use());
@@ -168,6 +185,7 @@ namespace NESSharp.Core {
 		public static void SBC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["SBC"], o);
 			Carry.Reset();
+			AL.A.State.Alter();
 		}
 		public static void SEC() {								//C
 			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
@@ -187,21 +205,26 @@ namespace NESSharp.Core {
 		}
 		public static void TAX() {								//N Z
 			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
+			AL.X.State.Alter();
 		}
 		public static void TAY() {								//N Z
 			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
+			AL.Y.State.Alter();
 		}
 		public static void TSX() {								//?
 			AL.Use(Asm.OC["TSX"][Asm.Mode.Implied].Use());
+			AL.X.State.Alter();
 		}
 		public static void TXA() {								//N Z
 			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
+			AL.A.State.Alter();
 		}
 		public static void TXS() {								//?
 			AL.Use(Asm.OC["TXS"][Asm.Mode.Implied].Use());
 		}
 		public static void TYA() {								//N Z
 			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
+			AL.A.State.Alter();
 		}
 		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object o) {
 			switch (o) {

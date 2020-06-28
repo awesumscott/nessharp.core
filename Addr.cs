@@ -131,11 +131,11 @@ namespace NESSharp.Core {
 			Equals(a);
 			return Condition.NotEqualsZero;
 		}
-		public AddressIndexed this[IndexingRegisterBase r] => new AddressIndexed(this, r);
+		public AddressIndexed this[IndexingRegister r] => new AddressIndexed(this, r);
 	}
 	public class AddressIndexed : Address {
-		public IndexingRegisterBase Index = null;
-		public AddressIndexed(ushort value, IndexingRegisterBase reg) : base(value) => Index = reg;
+		public IndexingRegister Index = null;
+		public AddressIndexed(ushort value, IndexingRegister reg) : base(value) => Index = reg;
 
 		public static implicit operator ushort(AddressIndexed p) => (ushort)((p.Hi << 8) + p.Lo);
 		

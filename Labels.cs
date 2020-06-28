@@ -49,16 +49,16 @@ namespace NESSharp.Core {
 		public LabelRef Reference(int offset = 0) => new LabelRef(this, offset);
 		public LabelLo Lo(int offset = 0) => new LabelLo(Reference(offset));
 		public LabelHi Hi(int offset = 0) => new LabelHi(Reference(offset));
-		public OpLabelIndexed this[IndexingRegisterBase reg] => new OpLabelIndexed(this, reg);
+		public OpLabelIndexed this[IndexingRegister reg] => new OpLabelIndexed(this, reg);
 		public override string ToString() => Label.NameByRef(this);
 	}
 
 	//TODO: delete all this, and have labels act as addresses, handling Hi, Lo, and offsets through labelrefs to be replaced later //this idea may be obsolete
 	public class OpLabelIndexed {
 		public OpLabel Label;
-		public IndexingRegisterBase Index = null;
+		public IndexingRegister Index = null;
 
-		public OpLabelIndexed(OpLabel label, IndexingRegisterBase reg) {
+		public OpLabelIndexed(OpLabel label, IndexingRegister reg) {
 			Label = label;
 			Index = reg;
 		}

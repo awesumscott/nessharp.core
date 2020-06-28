@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public abstract class RegisterBase {
 		public byte? Number;
+		public UniquenessState State = new UniquenessState();
 
 		public void Reset() {
 			Number = null;
 		}
 	}
-	public abstract class IndexingRegisterBase : RegisterBase {}
-	public class RegisterX : IndexingRegisterBase {
+	public abstract class IndexingRegister : RegisterBase {}
+	public class RegisterX : IndexingRegister {
 		public RegisterX Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;
 			return Set((object)v);
@@ -77,7 +79,7 @@ namespace NESSharp.Core {
 			return Condition.IsLessThan;
 		}
 	}
-	public class RegisterY : IndexingRegisterBase {
+	public class RegisterY : IndexingRegister {
 		//TODO: consolidate these Set()'s even further in Set(object) using type testing
 		public RegisterY Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;

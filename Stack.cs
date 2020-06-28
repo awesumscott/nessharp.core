@@ -24,9 +24,11 @@ namespace NESSharp.Core {
 		}
 
 		public static void Preserve(RegisterBase reg, Action block) {
+			reg.State.Push();
 			Backup(reg);
 			block.Invoke();
 			Restore(reg);
+			reg.State.Pop();
 		}
 		public static void Preserve(IVarAddressArray v, Action block) {
 			Backup(v.Address);
@@ -39,32 +41,39 @@ namespace NESSharp.Core {
 				Push(addr);
 		}
 		public static void Backup(RegisterBase reg) {
-			if (reg is RegisterA)
+			if (reg is RegisterA) {
 				CPU6502.PHA();
-			else if (reg is RegisterX) {
+				A.State.Push();
+			} else if (reg is RegisterX) {
 				CPU6502.TXA();
 				//Use(Asm.TXA);
 				CPU6502.PHA();
+				X.State.Push();
 			} else if (reg is RegisterY) {
 				CPU6502.TYA();
 				//Use(Asm.TYA);
 				CPU6502.PHA();
+				Y.State.Push();
 			}
 		}
 		public static void Backup(Register registers = Register.All, bool statusFlags = false) {
 			if (statusFlags)
 				CPU6502.PHP();
-			if (registers.HasFlag(Register.A))
+			if (registers.HasFlag(Register.A)) {
 				CPU6502.PHA();
+				A.State.Push();
+			}
 			if (registers.HasFlag(Register.X)) {
 				CPU6502.TXA();
 				//Use(Asm.TXA);
 				CPU6502.PHA();
+				X.State.Push();
 			}
 			if (registers.HasFlag(Register.Y)) {
 				CPU6502.TYA();
 				//Use(Asm.TYA);
 				CPU6502.PHA();
+				Y.State.Push();
 			}
 		}
 		public static void Restore(params Address[] addrs) {
@@ -73,27 +82,34 @@ namespace NESSharp.Core {
 				Pop(addr);
 		}
 		public static void Restore(RegisterBase reg) {
-			if (reg is RegisterA)
+			if (reg is RegisterA) {
 				CPU6502.PLA();
-			else if (reg is RegisterX) {
+				A.State.Pop();
+			} else if (reg is RegisterX) {
 				CPU6502.PLA();
 				X.Set(A);
+				X.State.Pop();
 			} else if (reg is RegisterY) {
 				CPU6502.PLA();
 				Y.Set(A);
+				Y.State.Pop();
 			}
 		}
 		public static void Restore(Register registers = Register.All, bool statusFlags = false) {
 			if (registers.HasFlag(Register.Y)) {
 				CPU6502.PLA();
 				Y.Set(A);
+				Y.State.Pop();
 			}
 			if (registers.HasFlag(Register.X)) {
 				CPU6502.PLA();
 				X.Set(A);
+				X.State.Pop();
 			}
-			if (registers.HasFlag(Register.A))
+			if (registers.HasFlag(Register.A)) {
 				CPU6502.PLA();
+				A.State.Pop();
+			}
 			if (statusFlags)
 				CPU6502.PLP();
 		}

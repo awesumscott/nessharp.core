@@ -38,7 +38,7 @@ namespace NESSharp.Core {
 			structInstance.Size = size;
 			return structInstance;
 		}
-		public static T Get<T>(IndexingRegisterBase offset) where T : Struct, new() {
+		public static T Get<T>(IndexingRegister offset) where T : Struct, new() {
 			//TODO: figure out a way to set this up for SoA first
 			//		-SoA should dim these already, then be able to instantiate one of these with the starting addrs and an offset register
 			//		DONE-InvokeMember for setting the OffsetRegister on each var
@@ -109,7 +109,7 @@ namespace NESSharp.Core {
 			_arrays = arrs.ToArray();
 			return this;
 		}
-		public StructType this[IndexingRegisterBase index] {
+		public StructType this[IndexingRegister index] {
 			get {
 				var structType = _baseInstance.GetType();
 				var newInstance = (Struct)Activator.CreateInstance(structType);
@@ -277,7 +277,7 @@ namespace NESSharp.Core {
 				return newInstance;
 			}
 		}
-		public StructType this[IndexingRegisterBase reg] {
+		public StructType this[IndexingRegister reg] {
 			//TODO: maybe only allow VByte indexing if struct.length is a power of two? or just do the damn multiply
 			//TODO: property references are the same as item[0]! make sure these get copied and not referenced, so Indexes don't hang around
 			get {
