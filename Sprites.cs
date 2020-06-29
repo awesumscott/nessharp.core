@@ -30,7 +30,7 @@ namespace NESSharp.Core {
 			//Refs.ForEach(() => {
 			//	Refs.
 			//});
-			Loop.RepeatX(0, 256, () => {
+			Loop.RepeatX(0, 64, () => {
 				Object[0].Y[X].Set(0xFE);
 			});
 		}
