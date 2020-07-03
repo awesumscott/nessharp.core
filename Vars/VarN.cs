@@ -176,12 +176,16 @@ namespace NESSharp.Core {
 			yield break;
 		}
 		public IEnumerable<RegisterA> Add(RegisterA a) {
-			Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
+			//Func<int, RegisterA> operandLhs = index => Index == null ? Address[index].ToA() : Address[index][Index].ToA();
+			Func<int, object> operandRhs = index => Index == null ? Address[index] : Address[index][Index];
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Add(operandLhs(0));
+			yield return A.Add(operandRhs(0));
 			for (var i = 1; i < Size; i++) {
-				yield return operandLhs(i).ADC(0);
+				if (Index == null)
+					yield return Address[i].ToA().ADC(0);
+				else
+					yield return Address[i][Index].ToA().ADC(0);
 			}
 			yield break;
 		}

@@ -5,6 +5,10 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public abstract class RegisterBase {
 		public byte? Number;
+		/// <summary>
+		/// Reference to the var to which this register was last stored
+		/// </summary>
+		public object LastStored;
 		public UniquenessState State = new UniquenessState();
 
 		public void Reset() {

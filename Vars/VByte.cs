@@ -36,6 +36,9 @@ namespace NESSharp.Core {
 			Index = v8.Index;
 			return v8;
 		}
+
+		private object _getByte(U8 i) => Index == null ? Address[i] : Address[i][Index];
+
 		//This and the two commented-out lines below wouldn't use the overrides for AddressIndexed, idk why just yet
 		//private Address getVar8Addr(Var8 v) {
 		//	if (v.OffsetRegister == null)
@@ -127,80 +130,50 @@ namespace NESSharp.Core {
 		public VByte Set(Func<VByte, RegisterA> func) => Set(func.Invoke(this));
 		public RegisterA Add(U8 v) {
 			Carry.Clear();
-			if (Index == null)
-				return Address[0].ToA().ADC(v);
-			return Address[0][Index].ToA().ADC(v);
+			return A.Set(_getByte(0)).ADC(v);
 		}
 		public RegisterA Add(IU8 v) {
 			Carry.Clear();
-			if (Index == null)
-				return Address[0].ToA().ADC(v);
-			return Address[0][Index].ToA().ADC(v);
+			return A.Set(_getByte(0)).ADC(v);
 		}
 		public RegisterA Add(RegisterA a) {
 			Carry.Clear();
-			if (Index == null)
-				return A.Add(Address[0]);
-			return A.Add(Address[0][Index]);
+			return A.Add(_getByte(0));
 		}
 		public RegisterA Add(OpLabelIndexed oli) {
 			Carry.Clear();
-			if (Index == null)
-				return Address[0].ToA().ADC(oli);
-			return Address[0][Index].ToA().ADC(oli);
+			return A.Set(_getByte(0)).ADC(oli);
 		}
 		public RegisterA Subtract(U8 v) {
 			Carry.Set();
-			if (Index == null)
-				return Address[0].ToA().SBC(v);
-			return Address[0][Index].ToA().SBC(v);
+			return A.Set(_getByte(0)).SBC(v);
 		}
 		public RegisterA Subtract(IU8 v) {
 			Carry.Set();
-			if (Index == null)
-				return Address[0].ToA().SBC(v);
-			return Address[0][Index].ToA().SBC(v);
+			return A.Set(_getByte(0)).SBC(v);
 		}
 		public RegisterA Subtract(RegisterA a) {
 			Temp[0].Set(a);
-			if (Index == null)
-				A.Set(Address[0]);
-			else
-				A.Set(Address[0][Index]);
+			A.Set(_getByte(0));
 			return A.Subtract(Temp[0]);
 		}
 		public virtual RegisterA And(U8 v) {
-			if (Index == null)
-				return A.Set(Address[0]).And(v);
-			return A.Set(Address[0][Index]).And(v);
+			return A.Set(_getByte(0)).And(v);
+		}
+		public virtual RegisterA And(IVarAddressArray iva) {
+			Func<object> operandRhs = () => iva.Index == null ? iva.Address[0] : iva.Address[0][Index];
+			return A.Set(_getByte(0)).And(operandRhs());
 		}
 		public virtual RegisterA And(OpLabelIndexed oli) {
-			if (Index == null)
-				return A.Set(Address[0]).And(oli);
-			return A.Set(Address[0][Index]).And(oli);
+			return A.Set(_getByte(0)).And(oli);
 		}
 		public virtual RegisterA Or(RegisterA a) {
 			Temp[0].Set(A);
-			if (Index == null) {
-				return A.Set(Address[0]).Or(Temp[0]);
-			}
-			return A.Set(Address[0][Index]).Or(Temp[0]);
+			return A.Set(_getByte(0)).Or(Temp[0]);
 		}
-		public virtual RegisterA Or(U8 v) {
-			if (Index == null)
-				return A.Set(Address[0]).Or(v);
-			return A.Set(Address[0][Index]).Or(v);
-		}
-		public virtual RegisterA Or(IU8 v) {
-			if (Index == null)
-				return A.Set(Address[0]).Or(v);
-			return A.Set(Address[0][Index]).Or(v);
-		}
-		public virtual RegisterA Xor(U8 v) {
-			if (Index == null)
-				return A.Set(Address[0]).Xor(v);
-			return A.Set(Address[0][Index]).Xor(v);
-		}
+		public virtual RegisterA Or(U8 v) => A.Set(_getByte(0)).Or(v);
+		public virtual RegisterA Or(IU8 v) => A.Set(_getByte(0)).Or(v);
+		public virtual RegisterA Xor(U8 v) => A.Set(_getByte(0)).Xor(v);
 		public virtual VByte SetROL() {
 			if (Index == null)
 				CPU6502.ROL(Address[0]);
@@ -230,17 +203,14 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public Condition Equals(U8 v) {
-			if (Index == null)
-				A.Set(Address[0]);//.Equals(v);
-			else
-				A.Set(Address[0][Index]);
+			A.Set(_getByte(0));
 			if (v != 0)
 				A.CMP(v);
 			return Condition.EqualsZero;
 		}
 		public Condition Equals(VByte v) {
 			if (Index == null)
-				A.Set(Address[0]);//.Equals(v);
+				A.Set(Address[0]);
 			else
 				A.Set(Address[0][Index]);
 			A.CMP(v);
@@ -259,39 +229,38 @@ namespace NESSharp.Core {
 
 		
 		public Condition GreaterThan(U8 v) {
-			Temp[0].Set(Address[0]);
+			if (Index == null)
+				Temp[0].Set(Address[0]);
+			else
+				Temp[0].Set(Address[0][Index]);
 			A.Set(v);
 			A.CMP(Temp[0]);
 			return Condition.IsGreaterThan;
 		}
 		public Condition GreaterThan(VByte v) {
-			if (Index != null) throw new NotImplementedException();
-			Temp[0].Set(Address[0]);
+			if (Index == null)
+				Temp[0].Set(Address[0]);
+			else
+				Temp[0].Set(Address[0][Index]);
 			A.Set(v);
 			A.CMP(Temp[0]);
 			return Condition.IsGreaterThan;
 		}
 		public Condition GreaterThan(RegisterA a) {
 			Temp[1].Set(A);
-			Temp[0].Set(Address[0]);
+			if (Index == null)
+				Temp[0].Set(Address[0]);
+			else
+				Temp[0].Set(Address[0][Index]);
 			A.Set(Temp[1]).CMP(Temp[0]);
 			return Condition.IsGreaterThan;
 		}
 		public Condition GreaterThanOrEqualTo(U8 v) {
-			if (Index != null)
-				A.Set(Address[0][Index]);
-			else
-				A.Set(Address[0]);
-			A.CMP(v);
+			A.Set(_getByte(0)).CMP(v);
 			return Condition.IsGreaterThanOrEqualTo;
 		}
 		public Condition GreaterThanOrEqualTo(VByte v) {
-			if (Index != null)
-				A.Set(Address[0][Index]);
-			else
-				A.Set(Address[0]);
-			//if (v.OffsetRegister != null)
-				A.CMP(v);
+			A.Set(_getByte(0)).CMP(v);
 			return Condition.IsGreaterThanOrEqualTo;
 		}
 		public Condition LessThan(U8 v) {
@@ -315,26 +284,15 @@ namespace NESSharp.Core {
 			return Condition.IsLessThanOrEqualTo;
 		}
 
-
-
 		public static VByte operator ++(VByte addr) => addr.Increment();
 		public VByte Increment() {
-			if (Index == null)
-				CPU6502.INC(Address[0]);
-			else
-				CPU6502.INC(Address[0][Index]);
+			CPU6502.INC(_getByte(0));
 			return this;
 		}
+		public static VByte operator --(VByte addr) => addr.Decrement();
 		public VByte Decrement() {
-			if (Index == null)
-				CPU6502.DEC(Address[0]);
-			else
-				CPU6502.DEC(Address[0][Index]);
+			CPU6502.DEC(_getByte(0));
 			return this;
-		}
-		public static VByte operator --(VByte addr) {
-			CPU6502.DEC(addr.Address[0]);
-			return addr;
 		}
 
 		public AddressIndexed this[IndexingRegister r] => Address[0][r];
