@@ -198,6 +198,10 @@ namespace NESSharp.Core {
 			X.Reset();
 			Y.Reset();
 		}
+
+		//public static void Origin(int origin) {
+			
+		//}
 		
 		//For reference:
 		//(byte)(-128)==(byte)0x80

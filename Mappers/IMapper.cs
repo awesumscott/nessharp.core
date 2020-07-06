@@ -4,6 +4,7 @@ using System.Text;
 
 namespace NESSharp.Core.Mappers {
 	public static class BankSizes {
+		public static readonly int KB_4 = 4096;
 		public static readonly int KB_8 = 8192;
 		public static readonly int KB_16 = KB_8 * 2;
 		public static readonly int KB_32 = KB_16 * 2;

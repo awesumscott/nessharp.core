@@ -11,7 +11,8 @@ namespace NESSharp.Core.Resolvers {
 			_lbl = lbl;
 		}
 		public Address Resolve() {
-			return _lbl.Address;
+			return AL.Label[Label.NameByRef(_lbl)].Address;
+			//return _lbl.Address;
 		}
 	}
 	public class ShiftLeft : IResolvable<Address> {
@@ -22,7 +23,7 @@ namespace NESSharp.Core.Resolvers {
 			_shiftAmt = shiftAmt;
 		}
 		public Address Resolve() {
-			return Addr((U16)((U16)_addr.Resolve() >> 6));
+			return Addr((U16)((U16)_addr.Resolve() << _shiftAmt));
 		}
 	}
 	public class ShiftRight : IResolvable<Address> {
@@ -33,7 +34,7 @@ namespace NESSharp.Core.Resolvers {
 			_shiftAmt = shiftAmt;
 		}
 		public Address Resolve() {
-			return Addr((U16)((U16)_addr.Resolve() >> 6));
+			return Addr((U16)((U16)_addr.Resolve() >> _shiftAmt));
 		}
 	}
 	public class High : IResolvable<U8> {

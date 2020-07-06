@@ -171,6 +171,23 @@ namespace NESSharp.Core {
 			CurrentBank.WriteContext();
 		}
 
+		//TODO: this sucks and is inefficient as hell. Figure out a better API for including code at a specified offset!
+		public static void Merge(U8 id, Bank newBank) {
+			var mergeOrigin = newBank.Origin;
+			var targetBank = PrgBank[id];
+			var targetEnd = targetBank.Origin + targetBank.AsmWithRefs.Count + targetBank.AsmWithRefs.Where(x => x.GetType().GetInterfaces().Contains(typeof(IResolvable<Address>))).Count();
+
+			if (targetEnd >= mergeOrigin)
+				throw new Exception("Data already exists in merge location");
+
+			var brkVal = Asm.OC["BRK"][Asm.Mode.Implied].Use().Value;
+			for (var i = targetEnd; i < mergeOrigin; i++)
+				targetBank.AsmWithRefs.Add(brkVal);
+				
+			for (var i = 0; i < newBank.AsmWithRefs.Count; i++)
+				targetBank.AsmWithRefs.Add(newBank.AsmWithRefs[i]);
+		}
+
 		public static void CompileBin(Action PrgBankDef) {
 			CurrentBank = PrgBank[0];
 			PrgBankDef();

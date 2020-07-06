@@ -60,7 +60,29 @@ namespace NESSharp.Core.Parsers {
 		//	public object Value;
 		//}
 		public static List<string> Lines(string asm) => asm.Replace("\r\n", "\n").Replace("\r", "\n").Split("\n").Select(RemoveComment).Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
-		public static List<string> Tokens(string line) => line.Split(' ').SelectMany(x => x.Split(',')).Where(x => !string.IsNullOrEmpty(x)).ToList();
+		public static List<string> Tokens(string line) {
+			var tokens = new List<string>();
+			var curToken = string.Empty;
+			var parenLevel = 0;
+			char c;
+			for (var i = 0; i < line.Length; i++) {
+				c = line[i];
+				if (parenLevel == 0 && (char.IsWhiteSpace(c) || c == ',')) {
+					tokens.Add(curToken);
+					curToken = string.Empty;
+					continue;
+				} else if (c == '(') {
+					parenLevel++;
+				} else if (c == ')') {
+					parenLevel--;
+				}
+				curToken += c;
+			}
+			tokens.Add(curToken);
+			//return line.Split(' ').SelectMany(x => x.Split(',')).Where(x => !string.IsNullOrEmpty(x)).ToList();
+			return tokens.Where(x => !string.IsNullOrEmpty(x)).ToList();
+		}
+
 		public static string RemoveComment(string line) => line.Split(';').First();
 		public static bool IsLabelLine(string line) => line.Last() == ':';
 
@@ -83,8 +105,9 @@ namespace NESSharp.Core.Parsers {
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
+				return AL.Label[s.Trim()];
 				//return (byte)0;//
-				throw new Exception("Unknown value: " + o.ToString());
+				//throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is U8 u8) {
 				return u8.Value;
 			}
@@ -121,17 +144,17 @@ namespace NESSharp.Core.Parsers {
 				}
 			}
 
-			//if (token.Contains(">>")) {
-			//	var subTokens = token.Split(">>");
-			//	var tokenLeft = ParseToken(subTokens[0]);
-			//	if (tokenLeft is OpLabel lbl)
-			//		return new ShiftRight(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
-			//} else if (token.Contains("<<")) {
-			//	var subTokens = token.Split("<<");
-			//	var tokenLeft = ParseToken(subTokens[0]);
-			//	if (tokenLeft is OpLabel lbl)
-			//		return new ShiftLeft(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
-			//}
+			if (token.Contains(">>")) {
+				var subTokens = token.Split(">>");
+				var tokenLeft = ParseToken(subTokens[0]);
+				if (tokenLeft is OpLabel lbl)
+					return new ShiftRight(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
+			} else if (token.Contains("<<")) {
+				var subTokens = token.Split("<<");
+				var tokenLeft = ParseToken(subTokens[0]);
+				if (tokenLeft is OpLabel lbl)
+					return new ShiftLeft(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
+			}
 
 			return token;
 		}
@@ -150,17 +173,22 @@ namespace NESSharp.Core.Parsers {
 				var val = getByteParam(hi.Value);
 				if (val is Address a) return (byte)a.Hi;
 				if (val is LabelRef lbl) return lbl.Lbl.Hi();
+				if (val is IResolvable<Address> ira) return new High(ira);
 				//return val;
 				throw new NotImplementedException();
 			} else if (o is Lo lo) {
 				var val = getByteParam(lo.Value);
 				if (val is Address a) return (byte)a.Lo;
 				if (val is LabelRef lbl) return lbl.Lbl.Lo();
+				if (val is IResolvable<Address> ira) return new Low(ira);
 				//return val;
 				throw new NotImplementedException();
 			} else if (o is U8 u8) {
 				return u8.Value;
-			}
+			} else if (o is ShiftLeft sl)
+				return sl;
+			else if (o is ShiftRight sr)
+				return sr;
 			throw new NotImplementedException();
 		}
 		private static IEnumerable<object> getWordParam(object o) {

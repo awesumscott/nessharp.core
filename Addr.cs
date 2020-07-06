@@ -63,48 +63,34 @@ namespace NESSharp.Core {
 			CPU6502.INC(addr);
 			return addr;
 		}
-		public static Address operator --(Address addr) {
-			CPU6502.DEC(addr);
-			return addr;
-		}
-		public virtual Address Set(IResolvable<U8> n) {
-			A.Set(n).STA(this);
+		//public static Address operator --(Address addr) {
+		//	CPU6502.DEC(addr);
+		//	return addr;
+		//}
+		public virtual Address Set(object o) {
+			//if (o is int i)
+			//	A.Set((byte)i).STA(this);
+			//else 
+			if (o is RegisterA)
+				A.STA(this);
+			else if (o is RegisterX)
+				CPU6502.STX(this);
+			else if (o is RegisterY)
+				CPU6502.STY(this);
+			else if (o is Func<Address, object> func)
+				Set(func.Invoke(this));
+			else if (o is IPtrIndexed py)
+				Set(A.Set(py));
+			else
+				A.Set(o).STA(this);
 			return this;
 		}
-		public virtual Address Set(Address n) {
-			A.Set(n).STA(this);
-			return this;
-		}
-		public virtual Address Set(IU8 v) {
-			A.Set(v).STA(this);
-			return this;
-		}
-		public virtual Address Set(U8 v) {
-			A.Set(v).STA(this);
-			return this;
-		}
-		public virtual Address Set(int v) {
-			A.Set((byte)v).STA(this);
-			return this;
-		}
-		public virtual Address Set(RegisterA a) {
-			A.STA(this);
-			return this;
-		}
-		public virtual Address Set(RegisterX x) {
-			CPU6502.STX(this);
-			return this;
-		}
-		public virtual Address Set(RegisterY y) {
-			CPU6502.STY(this);
-			return this;
-		}
-		public Address Set(Func<Address, RegisterA> func) => Set(func.Invoke(this));
-		public virtual Address Set(IPtrIndexed py) => Set(A.Set(py));
-		public virtual Address Set(OpLabelIndexed o) {
-			A.Set(o).STA(this);
-			return this;
-		}
+		public Address Set(Func<Address, object> func) => Set(func.Invoke(this));
+		//public virtual Address Set(IPtrIndexed py) => Set(A.Set(py));
+		//public virtual Address Set(OpLabelIndexed o) {
+		//	A.Set(o).STA(this);
+		//	return this;
+		//}
 		public RegisterA ToA() => A.Set(this);
 
 		public static Address New(ushort value) => new Address(value);
@@ -138,26 +124,5 @@ namespace NESSharp.Core {
 		public AddressIndexed(ushort value, IndexingRegister reg) : base(value) => Index = reg;
 
 		public static implicit operator ushort(AddressIndexed p) => (ushort)((p.Hi << 8) + p.Lo);
-		
-		public override Address Set(int v) {
-			return Set((U8)v);
-		}
-		public override Address Set(U8 v) {
-			A.Set(v).STA(this);
-			return this;
-		}
-		public override Address Set(RegisterA a) {
-			A.STA(this);
-			return this;
-		}
-		public override Address Set(Address n) {
-			A.Set(n).STA(this);
-			return this;
-		}
-		public override Address Set(IPtrIndexed p) => Set(A.Set(p));
-		public override Address Set(OpLabelIndexed o) {
-			A.Set(o).STA(this);
-			return this;
-		}
 	}
 }

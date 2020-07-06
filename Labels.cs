@@ -103,14 +103,14 @@ namespace NESSharp.Core {
 		public override string? ToString() => Label.ById(ID).ToString() + (Offset != 0 ? Offset > 0 ? $"+{Offset}" : $"{Offset}" : string.Empty);
 	}
 	public class LabelLo : IResolvable<U8> {
-		public LabelRef LblRef;
-		public LabelLo(LabelRef labelRef) => LblRef = labelRef;
+		public IResolvable<Address> LblRef;
+		public LabelLo(IResolvable<Address> labelRef) => LblRef = labelRef;
 		public U8 Resolve() => LblRef.Resolve().Lo;
 		public override string? ToString() => $"LOW({ LblRef.ToString() })";
 	}
 	public class LabelHi : IResolvable<U8> {
-		public LabelRef LblRef;
-		public LabelHi(LabelRef labelRef) => LblRef = labelRef;
+		public IResolvable<Address> LblRef;
+		public LabelHi(IResolvable<Address> labelRef) => LblRef = labelRef;
 		public U8 Resolve() => LblRef.Resolve().Hi;
 		public override string? ToString() => $"HIGH({ LblRef.ToString() })";
 	}
