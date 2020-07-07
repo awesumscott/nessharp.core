@@ -1,8 +1,6 @@
-﻿using NESSharp.Core.Resolvers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace NESSharp.Core.Parsers {
 	public static class Common {
@@ -98,14 +96,14 @@ namespace NESSharp.Core.Parsers {
 		private static bool IsConstant(string s) => AL.Constants.Contains(s);
 		private static object ParseToken(object o) {
 			if (o is string s) {
-				if (IsExistingLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
+				if (IsExistingLabel(s)) return AL.Labels[s];//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
 				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return (byte)((U8)AL.Constants[s].Value).Value;
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
-				return AL.Label[s.Trim()];
+				return AL.Labels[s.Trim()];
 				//return (byte)0;//
 				//throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is U8 u8) {
@@ -147,20 +145,20 @@ namespace NESSharp.Core.Parsers {
 			if (token.Contains(">>")) {
 				var subTokens = token.Split(">>");
 				var tokenLeft = ParseToken(subTokens[0]);
-				if (tokenLeft is OpLabel lbl)
-					return new ShiftRight(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
+				if (tokenLeft is Core.Label lbl)
+					return new ShiftRight(lbl, (U8)short.Parse(subTokens[1]));
 			} else if (token.Contains("<<")) {
 				var subTokens = token.Split("<<");
 				var tokenLeft = ParseToken(subTokens[0]);
-				if (tokenLeft is OpLabel lbl)
-					return new ShiftLeft(new LabelAddress(lbl), (U8)short.Parse(subTokens[1]));
+				if (tokenLeft is Core.Label lbl)
+					return new ShiftLeft(lbl, (U8)short.Parse(subTokens[1]));
 			}
 
 			return token;
 		}
 		private static object getByteParam(object o) {
 			if (o is string s) {
-				if (IsExistingLabel(s)) return AL.Label[s].Reference();//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
+				if (IsExistingLabel(s)) return AL.Labels[s];//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
 				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return (byte)((U8)AL.Constants[s].Value).Value;
@@ -172,14 +170,14 @@ namespace NESSharp.Core.Parsers {
 			} else if (o is Hi hi) {
 				var val = getByteParam(hi.Value);
 				if (val is Address a) return (byte)a.Hi;
-				if (val is LabelRef lbl) return lbl.Lbl.Hi();
+				if (val is Core.Label lbl) return lbl.Hi();
 				if (val is IResolvable<Address> ira) return new High(ira);
 				//return val;
 				throw new NotImplementedException();
 			} else if (o is Lo lo) {
 				var val = getByteParam(lo.Value);
 				if (val is Address a) return (byte)a.Lo;
-				if (val is LabelRef lbl) return lbl.Lbl.Lo();
+				if (val is Core.Label lbl) return lbl.Lo();
 				if (val is IResolvable<Address> ira) return new Low(ira);
 				//return val;
 				throw new NotImplementedException();
@@ -193,7 +191,7 @@ namespace NESSharp.Core.Parsers {
 		}
 		private static IEnumerable<object> getWordParam(object o) {
 			if (o is string s) {
-				if (IsExistingLabel(s)) return new List<object>{AL.Label[s].Lo(), AL.Label[s].Hi()};
+				if (IsExistingLabel(s)) return new List<object>{AL.Labels[s].Lo(), AL.Labels[s].Hi()};
 				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
 						return new List<object>{(byte)AL.Constants[s].Value};
@@ -293,7 +291,7 @@ namespace NESSharp.Core.Parsers {
 				} else if (p is WordList wl) {
 					AL.Raw(wl.List.SelectMany(getWordParam).ToArray());
 				} else if (p is Label lbl) {
-					AL.Use(AL.Label[lbl.Name]);
+					AL.Use(AL.Labels[lbl.Name]);
 				} else if (p is Instruction) {
 				
 				}

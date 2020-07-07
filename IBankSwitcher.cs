@@ -9,7 +9,7 @@ namespace NESSharp.Core {
 		public void Add(object key, U8 bank, Action method);
 		public void Write();
 		public U8 IndexOf(object name);
-		public void Call(OpLabel lbl);
+		public void Call(Label lbl);
 		public void Call(OpLabelIndexed oli);
 		public void Call(object name);
 		public void BSCAR(object name);

@@ -31,7 +31,7 @@ namespace NESSharp.Core {
 	}
 	public static class Loop {
 		public static void Infinite(Action? block = null) {
-			var lbl = Label.New();
+			var lbl = Labels.New();
 			Use(lbl);
 			if (block != null) {
 				Context.New(block);
@@ -81,7 +81,7 @@ namespace NESSharp.Core {
 		//	}).While(condition);
 		//}
 		public static void While(Func<Condition> condition, Action block) {
-			var lblStart = Label.New();
+			var lblStart = Labels.New();
 			Use(lblStart);
 			var c = condition.Invoke();
 			Context.New(() => {
@@ -93,8 +93,8 @@ namespace NESSharp.Core {
 						Branch(c, (U8)len, true);
 					});
 				} else {
-					var lblEnd = Label.New();
-					var lblOptionEnd = Label.New();
+					var lblEnd = Labels.New();
+					var lblOptionEnd = Labels.New();
 					Context.Parent(() => {
 						Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length);
 						GoTo(lblEnd);
@@ -112,7 +112,7 @@ namespace NESSharp.Core {
 		public static void RepeatX(U8 start, int length, Action block) {
 			//X.Reset();
 			X.Set(start);
-			var lblStart = Label.New();
+			var lblStart = Labels.New();
 			Use(lblStart);
 			Context.New(() => {
 				var before = X.State.Hash;
@@ -141,7 +141,7 @@ namespace NESSharp.Core {
 		public static void Repeat(IndexingRegister reg, U8 start, int length, Action block) {
 			//X.Reset();
 			X.Set(start);
-			var lblStart = Label.New();
+			var lblStart = Labels.New();
 			Use(lblStart);
 			Context.New(() => {
 				var before = reg.State.Hash;

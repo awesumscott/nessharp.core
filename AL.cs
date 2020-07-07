@@ -87,8 +87,8 @@ namespace NESSharp.Core {
 		public static RAM GlobalRam;
 		public static RAM GlobalZp;
 		public static Bank									CurrentBank;
-		public static List<List<Operation>>					Code;
-		public static LabelDictionary						Label				= new LabelDictionary();
+		public static List<List<IOperation>>					Code;
+		public static LabelDictionary						Labels				= new LabelDictionary();
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
 		public static ConstantCollection					Constants			= new ConstantCollection();
 		public static short									CodeContextIndex;
@@ -112,9 +112,9 @@ namespace NESSharp.Core {
 			InitCode();
 		}
 		public static void InitCode() {
-			Code = new List<List<Operation>>(); //clear code to prepare for next bank definition
+			Code = new List<List<IOperation>>(); //clear code to prepare for next bank definition
 			CodeContextIndex = 0;
-			Code.Add(new List<Operation>());
+			Code.Add(new List<IOperation>());
 		}
 		public static T? Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
 			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
@@ -127,36 +127,36 @@ namespace NESSharp.Core {
 			return instance;
 		}
 
-		public static OpLabel LabelFor(Action method) => Label[ROMManager.LabelNameFromMethodInfo(method.GetMethodInfo())];
+		public static Label LabelFor(Action method) => Labels[ROMManager.LabelNameFromMethodInfo(method.GetMethodInfo())];
 		public static bool IsResolvable(this object o) => o.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IResolvable<>));
 		public static bool IsResolvable<T>(this object o) => o.GetType().GetInterfaces().Contains(typeof(IResolvable<T>));
 
-		public static void Use(Operation op) => Code[CodeContextIndex].Add(op);
-		public static void Use(Operation op, IResolvable<Address> r) {
+		public static void Use(IOperation op) => Code[CodeContextIndex].Add(op);
+		public static void Use(OpCode op, IResolvable<Address> r) {
 			//if (op.Length != 2)
 			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = r;
 			Use(op);
 		}
-		public static void Use(Operation op, IResolvable<U8> r) {
+		public static void Use(OpCode op, IResolvable<U8> r) {
 			//if (op.Length != 2)
 			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = r;
 			Use(op);
 		}
-		public static void Use(Operation op, U8 param) {
+		public static void Use(OpCode op, U8 param) {
 			if (op.Length != 2)
 				throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}
-		public static void Use(Operation op, U16 param) {
+		public static void Use(OpCode op, U16 param) {
 			if (op.Length != 3)
 				throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}
-		public static void Use(Operation op, OpLabel label) {
+		public static void Use(OpCode op, Label label) {
 			op.Param = label;
 			Use(op);
 		}
@@ -166,7 +166,7 @@ namespace NESSharp.Core {
 		public static void Raw(params IResolvable<Address>[] addrs) => Use(new OpRaw(addrs));
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));
 
-		public static void GoTo(OpLabel label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
+		public static void GoTo(Label label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
 		public static void GoTo_Indirect(Ptr p) => Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
 		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
@@ -174,7 +174,7 @@ namespace NESSharp.Core {
 			Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), vn.Lo);
 		}
 
-		public static void GoSub(OpLabel label) => CPU6502.JSR(label);
+		public static void GoSub(Label label) => CPU6502.JSR(label);
 		public static void GoSub(Address addr) => CPU6502.JSR(addr);
 		public static void GoSub(Action method) => GoSub(LabelFor(method));
 		//public static void Inline(Action method) => method.Invoke();
@@ -254,9 +254,9 @@ namespace NESSharp.Core {
 			var optionConditions = options.Where(x => x is IfOption).Cast<IfOption>().ToList();
 			var optionDefault = options.Where(x => x is IfDefault).Cast<IfDefault>().ToList();
 			var hasElse = optionDefault.Any();
-			OpLabel? lblEnd = null;
+			Label? lblEnd = null;
 			if (numOptions > 1 || hasElse)
-				lblEnd = Label.New();
+				lblEnd = Labels.New();
 			var lastCondition = optionConditions.Last();
 			foreach (var oc in optionConditions) {
 				var isLast = oc == lastCondition;
@@ -331,7 +331,7 @@ namespace NESSharp.Core {
 		}
 		public static Func<AdvancedCondition> Any(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.Any, conditions);
 		public static Func<AdvancedCondition> All(params Func<object>[] conditions) => () => new AdvancedCondition(AdvancedCondition.ConditionType.All, conditions);
-		private static void _WriteIfCondition(Condition condition, Action block, OpLabel? lblEndIf = null, Func<Condition>? fallThroughCondition = null, bool invert = false) {
+		private static void _WriteIfCondition(Condition condition, Action block, Label? lblEndIf = null, Func<Condition>? fallThroughCondition = null, bool invert = false) {
 			Context.New(() => {
 				block.Invoke();
 				//Skip to "EndIf" if the condition succeeded
@@ -346,7 +346,7 @@ namespace NESSharp.Core {
 						Branch(condition, (U8)len, !invert);
 					});
 				} else {
-					var lblOptionEnd = Label.New();
+					var lblOptionEnd = Labels.New();
 					Context.Parent(() => {
 						Branch(condition, Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
 						GoTo(lblOptionEnd);
@@ -356,9 +356,9 @@ namespace NESSharp.Core {
 			});
 		}
 
-		public static void _WriteAnyCondition(object[] conditions, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null) {
-			var lblSuccess = lblShortCircuitSuccess ?? Label.New();
-			var lblEnd = Label.New();
+		public static void _WriteAnyCondition(object[] conditions, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null) {
+			var lblSuccess = lblShortCircuitSuccess ?? Labels.New();
+			var lblEnd = Labels.New();
 			void successBlock() => GoTo(lblSuccess);
 			var last = conditions.Last();
 			foreach (var condition in conditions) {
@@ -381,11 +381,11 @@ namespace NESSharp.Core {
 			Comment("after goto endif and before writeany's lblend");
 			Use(lblEnd);
 		}
-		public static void _WriteAllCondition(object[] conditions, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null) {
+		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null) {
 			var currentCondition = conditions.First();
 			_WriteCondition(currentCondition, conditions.Length > 1 ? () => _WriteAllCondition(conditions.Skip(1).ToArray(), block, lblEndIf) : block, conditions.Length == 1 ? lblEndIf : null);
 		}
-		public static void _WriteCondition(object condition, Action block, OpLabel? lblEndIf = null, OpLabel? lblShortCircuitSuccess = null, bool invert = false) {
+		public static void _WriteCondition(object condition, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null, bool invert = false) {
 			if (condition is Func<Condition> fc)
 				_WriteIfCondition(fc.Invoke(), block, lblEndIf, null, invert);
 			else if (condition is Func<object> fo)

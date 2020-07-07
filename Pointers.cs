@@ -51,7 +51,7 @@ namespace NESSharp.Core {
 			Address[1].Set(vn.Address[1]);
 			A.Reset();
 		}
-		public void PointTo(OpLabel lbl) {
+		public void PointTo(Label lbl) {
 			A.Set(lbl.Lo());
 			Address[0].Set(A);
 			A.Set(lbl.Hi());

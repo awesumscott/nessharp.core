@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 
 namespace NESSharp.Core {
-	public abstract class Operation {
-		public int Length;
-		public object Param;
-		public object Param2;
+	public interface IOperation {
+		public int Length {get;set;}
 	}
-	public class OpRaw : Operation {
+	public class OpRaw : IOperation {
+		public int Length {get;set;}
 		public object[] Value;
 		public OpRaw(U8 v) {
 			Length = 1;
@@ -24,7 +23,8 @@ namespace NESSharp.Core {
 			Value = v;
 		}
 	}
-	public class OpComment : Operation {
+	public class OpComment : IOperation {
+		public int Length {get;set;}
 		public string Text;
 		public long ID;
 		public OpComment(string text) {
@@ -36,8 +36,11 @@ namespace NESSharp.Core {
 			return "#" + Text;
 		}
 	}
-	public class OpCode : Operation {
+	public class OpCode : IOperation {
+		public int Length {get;set;}
 		public byte Value;
+		public object Param;
+		public object Param2;
 		//public string Description = string.Empty;
 		public OpCode(byte opVal, byte len = 1) {
 			Value = opVal;
@@ -256,7 +259,7 @@ namespace NESSharp.Core {
 						AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), oli.Label);
 					else throw new Exception("Invalid addressing mode");
 					break;
-				case OpLabel lbl:
+				case Label lbl:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))
 						AL.Use(opModes[Asm.Mode.Absolute].Use(), lbl);
 					break;

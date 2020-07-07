@@ -13,7 +13,7 @@ namespace NESSharp.Core {
 		public static HeaderOptions Header;
 		public static List<Bank> PrgBank = new List<Bank>();
 		public static List<Bank> ChrBank = new List<Bank>();
-		public static List<LabelRef?> Interrupts = new List<LabelRef?>();
+		public static List<Label?> Interrupts = new List<Label?>();
 		public static string AsmOutput = string.Empty;
 
 		public static void SetInfinite() {
@@ -26,19 +26,19 @@ namespace NESSharp.Core {
 			Mapper.Init(PrgBank, ChrBank, Header);
 		}
 
-		public static void SetInterrupts(OpLabel? NMI, OpLabel? Reset, OpLabel? IRQ) {
-			Interrupts.Add(NMI?.Reference());
-			Interrupts.Add(Reset?.Reference());
-			Interrupts.Add(IRQ?.Reference());
+		public static void SetInterrupts(Label? NMI, Label? Reset, Label? IRQ) {
+			Interrupts.Add(NMI);
+			Interrupts.Add(Reset);
+			Interrupts.Add(IRQ);
 		}
 
 		public static string LabelNameFromMethodInfo(MethodInfo methodInfo) => $"{methodInfo.DeclaringType?.Name ?? "???"}_{methodInfo.Name}";
-		public static OpLabel ToLabel(this MethodInfo methodInfo) => Label[LabelNameFromMethodInfo(methodInfo)];
+		public static Label ToLabel(this MethodInfo methodInfo) => Labels[LabelNameFromMethodInfo(methodInfo)];
 
 		public static void SetInterrupts(Action NMI, Action Reset, Action IRQ) {
-			Interrupts.Add(NMI != null ? LabelFor(NMI).Reference() : null);
-			Interrupts.Add(Reset != null ? LabelFor(Reset).Reference() : null);
-			Interrupts.Add(IRQ != null ? LabelFor(IRQ).Reference() : null);
+			Interrupts.Add(NMI != null ? LabelFor(NMI) : null);
+			Interrupts.Add(Reset != null ? LabelFor(Reset) : null);
+			Interrupts.Add(IRQ != null ? LabelFor(IRQ) : null);
 		}
 
 		public static void WriteToFile(string fileName) {
@@ -102,7 +102,7 @@ namespace NESSharp.Core {
 			if (Interrupts.Any())
 				WriteInterrupts();
 
-			foreach (var lbl in Label)
+			foreach (var lbl in Labels)
 				DebugFile.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
 
 			using (var f = File.Open(fileName + ".nes", FileMode.Create)) {
@@ -114,16 +114,9 @@ namespace NESSharp.Core {
 			}
 
 			if (Mapper != null) {
-				//using var f = File.Open(fileName + ".mlb", FileMode.Create);
-				//var debugFileBytes = Encoding.ASCII.GetBytes(DebugFile.Contents);
-				//f.Write(debugFileBytes, 0, debugFileBytes.Length);
 				WriteFile(fileName + ".mlb", DebugFile.Contents);
 			}
 
-			//using (var f = File.Open(fileName + ".asm", FileMode.Create)) {
-			//	var asmFileBytes = Encoding.ASCII.GetBytes(AsmOutput);
-			//	f.Write(asmFileBytes, 0, asmFileBytes.Length);
-			//}
 			WriteFile(fileName + ".asm", AsmOutput);
 		}
 
@@ -135,18 +128,13 @@ namespace NESSharp.Core {
 
 		private static void WriteInterrupts() {
 			var interrupts = new byte[] {
-				Interrupts[0] != null ? Label.ById(Interrupts[0].ID).Address.Lo : (U8)0,
-				Interrupts[0] != null ? Label.ById(Interrupts[0].ID).Address.Hi : (U8)0,
-				Interrupts[1] != null ? Label.ById(Interrupts[1].ID).Address.Lo : (U8)0,
-				Interrupts[1] != null ? Label.ById(Interrupts[1].ID).Address.Hi : (U8)0,
-				Interrupts[2] != null ? Label.ById(Interrupts[2].ID).Address.Lo : (U8)0,
-				Interrupts[2] != null ? Label.ById(Interrupts[2].ID).Address.Hi : (U8)0
+				Interrupts[0] != null ? Labels.ById(Interrupts[0].ID).Address.Lo : (U8)0,
+				Interrupts[0] != null ? Labels.ById(Interrupts[0].ID).Address.Hi : (U8)0,
+				Interrupts[1] != null ? Labels.ById(Interrupts[1].ID).Address.Lo : (U8)0,
+				Interrupts[1] != null ? Labels.ById(Interrupts[1].ID).Address.Hi : (U8)0,
+				Interrupts[2] != null ? Labels.ById(Interrupts[2].ID).Address.Lo : (U8)0,
+				Interrupts[2] != null ? Labels.ById(Interrupts[2].ID).Address.Hi : (U8)0
 			};
-			//if (MapperNum == 0) {
-			//	WriteInterruptsInBank(PrgBank[0], interrupts);
-			//} else if (MapperNum == 30) {
-			//	WriteInterruptsInBank(PrgBank[31], interrupts);
-			//}
 			Mapper.WriteInterrupts(PrgBank, interrupts, WriteInterruptsInBank);
 		}
 		private static void WriteInterruptsInBank(Bank bank, byte[] interrupts) {
