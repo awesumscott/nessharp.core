@@ -128,12 +128,12 @@ namespace NESSharp.Core {
 
 		private static void WriteInterrupts() {
 			var interrupts = new byte[] {
-				Interrupts[0] != null ? Labels.ById(Interrupts[0].ID).Address.Lo : (U8)0,
-				Interrupts[0] != null ? Labels.ById(Interrupts[0].ID).Address.Hi : (U8)0,
-				Interrupts[1] != null ? Labels.ById(Interrupts[1].ID).Address.Lo : (U8)0,
-				Interrupts[1] != null ? Labels.ById(Interrupts[1].ID).Address.Hi : (U8)0,
-				Interrupts[2] != null ? Labels.ById(Interrupts[2].ID).Address.Lo : (U8)0,
-				Interrupts[2] != null ? Labels.ById(Interrupts[2].ID).Address.Hi : (U8)0
+				Interrupts[0] != null ? Interrupts[0].Address.Lo : (U8)0,
+				Interrupts[0] != null ? Interrupts[0].Address.Hi : (U8)0,
+				Interrupts[1] != null ? Interrupts[1].Address.Lo : (U8)0,
+				Interrupts[1] != null ? Interrupts[1].Address.Hi : (U8)0,
+				Interrupts[2] != null ? Interrupts[2].Address.Lo : (U8)0,
+				Interrupts[2] != null ? Interrupts[2].Address.Hi : (U8)0
 			};
 			Mapper.WriteInterrupts(PrgBank, interrupts, WriteInterruptsInBank);
 		}

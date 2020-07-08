@@ -10,7 +10,7 @@ namespace NESSharp.Core {
 		public void Write();
 		public U8 IndexOf(object name);
 		public void Call(Label lbl);
-		public void Call(OpLabelIndexed oli);
+		public void Call(LabelIndexed oli);
 		public void Call(object name);
 		public void BSCAR(object name);
 	}

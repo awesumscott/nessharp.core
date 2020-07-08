@@ -20,6 +20,22 @@ namespace NESSharp.Core {
 		Cleared,
 		Unknown
 	};
+	public class FlagStates {
+		public UniquenessState Carry = new UniquenessState();
+		public UniquenessState Zero = new UniquenessState();
+		public UniquenessState InterruptDisable = new UniquenessState();
+		public UniquenessState Decimal = new UniquenessState();
+		public UniquenessState Overflow = new UniquenessState();
+		public UniquenessState Negative = new UniquenessState();
+		public void Reset() {
+			Carry.Alter();
+			Zero.Alter();
+			InterruptDisable.Alter();
+			Decimal.Alter();
+			Overflow.Alter();
+			Negative.Alter();
+		}
+	}
 	public static class Carry {
 		public static CarryState State;
 		public static void Clear() => CPU6502.CLC();
@@ -82,6 +98,7 @@ namespace NESSharp.Core {
 		public static RegisterA A = new RegisterA();
 		public static RegisterX X = new RegisterX();
 		public static RegisterY Y = new RegisterY();
+		public static FlagStates Flags = new FlagStates();
 		
 		//TODO: eliminate references to these in game code, and eventually remove them, so only hardware-specific code specifies its own allocators
 		public static RAM GlobalRam;
@@ -197,6 +214,7 @@ namespace NESSharp.Core {
 			A.Reset();
 			X.Reset();
 			Y.Reset();
+			Flags.Reset();
 		}
 
 		//public static void Origin(int origin) {

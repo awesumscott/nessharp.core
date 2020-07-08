@@ -6,7 +6,16 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public abstract class IVarAddressArray {
 		public IndexingRegister? Index {get;set;}
-		public Address[]? Address {get;set;}
+		public Address[] Address {get;set;}
+		public static implicit operator Address(IVarAddressArray iva) => iva.Index == null ? iva.Address[0] : iva.Address[0][iva.Index];
+
+		public Address this[int index] {
+			get {
+				if (index >= 0 && index < Address.Length)
+					return Index == null ? Address[index] : Address[index][Index];
+				throw new Exception("Index out of range");
+			}
+		}
 	}
 
 	//public class VarRegistry : Dictionary<string, Var> {

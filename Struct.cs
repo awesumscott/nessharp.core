@@ -63,8 +63,8 @@ namespace NESSharp.Core {
 				//The following condition is probably not necessary because AoS now explicitly sets and unsets indexes on Var properties
 				//} else if (prop.Name == nameof(Index)) {
 				//	//don't copy
-				} else {
-					prop.SetValue(newInstance, prop.GetValue(original));
+				//} else {
+				//	prop.SetValue(newInstance, prop.GetValue(original));
 				}
 			}
 			return newInstance;

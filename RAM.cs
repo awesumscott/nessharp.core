@@ -8,6 +8,9 @@ namespace NESSharp.Core {
 	internal class RAMChunk {
 		public Address Start;
 		public Address End;
+		public RAMChunk(Address start, Address end) {
+			Start = start; End = end;
+		}
 	}
 	public class RAM {
 		//TODO: make a way to allocate a chunk
@@ -54,7 +57,7 @@ namespace NESSharp.Core {
 								(x.Start >= start && x.End <= end)).Any()) //existing range is within new range
 				throw new Exception("Range already in use");
 
-			Taken.Add(new RAMChunk(){Start = start, End = end});
+			Taken.Add(new RAMChunk(start, end));
 			return new RAM(start, end);
 			//Taken = Taken.OrderBy(x => x.Start).ToList();
 		}

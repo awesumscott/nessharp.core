@@ -62,7 +62,7 @@ namespace NESSharp.Core {
 					if (opCode.Param is Label lbl) {
 						AsmWithRefs.Add(lbl);
 						offset += 2;
-					} else if (opCode.Param is OpLabelIndexed li) {
+					} else if (opCode.Param is LabelIndexed li) {
 						AsmWithRefs.Add(li.Label);
 						offset += 2;
 					} else { //assume the parameters are for a 2 byte value

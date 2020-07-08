@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -9,10 +10,15 @@ namespace NESSharp.Core {
 		/// Reference to the var to which this register was last stored
 		/// </summary>
 		public object LastStored;
+		public long LastStoredHash = -1;
+		public long LastStoredFlagN = -1;
+		public long LastStoredFlagZ = -1;
 		public UniquenessState State = new UniquenessState();
 
 		public void Reset() {
 			Number = null;
+			LastStored = null;
+			LastStoredHash = -1;
 		}
 	}
 	public abstract class IndexingRegister : RegisterBase {}
@@ -153,12 +159,10 @@ namespace NESSharp.Core {
 			throw new NotImplementedException();
 		}
 		public Condition Equals(Address addr) {
-			throw new NotImplementedException();
-			CPU6502.CMP(addr);
+			CPU6502.CPY(addr);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(Address addr) {
-			//throw new NotImplementedException();
 			CPU6502.CPY(addr);
 			return Condition.NotEqualsZero;
 		}
@@ -180,7 +184,14 @@ namespace NESSharp.Core {
 				CPU6502.TXA();
 			else if (o is RegisterY)
 				CPU6502.TYA();
-			else
+			else if (o is IVarAddressArray iva) {
+				//Reminder: this was added here to get it out of genericassembler. This allows optimizations by comparing addr refs.
+				//It would probably also be good to verify here if Length>1. Consider eventually making it so IVAA's never get in here.
+				if (iva.Address.Length > 1) throw new Exception("A set to multi-byte variable");
+				var addr = (Address)iva;
+				if (addr == null) throw new Exception("Var has no addresses"); //this should never happen
+				CPU6502.LDA(addr);
+			} else
 				CPU6502.LDA(o);
 			return this;
 		}

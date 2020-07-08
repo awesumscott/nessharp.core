@@ -146,12 +146,12 @@ namespace NESSharp.Core.Parsers {
 				var subTokens = token.Split(">>");
 				var tokenLeft = ParseToken(subTokens[0]);
 				if (tokenLeft is Core.Label lbl)
-					return new ShiftRight(lbl, (U8)short.Parse(subTokens[1]));
+					return lbl.ShiftRight((U8)short.Parse(subTokens[1]));
 			} else if (token.Contains("<<")) {
 				var subTokens = token.Split("<<");
 				var tokenLeft = ParseToken(subTokens[0]);
 				if (tokenLeft is Core.Label lbl)
-					return new ShiftLeft(lbl, (U8)short.Parse(subTokens[1]));
+					return lbl.ShiftLeft((U8)short.Parse(subTokens[1]));
 			}
 
 			return token;
@@ -161,7 +161,7 @@ namespace NESSharp.Core.Parsers {
 				if (IsExistingLabel(s)) return AL.Labels[s];//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
 				if (IsConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
-						return (byte)((U8)AL.Constants[s].Value).Value;
+						return ((U8)AL.Constants[s].Value).Value;
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
@@ -170,23 +170,25 @@ namespace NESSharp.Core.Parsers {
 			} else if (o is Hi hi) {
 				var val = getByteParam(hi.Value);
 				if (val is Address a) return (byte)a.Hi;
-				if (val is Core.Label lbl) return lbl.Hi();
-				if (val is IResolvable<Address> ira) return new High(ira);
+				//if (val is Core.Label lbl) return lbl.Hi();
+				if (val is IResolvable<Address> ira) return ira.Hi();
 				//return val;
 				throw new NotImplementedException();
 			} else if (o is Lo lo) {
 				var val = getByteParam(lo.Value);
 				if (val is Address a) return (byte)a.Lo;
-				if (val is Core.Label lbl) return lbl.Lo();
-				if (val is IResolvable<Address> ira) return new Low(ira);
+				//if (val is Core.Label lbl) return lbl.Lo();
+				if (val is IResolvable<Address> ira) return ira.Lo();
 				//return val;
 				throw new NotImplementedException();
 			} else if (o is U8 u8) {
 				return u8.Value;
-			} else if (o is ShiftLeft sl)
-				return sl;
-			else if (o is ShiftRight sr)
-				return sr;
+			} else if (o is IResolvable<Address> ira)
+				return ira;
+			//	else if (o is ShiftLeft sl)
+			//	return sl;
+			//else if (o is ShiftRight sr)
+			//	return sr;
 			throw new NotImplementedException();
 		}
 		private static IEnumerable<object> getWordParam(object o) {

@@ -62,18 +62,30 @@ namespace NESSharp.Core {
 			GenericAssembler(Asm.OC["ADC"], o);
 			Carry.State = CarryState.Unknown;
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Overflow.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void AND(object o) {						//N Z
 			GenericAssembler(Asm.OC["AND"], o);
 			if (o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void ASL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ASL"], o);
 			Carry.State = CarryState.Unknown;
 			if (o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void BIT(object o) {						//N V Z
 			GenericAssembler(Asm.OC["BIT"], o);
+			AL.Flags.Negative.Alter();
+			AL.Flags.Overflow.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void BRK() {								//B
 			AL.Use(Asm.OC["BRK"][Asm.Mode.Implied].Use());
@@ -81,6 +93,7 @@ namespace NESSharp.Core {
 		public static void CLC() {								//C
 			AL.Use(Asm.OC["CLC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Cleared;
+			AL.Flags.Carry.Alter();
 		}
 		public static void CLD() {								//
 			AL.Use(Asm.OC["CLD"][Asm.Mode.Implied].Use());
@@ -88,63 +101,98 @@ namespace NESSharp.Core {
 		public static void CMP(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CMP"], o);
 			Carry.State = CarryState.Unknown;
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void CPX(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CPX"], o);
 			Carry.State = CarryState.Unknown;
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void CPY(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CPY"], o);
 			Carry.State = CarryState.Unknown;
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void DEC(object o) {						//N Z
 			GenericAssembler(Asm.OC["DEC"], o);
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
-		public static void DEX() {								//
+		public static void DEX() {								//N Z
 			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
 			AL.X.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
-		public static void DEY() {
+		public static void DEY() {								//N Z
 			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
 			AL.Y.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void EOR(object o) {						//N Z
 			GenericAssembler(Asm.OC["EOR"], o);
 			if (o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void INC(object o) {						//N Z
 			GenericAssembler(Asm.OC["INC"], o);
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
-		public static void INX() {
+		public static void INX() {								//N Z
 			AL.Use(Asm.OC["INX"][Asm.Mode.Implied].Use());
 			AL.X.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
-		public static void INY() {
+		public static void INY() {								//N Z
 			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
 			AL.Y.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void JMP(object o) {						//none
 			GenericAssembler(Asm.OC["JMP"], o);
+			AL.Reset();
 		}
 		public static void JSR(object o) {						//none
 			GenericAssembler(Asm.OC["JSR"], o);
+			AL.Reset();
 		}
 		public static void LDA(object o) {						//N Z
+			if (AL.A.LastStored == o && AL.A.LastStoredHash == AL.A.State.Hash && AL.A.LastStoredFlagN == AL.Flags.Negative.Hash && AL.A.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
 			GenericAssembler(Asm.OC["LDA"], o);
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void LDX(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDX"], o);
 			AL.X.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void LDY(object o) {						//N Z
 			GenericAssembler(Asm.OC["LDY"], o);
 			AL.Y.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void LSR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["LSR"], o);
 			Carry.State = CarryState.Unknown;
 			if (o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void NOP() {								//none
 			AL.Use(Asm.OC["NOP"][Asm.Mode.Implied].Use());
@@ -166,39 +214,57 @@ namespace NESSharp.Core {
 		public static void ORA(object o) {						//N Z
 			GenericAssembler(Asm.OC["ORA"], o);
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void ROL(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROL"], o);
 			Carry.Reset();
 			if(o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void ROR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["ROR"], o);
 			Carry.Reset();
 			if(o is RegisterA) AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void RTI() {								//all
 			AL.Use(Asm.OC["RTI"][Asm.Mode.Implied].Use());
-			AL.Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
+			AL.Reset();
 		}
-		public static void RTS() {
+		public static void RTS() {								//all
 			AL.Use(Asm.OC["RTS"][Asm.Mode.Implied].Use());
-			AL.Reset(); //TODO: possibly get rid of this and only reset based on Clobber/use/preserve attributes
+			AL.Reset();
 		}
 		public static void SBC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["SBC"], o);
 			Carry.Reset();
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Overflow.Alter();
+			AL.Flags.Zero.Alter();
+			AL.Flags.Carry.Alter();
 		}
 		public static void SEC() {								//C
 			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Set;
+			AL.Flags.Carry.Alter();
 		}
-		public static void SEI() {
+		public static void SEI() {								//I
 			AL.Use(Asm.OC["SEI"][Asm.Mode.Implied].Use());
+			AL.Flags.InterruptDisable.Alter();
 		}
 		public static void STA(object o) {						//none
 			GenericAssembler(Asm.OC["STA"], o);
+			AL.A.LastStored = o; //TODO: clean all this up with a helper
+			AL.A.LastStoredHash = AL.A.State.Hash;
+			AL.A.LastStoredFlagN = AL.Flags.Negative.Hash;
+			AL.A.LastStoredFlagZ = AL.Flags.Zero.Hash;
 		}
 		public static void STX(object o) {						//none
 			GenericAssembler(Asm.OC["STX"], o);
@@ -209,10 +275,14 @@ namespace NESSharp.Core {
 		public static void TAX() {								//N Z
 			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
 			AL.X.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void TAY() {								//N Z
 			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
 			AL.Y.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void TSX() {								//?
 			AL.Use(Asm.OC["TSX"][Asm.Mode.Implied].Use());
@@ -221,6 +291,8 @@ namespace NESSharp.Core {
 		public static void TXA() {								//N Z
 			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		public static void TXS() {								//?
 			AL.Use(Asm.OC["TXS"][Asm.Mode.Implied].Use());
@@ -228,6 +300,8 @@ namespace NESSharp.Core {
 		public static void TYA() {								//N Z
 			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
 			AL.A.State.Alter();
+			AL.Flags.Negative.Alter();
+			AL.Flags.Zero.Alter();
 		}
 		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object o) {
 			switch (o) {
@@ -252,7 +326,7 @@ namespace NESSharp.Core {
 					else if (opModes.ContainsKey(Asm.Mode.Absolute))
 						AL.Use(opModes[Asm.Mode.Absolute].Use(), addr);
 					break;
-				case OpLabelIndexed oli:
+				case LabelIndexed oli:
 					if (oli.Index is RegisterX && opModes.ContainsKey(Asm.Mode.AbsoluteX))
 						AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), oli.Label);
 					else if (oli.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY))
@@ -289,6 +363,7 @@ namespace NESSharp.Core {
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), (U8)b);
 					break;
 				case IVarAddressArray vaa: //TODO: there's probably a good reason to not support this in here
+					if (vaa.Address.Length > 1) throw new Exception("A larger variable made it through to the generic assembler");
 					if (vaa.Index == null)
 						GenericAssembler(opModes, vaa.Address[0]);
 					else
@@ -303,7 +378,7 @@ namespace NESSharp.Core {
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), ru); //Immediate, because label his/los will be used to set up pointers
 					break;
 				default:
-					throw new Exception("type not supported for op"); //TODO: elaborate
+					throw new Exception($"Type {o.GetType()} not supported for op"); //TODO: elaborate
 			}
 		}
 	}
