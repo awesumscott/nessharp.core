@@ -39,7 +39,6 @@ namespace NESSharp.Core {
 			GoTo(lbl);
 		}
 		public static DoLoop Do(Action? block = null) => new DoLoop(block);
-		//public static void For(Action initialize, Action condition, Action each, Action block) => throw new NotImplementedException();
 		public static void Descend(IndexingRegister reg, Action block) {
 			Do(() => {
 				var before = reg.State.Hash;
@@ -49,20 +48,14 @@ namespace NESSharp.Core {
 				else					Y--;
 			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
 		}
-
-		//public static void Descend(RegisterY reg, Action block) {
-		//	Do(() => {
-		//		block.Invoke();
-		//		reg--;
-		//	}).While(() => reg.NotEquals(0));
-		//}
-		public static void Descend_Pre(RegisterX reg, Action block) {
+		public static void Descend_Pre(IndexingRegister reg, Action block) {
 			Do(() => {
-				reg--;
+				if (reg is RegisterX)	X--;
+				else					Y--;
 				var before = reg.State.Hash;
 				block.Invoke();
 				reg.State.Verify(before);
-			}).While(() => reg.NotEquals(0));
+			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
 		}
 		public static void AscendWhile(IndexingRegister reg, Func<Condition> condition, Action block) {
 			Do(() => {
@@ -73,13 +66,6 @@ namespace NESSharp.Core {
 				else					Y++;
 			}).While(condition);
 		}
-
-		//public static void AscendWhile(RegisterY reg, Func<Condition> condition, Action block) {
-		//	Do(() => {
-		//		block.Invoke();
-		//		reg++;
-		//	}).While(condition);
-		//}
 		public static void While(Func<Condition> condition, Action block) {
 			var lblStart = Labels.New();
 			Use(lblStart);
