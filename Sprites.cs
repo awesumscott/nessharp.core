@@ -27,10 +27,7 @@ namespace NESSharp.Core {
 			Object = ArrayOfStructs<SObject>.New("OAMObj", 64).Dim(ram);
 		}
 		public void HideAll() {
-			//Refs.ForEach(() => {
-			//	Refs.
-			//});
-			Loop.RepeatX(0, 256, () => {
+			Loop.Repeat(X.Set(0), 256, _ => {
 				Object[0].Y[X].Set(0xFE);
 				X.State.Unsafe(() => {
 					X++; X++; X++;

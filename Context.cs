@@ -26,11 +26,11 @@ namespace NESSharp.Core {
 			Use(lbl);
 		}
 		public static void Pop() {
-			Reset();
 			Code[CodeContextIndex - 1].AddRange(Code[CodeContextIndex]);
 			Code.RemoveAt(CodeContextIndex);
 			CodeContextIndex--;
 			_startLabels.Pop();
+			Reset();
 		}
 		public static void Delete() {
 			Reset();

@@ -62,18 +62,8 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public VByte Set(IndexingRegister reg) {
-			if (reg is RegisterX)
-				return Set(X);
-			return Set(Y); //reg == Y
-		}
-		public VByte Set(RegisterX x) {
-			if (Index is RegisterX) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
-			this[0].Set(x);
-			return this;
-		}
-		public VByte Set(RegisterY y) {
-			if (Index is RegisterY) throw new NotImplementedException(); //do some swapping to preserve Y if this is worth it
-			this[0].Set(y);
+			if (Index != null && Index == reg) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
+			this[0].Set(reg);
 			return this;
 		}
 		public VByte Set(U8 v) {
@@ -142,6 +132,11 @@ namespace NESSharp.Core {
 				CPU6502.ROR(Address[0][Index]);
 				Index = Y;
 			}
+			return this;
+		}
+		public virtual VByte SetLSR() {
+			if (Index == null || Index is RegisterX)	CPU6502.LSR(this[0]);
+			else										throw new NotImplementedException();
 			return this;
 		}
 		public Condition Equals(U8 v) {

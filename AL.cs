@@ -288,6 +288,7 @@ namespace NESSharp.Core {
 				if (lblEnd != null) //always true in this block, suppressing nullable complaint
 					Use(lblEnd);
 			}
+			Reset();
 		}
 		public static void If(Func<object> expression, Action block) {
 			_WriteCondition(expression, block);

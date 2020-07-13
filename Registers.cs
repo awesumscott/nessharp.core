@@ -21,7 +21,18 @@ namespace NESSharp.Core {
 			LastStoredHash = -1;
 		}
 	}
-	public abstract class IndexingRegister : RegisterBase {}
+	public abstract class IndexingRegister : RegisterBase {
+		public static IndexingRegister operator ++(IndexingRegister reg) {
+			if (reg is RegisterX)	X++;
+			else					Y++;
+			return reg;
+		}
+		public static IndexingRegister operator --(IndexingRegister reg) {
+			if (reg is RegisterX)	X--;
+			else					Y--;
+			return reg;
+		}
+	}
 	public class RegisterX : IndexingRegister {
 		public RegisterX Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;
