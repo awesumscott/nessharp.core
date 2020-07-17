@@ -70,6 +70,6 @@ namespace NESSharp.Core {
 			CPU6502.STA(this);
 			return this;
 		}
-		public override string ToString() => $"{ AL.Labels.NameByRef(Label) } [{ (Index is RegisterX ? "X" : Index is RegisterY ? "Y" : "?") }]";
+		public override string ToString() => $"{ Labels.NameByRef(Label) } [{ Index }]";
 	}
 }

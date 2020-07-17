@@ -34,6 +34,7 @@ namespace NESSharp.Core {
 		}
 	}
 	public class RegisterX : IndexingRegister {
+		public override string ToString() => "X";
 		public RegisterX Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;
 			return Set((object)v);
@@ -95,12 +96,13 @@ namespace NESSharp.Core {
 		}
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
-		public Condition LessThan(U8 v) {
+		public Condition LessThan(object v) {
 			CPU6502.CPX(v);
 			return Condition.IsLessThan;
 		}
 	}
 	public class RegisterY : IndexingRegister {
+		public override string ToString() => "Y";
 		//TODO: consolidate these Set()'s even further in Set(object) using type testing
 		public RegisterY Set(U8 v) {
 			if (Number != null && Number == v.Value) return this;

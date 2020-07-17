@@ -48,6 +48,10 @@ namespace NESSharp.Core {
 			this[0].Set(v);
 			return this;
 		}
+		public VByte Set(Label lbl) {
+			this[0].Set(lbl);
+			return this;
+		}
 		public VByte Set(LabelIndexed oli) {
 			this[0].Set(oli);
 			return this;
