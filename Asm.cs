@@ -343,7 +343,7 @@ namespace NESSharp.Core {
 					//break;
 				case PtrY ptrY:
 					if (opModes.ContainsKey(Asm.Mode.IndirectY))
-						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo.Lo);
+						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo[0].Lo);
 					else
 						throw new Exception("No addressing mode for pointers");
 					break;

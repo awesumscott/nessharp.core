@@ -3,16 +3,16 @@ using System.Linq;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Ptr : IVarAddressArray {
-		public virtual Address Lo { get; private set; }
-		public virtual Address Hi { get; private set; }
+	public class Ptr : VWord {
+		//public virtual Address Lo { get; private set; }
+		//public virtual Address Hi { get; private set; }
 		public string Name;
 		public Ptr(RAM Zp, string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
 			Address = Zp.Dim(2);
-			Lo = Address[0];
-			Hi = Address[1];
+			//Lo = Address[0];
+			//Hi = Address[1];
 			DebugFile.WriteVariable(Zp, Address[0], Address[1], name);
 			VarRegistry.Add(name, this);
 		}
@@ -68,14 +68,15 @@ namespace NESSharp.Core {
 			}
 		}
 		public override string ToString() {
-			var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Lo.Hi && x.Lo == Lo.Lo)).FirstOrDefault().Key;
-			var hiMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Hi.Hi && x.Lo == Hi.Lo)).FirstOrDefault().Key;
-			if (string.IsNullOrEmpty(loMatch) && string.IsNullOrEmpty(hiMatch))
-				return "$" + Hi.ToString().Substring(1) + Lo.ToString().Substring(1);
-			//if (VarRegistry[match].Address.ToList().IndexOf())
-			if (string.IsNullOrEmpty(loMatch))
-				return hiMatch + "[1]";
-			return loMatch + "[0]";
+			//var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Lo.Hi && x.Lo == Lo.Lo)).FirstOrDefault().Key;
+			//var hiMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Hi.Hi && x.Lo == Hi.Lo)).FirstOrDefault().Key;
+			//if (string.IsNullOrEmpty(loMatch) && string.IsNullOrEmpty(hiMatch))
+			//	return "$" + Hi.ToString().Substring(1) + Lo.ToString().Substring(1);
+			////if (VarRegistry[match].Address.ToList().IndexOf())
+			//if (string.IsNullOrEmpty(loMatch))
+			//	return hiMatch + "[1]";
+			//return loMatch + "[0]";
+			return "pointer";
 		}
 	}
 
@@ -96,14 +97,15 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public override string ToString() {
-			var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Ptr.Lo.Hi && x.Lo == Ptr.Lo.Lo)).FirstOrDefault().Key;
-			var hiMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Ptr.Hi.Hi && x.Lo == Ptr.Hi.Lo)).FirstOrDefault().Key;
-			if (string.IsNullOrEmpty(loMatch) && string.IsNullOrEmpty(hiMatch))
-				return "$" + Ptr.Hi.ToString().Substring(1) + Ptr.Lo.ToString().Substring(1);
-			//if (VarRegistry[match].Address.ToList().IndexOf())
-			if (string.IsNullOrEmpty(loMatch))
-				return hiMatch + "[1]";
-			return loMatch + "[0]";
+			//var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Ptr.Lo.Hi && x.Lo == Ptr.Lo.Lo)).FirstOrDefault().Key;
+			//var hiMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Ptr.Hi.Hi && x.Lo == Ptr.Hi.Lo)).FirstOrDefault().Key;
+			//if (string.IsNullOrEmpty(loMatch) && string.IsNullOrEmpty(hiMatch))
+			//	return "$" + Ptr.Hi.ToString().Substring(1) + Ptr.Lo.ToString().Substring(1);
+			////if (VarRegistry[match].Address.ToList().IndexOf())
+			//if (string.IsNullOrEmpty(loMatch))
+			//	return hiMatch + "[1]";
+			//return loMatch + "[0]";
+			return "pointer";
 		}
 	}
 }
