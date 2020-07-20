@@ -44,13 +44,19 @@ namespace NESSharp.Core {
 		public static void WriteToFile(string fileName) {
 			var header = new byte[0];
 			if (Header != null) {
+				var battery = Header.Battery ? 0b10 : 0;
+				var mirroring = Header.Mirroring == MirroringOptions.MapperControlled
+					? Header.MapperControlledMirroring
+					: Header.Mirroring == MirroringOptions.Vertical
+						? 0b1
+						: 0b0;
+				var trainer = Header.Trainer ? 0b100 : 0;
 				header = new byte[] {
 					(byte)'N',(byte)'E',(byte)'S',
 					26,
 					Header.PrgRomBanks,
 					Header.ChrRomBanks, //byte 5
-					//(byte)(((Mapper & 0x0F) << 4) + 0b1011), //xxxx1xx1 = 4 screen, xxxxxx1x = "battery", hardcoded until I finish implementing settings
-					(byte)(((Mapper.Number & 0x0F) << 4) + 0b0000), //xxxx1xx1 = 4 screen, xxxxxx1x = "battery", hardcoded until I finish implementing settings
+					(byte)(((Mapper.Number & 0x0F) << 4) + (mirroring | battery | trainer)),
 					//(byte)((Mapper & 0xF0) + 0b1000), //xxxx10xx = iNES 2.0
 					(byte)((Mapper.Number & 0xF0) + 0b0000), //xxxx10xx = iNES 2.0
 					0, 0, 0,
@@ -109,8 +115,11 @@ namespace NESSharp.Core {
 				f.Write(header, 0, header.Length);
 				foreach (var prg in PrgBank)
 					f.Write(prg.Rom, 0, prg.Rom.Length);
-				if (ChrBank.Any())
-					f.Write(ChrBank[0].Rom, 0, ChrBank[0].Rom.Length);
+				if (ChrBank.Any()) {
+					foreach(var chrBank in ChrBank)
+						f.Write(chrBank.Rom, 0, chrBank.Rom.Length);
+					//f.Write(ChrBank[0].Rom, 0, ChrBank[0].Rom.Length);
+				}
 			}
 
 			if (Mapper != null) {
@@ -145,6 +154,7 @@ namespace NESSharp.Core {
 		}
 
 		public static void AddPrgBank(U8 id, Action<U8, Bank> bankSetup) {
+			CurrentBankId = id;
 			CurrentBank = PrgBank[id];
 			//Use(mwa.method.ToLabel());
 			bankSetup(id, CurrentBank);
@@ -152,6 +162,7 @@ namespace NESSharp.Core {
 			CurrentBank.WriteContext();
 		}
 		public static void AddChrBank(U8 id, Action<U8, Bank> bankSetup) {
+			CurrentBankId = id;
 			CurrentBank = ChrBank[id];
 			//Use(mwa.method.ToLabel());
 			bankSetup(id, CurrentBank);

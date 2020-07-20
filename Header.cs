@@ -5,8 +5,8 @@ using System.Text;
 namespace NESSharp.Core {
 	public enum MirroringOptions {
 		Horizontal = 0,
-		MapperControlled = 0,
-		Vertical = 1
+		Vertical = 1,
+		MapperControlled = 2
 	};
 	public enum ConsoleTypeOptions {
 		NES = 0,
@@ -25,12 +25,13 @@ namespace NESSharp.Core {
 		public byte ChrRomBanks = 0; //8 KB banks
 		public byte ChrRamBanks = 0;
 		public MirroringOptions Mirroring;
+		public byte MapperControlledMirroring = 0; //only use if Mirroring == MapperControlled
 		public int Mapper;
 		public bool FourScreen = false;
 		public bool Trainer = false;
 		public byte SubMapper = 0;
 		public ConsoleTypeOptions ConsoleType = ConsoleTypeOptions.NES;
 		public TimingOptions Timing = TimingOptions.NTSC;
-
+		public bool Battery = false;									//used in byte 6 flags
 	};
 }

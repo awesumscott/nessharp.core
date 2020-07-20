@@ -104,6 +104,7 @@ namespace NESSharp.Core {
 		public static RAM GlobalRam;
 		public static RAM GlobalZp;
 		public static Bank									CurrentBank;
+		public static U8									CurrentBankId;
 		public static List<List<IOperation>>					Code;
 		public static LabelDictionary						Labels				= new LabelDictionary();
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
@@ -140,7 +141,7 @@ namespace NESSharp.Core {
 				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
 				_Modules.Add(typeof(T), instance);
 			}
-			instance.Init(0, Zp ?? NES.zp, Ram ?? NES.ram); //TODO: bank needs to get set correctly
+			instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
 			return instance;
 		}
 
