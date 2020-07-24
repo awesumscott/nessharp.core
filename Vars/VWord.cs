@@ -36,6 +36,19 @@ namespace NESSharp.Core {
 			Hi.Set(addr.Hi);
 			return this;
 		}
+		public VWord Ref(Label lbl) {
+			//if (lbl is LabelIndexed li)
+			//	Index = li.Index;
+			Lo.Set(lbl.Lo());
+			Hi.Set(lbl.Hi());
+			return this;
+		}
+		//public VWord Ref(LabelIndexed li) {
+		//	Index = li.Index;
+		//	Lo.Set(li.Lo());
+		//	Hi.Set(li.Hi());
+		//	return this;
+		//}
 		/// <summary>
 		/// "Refer To". Make this variable a pointer to a particular memory address.
 		/// </summary>

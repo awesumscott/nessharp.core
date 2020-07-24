@@ -54,7 +54,7 @@ namespace NESSharp.Core {
 			var labels = new LoopLabels();
 			Do(_ => {
 				var before = reg.State.Hash;
-				block.Invoke(labels);
+				block?.Invoke(labels);
 				reg.State.Verify(before);
 				Use(labels.Continue);
 				reg--;

@@ -134,8 +134,18 @@ namespace NESSharp.Core {
 			CodeContextIndex = 0;
 			Code.Add(new List<IOperation>());
 		}
-		public static T? Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
-			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+		//public static T? Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
+		//	var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+		//	if (instance == null) {
+		//		instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
+		//		_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
+		//		_Modules.Add(typeof(T), instance);
+		//	}
+		//	instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
+		//	return instance;
+		//}
+		public static T Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
+			var instance = (T)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			if (instance == null) {
 				instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
 				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated

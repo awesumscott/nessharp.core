@@ -98,6 +98,9 @@ namespace NESSharp.Core {
 		public static void CLD() {								//
 			AL.Use(Asm.OC["CLD"][Asm.Mode.Implied].Use());
 		}
+		public static void CLI() {								//
+			AL.Use(Asm.OC["CLI"][Asm.Mode.Implied].Use());
+		}
 		public static void CMP(object o) {						//N Z C
 			GenericAssembler(Asm.OC["CMP"], o);
 			Carry.State = CarryState.Unknown;

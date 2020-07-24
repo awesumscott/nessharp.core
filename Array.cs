@@ -5,7 +5,7 @@ namespace NESSharp.Core {
 		private T[]? Vars;
 
 		public Array() {}
-		public static Array<T> New(U8 len, RAM r, string name) {
+		public static Array<T> New(int len, RAM r, string name) {
 			var arr = new Array<T>(){Length = len};
 			arr.Dim(r, name);
 			return arr;

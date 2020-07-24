@@ -20,7 +20,7 @@ namespace NESSharp.Core {
 		public static VByte New(RAM ram, string name) {
 			return (VByte)new VByte().Dim(ram, name);
 		}
-		public static VByte Ref(Address addr, IndexingRegister index = null) {
+		public static VByte Ref(Address addr, IndexingRegister? index = null) {
 			var v = new VByte();
 			v.Address = new Address[]{ addr };
 			v.Index = index;
@@ -75,6 +75,10 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public VByte Set(Func<VByte, RegisterA> func) => Set(func.Invoke(this));
+		public VByte Set(object v) { //presently used as a fallback, but should probably consolidate the others
+			this[0].Set(v);
+			return this;
+		}
 		public RegisterA Add(U8 v) {
 			Carry.Clear();
 			return A.Set(this[0]).ADC(v);

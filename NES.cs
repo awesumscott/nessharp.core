@@ -56,11 +56,15 @@ namespace NESSharp.Core {
 			public static VByte		LazyScrollY =		VByte.New(zp, "ppuLazyScrollY");
 			public static Bus	Address =			Bus.Ref(0x2006);
 			public static Bus	Data =				Bus.Ref(0x2007);
-			public static void ScrollTo(U8 x, U8 y) {
-				Scroll.Set(x);
-				Scroll.Set(y);
-			}
-			public static void ScrollTo(Address x, Address y) {
+			//public static void ScrollTo(U8 x, U8 y) {
+			//	Scroll.Set(x);
+			//	Scroll.Set(y);
+			//}
+			//public static void ScrollTo(Address x, Address y) {
+			//	Scroll.Set(x);
+			//	Scroll.Set(y);
+			//}
+			public static void ScrollTo(object x, object y) {
 				Scroll.Set(x);
 				Scroll.Set(y);
 			}
@@ -85,14 +89,14 @@ namespace NESSharp.Core {
 					DMA.Set(shadowOam.Hi);		//high byte of RAM address
 				}
 			}
-			public static void ClearNametable0() {
+			public static void ClearNametable0(int val = 0) {
 				SetHorizontalWrite();
 				SetAddress(0x2000);
 				Loop.Repeat(X.Set(0), 256, _ => {
-					Data.Set(0);
-					Data.Set(0);
-					Data.Set(0);
-					Data.Set(0);
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
 				});
 				//Attribute table is already covered by the above loop
 				//NES.PPU.Address.Set(0x23);
@@ -104,14 +108,14 @@ namespace NESSharp.Core {
 				//	NES.PPU.Data.Set(0);
 				//});
 			}
-			public static void ClearNametable2() {
+			public static void ClearNametable2(int val = 0) {
 				SetHorizontalWrite();
 				SetAddress(0x2800);
 				Loop.Repeat(X.Set(0), 256, _ => {
-					Data.Set(0);
-					Data.Set(0);
-					Data.Set(0);
-					Data.Set(0);
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
 				});
 			}
 		}
