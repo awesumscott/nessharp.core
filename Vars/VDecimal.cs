@@ -24,9 +24,7 @@ namespace NESSharp.Core {
 		/// <param name="vi"></param>
 		/// <returns></returns>
 		/// <remarks>Fractional value is not returned</remarks>
-		public IEnumerable<RegisterA> Add(VInteger vi) {
-			return Integer.Add(vi);
-		}
+		public IEnumerable<RegisterA> Add(VInteger vi) => Integer.Add(vi);
 		//public IEnumerable<RegisterA> Add(VInteger vi) {
 		//	var srcLen = vi.Address.Length;
 		//	if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");

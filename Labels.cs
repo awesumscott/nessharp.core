@@ -36,9 +36,12 @@ namespace NESSharp.Core {
 	//	DONE-Make this an IResolvable<Address>
 	//	DONE-Get rid of LabelAddress resolver, because this will be able to take over its duties completely
 	//	-Make an IIndexable interface and use it here and on Address, with an IndexingRegister property
-	//	-Get rid of OpLabelIndexed, and use IIndexable to find the right opcodes
-	public class Label : IResolvable<Address>, IOperation {
+	//	-Get rid of LabelIndexed, and use IIndexable to find the right opcodes
+	public class Label : IResolvable<Address>, IOperation, IOperand<Label> {
 		public int Length {get;set;} = 0;
+
+		public Label Value => this;
+
 		public Address? Address;
 		public Label() {
 			Length = 0;
@@ -53,18 +56,21 @@ namespace NESSharp.Core {
 	}
 
 	//TODO: get rid of this and replace it with an implementation using Resolvers--maybe not. Index probably isn't needed by resolving phase--it's built into the opcode
-	public class LabelIndexed {
+	public class LabelIndexed : IOperand<LabelIndexed> {
 		public Label Label;
 		public IndexingRegister? Index = null;
+
+		public LabelIndexed Value => this;
 
 		public LabelIndexed(Label label, IndexingRegister reg) {
 			Label = label;
 			Index = reg;
 		}
-		public LabelIndexed Set(RegisterA a) {
-			CPU6502.STA(this);
-			return this;
-		}
+
+		//public LabelIndexed Set(RegisterA a) {
+		//	CPU6502.STA(this);
+		//	return this;
+		//}
 		public LabelIndexed Set(LabelIndexed oli) {
 			A.Set(oli);
 			CPU6502.STA(this);

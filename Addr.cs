@@ -11,24 +11,12 @@ namespace NESSharp.Core {
 		}
 		public override string ToString() {
 			U16 u16 = Address;
-			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == u16.Hi && x.Lo == this)).Select(x => new {Key = x.Key, Index = System.Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
+			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == u16.Hi && x.Lo == this)).Select(x => new {x.Key, Index = Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
 
 			if (match == null || string.IsNullOrEmpty(match.Key))
 				return base.ToString();
 
 			return match.Key + (match.HasIndex ? $"[{ match.Index }]" : "") + ".Lo";
-
-
-
-			//var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Address.Lo.Hi && x.Lo == Lo.Lo)).FirstOrDefault().Key;
-			//var hiMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Address.Hi.Hi && x.Lo == Hi.Lo)).FirstOrDefault().Key;
-
-			//if (string.IsNullOrEmpty(loMatch) && string.IsNullOrEmpty(hiMatch))
-			//	return base.ToString();
-			////if (VarRegistry[match].Address.ToList().IndexOf())
-			//if (string.IsNullOrEmpty(loMatch))
-			//	return hiMatch + "[1].Lo";
-			//return loMatch + "[0].Lo";
 		}
 	}
 	public class AddrHi : U8 {
@@ -46,17 +34,12 @@ namespace NESSharp.Core {
 			return match.Key + (match.HasIndex ? $"[{ match.Index }]" : "") + ".Hi";
 		}
 	}
-	public class Address : U16, IU8 {
-
+	public class Address : U16, IOperand<Address>, IOperable<Address> {
 		public Address(ushort value) : base(value) {}
+		public Address Value => this;
 
-		public override U8 Lo {
-			get => new AddrLo(this, base.Lo);
-		}
-
-		public override U8 Hi {
-			get => new AddrHi(this, base.Hi);
-		}
+		public override U8 Lo => new AddrLo(this, base.Lo);
+		public override U8 Hi => new AddrHi(this, base.Hi);
 
 		public bool IsZP() => Hi == 0;
 		public static Address operator ++(Address addr) {
@@ -67,30 +50,20 @@ namespace NESSharp.Core {
 		//	CPU6502.DEC(addr);
 		//	return addr;
 		//}
-		public virtual Address Set(object o) {
-			//if (o is int i)
-			//	A.Set((byte)i).STA(this);
-			//else 
-			if (o is RegisterA)
+		public Address Set(IOperand operand) {
+			if (operand is RegisterA)
 				A.STA(this);
-			else if (o is RegisterX)
+			else if (operand is RegisterX)
 				CPU6502.STX(this);
-			else if (o is RegisterY)
+			else if (operand is RegisterY)
 				CPU6502.STY(this);
-			else if (o is Func<Address, object> func)
-				Set(func.Invoke(this));
-			else if (o is IPtrIndexed py)
-				Set(A.Set(py));
 			else
-				A.Set(o).STA(this);
+				A.Set(operand).STA(this);
 			return this;
 		}
-		public Address Set(Func<Address, object> func) => Set(func.Invoke(this));
-		//public virtual Address Set(IPtrIndexed py) => Set(A.Set(py));
-		//public virtual Address Set(OpLabelIndexed o) {
-		//	A.Set(o).STA(this);
-		//	return this;
-		//}
+		public virtual Address Set(U8 u8) => Set((IOperand)u8);
+		public Address Set(Func<Address, IOperand> func) => Set(func.Invoke(this));
+
 		public RegisterA ToA() => A.Set(this);
 
 		public static Address New(ushort value) => new Address(value);
@@ -109,6 +82,7 @@ namespace NESSharp.Core {
 		}
 
 		public new Address IncrementedValue => New((ushort)((U16)this + 1));
+
 		public Condition Equals(RegisterA a) {
 			CPU6502.CMP(this);
 			return Condition.EqualsZero;
@@ -117,6 +91,7 @@ namespace NESSharp.Core {
 			Equals(a);
 			return Condition.NotEqualsZero;
 		}
+
 		public AddressIndexed this[IndexingRegister r] => new AddressIndexed(this, r);
 	}
 	public class AddressIndexed : Address {

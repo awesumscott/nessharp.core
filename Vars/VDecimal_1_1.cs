@@ -16,8 +16,6 @@ namespace NESSharp.Core {
 			//Fractional = VByte.Ref(Address[0]);
 			return this;
 		}
-		public static VDecimal_1_1 New(RAM ram, string name) {
-			return (VDecimal_1_1)new VDecimal_1_1().Dim(ram, name);
-		}
+		public static VDecimal_1_1 New(RAM ram, string name) => (VDecimal_1_1)new VDecimal_1_1().Dim(ram, name);
 	}
 }

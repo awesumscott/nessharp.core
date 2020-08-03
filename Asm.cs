@@ -57,6 +57,7 @@ namespace NESSharp.Core {
 	/// <summary>
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>
+	//TODO: convert all these to use Operand
 	public static class CPU6502 {
 		public static void ADC(object o) {						//N V Z C
 			GenericAssembler(Asm.OC["ADC"], o);
@@ -171,23 +172,37 @@ namespace NESSharp.Core {
 			AL.Reset();
 		}
 		public static void LDA(object o) {						//N Z
-			if (AL.A.LastStored == o && AL.A.LastStoredHash == AL.A.State.Hash && AL.A.LastStoredFlagN == AL.Flags.Negative.Hash && AL.A.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
+			//this now doesn't catch IOperand values without GetOperandValue
+			var opVal = GetOperandValue(o);
+			if ((
+					(
+						AL.A.LastLoaded != null &&
+						AL.A.LastLoaded is U8 &&
+						AL.A.LastLoaded == opVal
+					) || AL.A.LastStored == opVal
+				)
+				&& AL.A.LastStoredHash == AL.A.State.Hash && AL.A.LastStoredFlagN == AL.Flags.Negative.Hash && AL.A.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
 			GenericAssembler(Asm.OC["LDA"], o);
 			AL.A.State.Alter();
 			AL.Flags.Negative.Alter();
 			AL.Flags.Zero.Alter();
+			AL.A.LastLoaded = o;
 		}
 		public static void LDX(object o) {						//N Z
+			if (AL.X.LastStored == GetOperandValue(o) && AL.X.LastStoredHash == AL.X.State.Hash && AL.X.LastStoredFlagN == AL.Flags.Negative.Hash && AL.X.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
 			GenericAssembler(Asm.OC["LDX"], o);
 			AL.X.State.Alter();
 			AL.Flags.Negative.Alter();
 			AL.Flags.Zero.Alter();
+			AL.X.LastLoaded = o;
 		}
 		public static void LDY(object o) {						//N Z
+			if (AL.Y.LastStored == GetOperandValue(o) && AL.Y.LastStoredHash == AL.Y.State.Hash && AL.Y.LastStoredFlagN == AL.Flags.Negative.Hash && AL.Y.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
 			GenericAssembler(Asm.OC["LDY"], o);
 			AL.Y.State.Alter();
 			AL.Flags.Negative.Alter();
 			AL.Flags.Zero.Alter();
+			AL.Y.LastLoaded = o;
 		}
 		public static void LSR(object o) {						//N Z C
 			GenericAssembler(Asm.OC["LSR"], o);
@@ -264,16 +279,24 @@ namespace NESSharp.Core {
 		}
 		public static void STA(object o) {						//none
 			GenericAssembler(Asm.OC["STA"], o);
-			AL.A.LastStored = o; //TODO: clean all this up with a helper
+			AL.A.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
 			AL.A.LastStoredHash = AL.A.State.Hash;
 			AL.A.LastStoredFlagN = AL.Flags.Negative.Hash;
 			AL.A.LastStoredFlagZ = AL.Flags.Zero.Hash;
 		}
 		public static void STX(object o) {						//none
 			GenericAssembler(Asm.OC["STX"], o);
+			AL.X.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
+			AL.X.LastStoredHash = AL.A.State.Hash;
+			AL.X.LastStoredFlagN = AL.Flags.Negative.Hash;
+			AL.X.LastStoredFlagZ = AL.Flags.Zero.Hash;
 		}
 		public static void STY(object o) {						//none
 			GenericAssembler(Asm.OC["STY"], o);
+			AL.Y.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
+			AL.Y.LastStoredHash = AL.A.State.Hash;
+			AL.Y.LastStoredFlagN = AL.Flags.Negative.Hash;
+			AL.Y.LastStoredFlagZ = AL.Flags.Zero.Hash;
 		}
 		public static void TAX() {								//N Z
 			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
@@ -306,7 +329,26 @@ namespace NESSharp.Core {
 			AL.Flags.Negative.Alter();
 			AL.Flags.Zero.Alter();
 		}
-		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object o) {
+		private static object? GetOperandValue(object o) {
+			if (o is IOperand operand) {
+				if (operand is IResolvable)
+					return operand;
+				else if (operand is IOperand<U8> u8)
+					return u8.Value;
+				else if (operand is IOperand<Address> addr)
+					return addr.Value;
+				else if (operand is IOperand<PtrY> ptrY)
+					return ptrY.Value;
+				else if (operand is IOperand<Label> lbl)
+					return lbl.Value;
+				else if (operand is IOperand<LabelIndexed> li)
+					return li.Value;
+			}
+			return o;
+		}
+		//TODO: convert this to use IOperands with .Value, so other objects can resolve to these options
+		private static void GenericAssembler(Dictionary<Asm.Mode, Asm.OpRef> opModes, object operand) {
+			object? o = operand is IOperand ? GetOperandValue(operand) : operand;
 			switch (o) {
 				case RegisterA _:
 					if (opModes.ContainsKey(Asm.Mode.Accumulator))
@@ -365,13 +407,22 @@ namespace NESSharp.Core {
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), (U8)b);
 					break;
-				case IVarAddressArray vaa: //TODO: there's probably a good reason to not support this in here
-					if (vaa.Address.Length > 1) throw new Exception("A larger variable made it through to the generic assembler");
-					if (vaa.Index == null)
-						GenericAssembler(opModes, vaa.Address[0]);
-					else
-						GenericAssembler(opModes, vaa.Address[0][vaa.Index]);
-					break;
+				//case IOperand<Address> opAddr:
+				//	GenericAssembler(opModes, opAddr.Value);
+				//	break;
+				//case IOperand<U8> opU8:
+				//	GenericAssembler(opModes, opU8.Value);
+				//	break;
+				//case IOperand<U8> opU8:
+				//	GenericAssembler(opModes, opU8.Value);
+				//	break;
+				//case IVarAddressArray vaa: //TODO: there's probably a good reason to not support this in here
+				//	if (vaa.Address.Length > 1) throw new Exception("A larger variable made it through to the generic assembler");
+				//	if (vaa.Index == null)
+				//		GenericAssembler(opModes, vaa.Address[0]);
+				//	else
+				//		GenericAssembler(opModes, vaa.Address[0][vaa.Index]);
+				//	break;
 				case IResolvable<Address> ra:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))
 						AL.Use(opModes[Asm.Mode.Absolute].Use(), ra); //TODO: see if this will be used, and if it'll be correct

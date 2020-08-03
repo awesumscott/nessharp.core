@@ -1,13 +1,7 @@
 ﻿namespace NESSharp.Core {
-	public interface IU16 {
-		public IU8 Lo { get; }
-		public IU8 Hi { get; }
-	}
-	public class U16 : IU16 {
+	public class U16 {
 		public virtual U8 Lo { get; private set; }
 		public virtual U8 Hi { get; private set; }
-		IU8 IU16.Lo => Lo;
-		IU8 IU16.Hi => Hi;
 
 		public U16(ushort value) {
 			Hi = (byte)(value >> 8);

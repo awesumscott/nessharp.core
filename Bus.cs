@@ -5,12 +5,9 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class Bus : Address {
-		
 		public Bus(ushort value) : base(value) {}
 
-		public static Bus Ref(ushort addr) {
-			return new Bus(addr);
-		}
+		public static Bus Ref(ushort addr) => new Bus(addr);
 
 		public void Send(Action dataSection, int len) {
 			if (len > 256) throw new Exception("Len > 256! Split up data until longer sends are supported.");
@@ -19,6 +16,8 @@ namespace NESSharp.Core {
 				Set(LabelFor(dataSection)[X]);
 				X++;
 			}).While(() => X.NotEquals((U8)(len == 256 ? 0 : len)));
+
+			//TODO: use ptr to send 256 at a time, rebaselining ptr after each pass
 		}
 		public void Write(Action dataSection) {
 			Send(dataSection, Length(dataSection));
@@ -27,12 +26,10 @@ namespace NESSharp.Core {
 			foreach (var val in vals)
 				Set(val);
 		}
-		public void Write(params IU8[] vals) {
+		public void Write(params IOperand[] vals) {
 			foreach (var val in vals)
 				Set(val);
 		}
-		public void Write(RegisterA a) {
-			Set(a);
-		}
+		public void Write(RegisterA a) => Set(a);
 	}
 }

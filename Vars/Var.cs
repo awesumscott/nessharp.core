@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -17,13 +16,6 @@ namespace NESSharp.Core {
 			}
 		}
 	}
-
-	//public class VarRegistry : Dictionary<string, Var> {
-	//	public new void Add(string key, Var value) {
-	//		base.Add(key, value);
-	//		DebugFile.WriteVariable(Address[0], name);
-	//	}
-	//}
 
 	[VarSize(-1)]
 	public class Var : IVarAddressArray {

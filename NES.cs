@@ -64,10 +64,11 @@ namespace NESSharp.Core {
 			//	Scroll.Set(x);
 			//	Scroll.Set(y);
 			//}
-			public static void ScrollTo(object x, object y) {
+			public static void ScrollTo(IOperand x, IOperand y) {
 				Scroll.Set(x);
 				Scroll.Set(y);
 			}
+			public static void ScrollTo(U8 x, U8 y) => ScrollTo((IOperand)x, (IOperand)y);
 			public static void Reset() => A.Set(Status); //read PPU status to reset the high / low latch
 			public static void SetHorizontalWrite() => Control.Set(LazyControl.Set(z => z.And(0b11111011)));
 			public static void SetVerticalWrite() => Control.Set(LazyControl.Set(z => z.Or(0b100)));
@@ -89,7 +90,7 @@ namespace NESSharp.Core {
 					DMA.Set(shadowOam.Hi);		//high byte of RAM address
 				}
 			}
-			public static void ClearNametable0(int val = 0) {
+			public static void ClearNametable0(U8 val) {
 				SetHorizontalWrite();
 				SetAddress(0x2000);
 				Loop.Repeat(X.Set(0), 256, _ => {
@@ -108,7 +109,7 @@ namespace NESSharp.Core {
 				//	NES.PPU.Data.Set(0);
 				//});
 			}
-			public static void ClearNametable2(int val = 0) {
+			public static void ClearNametable2(U8 val) {
 				SetHorizontalWrite();
 				SetAddress(0x2800);
 				Loop.Repeat(X.Set(0), 256, _ => {

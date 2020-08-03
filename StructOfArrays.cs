@@ -68,7 +68,7 @@ namespace NESSharp.Core {
 		}
 
 		public void Clear(byte clearValue = 0) {
-			Loop.Descend_Pre(X.Set(Length), _ => {
+			Loop.Descend_Pre(X.Set((U8)Length), _ => {
 				var structType = _baseInstance.GetType();
 				var newInstance = (Struct)Activator.CreateInstance(structType);
 				newInstance.Name = _baseInstance.Name;

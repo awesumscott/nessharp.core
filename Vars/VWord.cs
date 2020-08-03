@@ -5,7 +5,6 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	[VarSize(2)]
 	public class VWord : VarN {
-		//public override int Size_New { get; set; } = 2;
 		public VByte Lo => VByte.Ref(Address[0], Index);
 		public VByte Hi => VByte.Ref(Address[1], Index);
 
@@ -13,9 +12,7 @@ namespace NESSharp.Core {
 			Size = 2;
 		}
 
-		public static VWord New(RAM ram, string name) {
-			return (VWord)new VWord(){Size = 2}.Dim(ram, name);
-		}
+		public static VWord New(RAM ram, string name) => (VWord)new VWord() { Size = 2 }.Dim(ram, name);
 		public override Var Copy(Var v) {
 			if (!(v is VWord))
 				throw new Exception("Type must be Var16");
@@ -43,12 +40,6 @@ namespace NESSharp.Core {
 			Hi.Set(lbl.Hi());
 			return this;
 		}
-		//public VWord Ref(LabelIndexed li) {
-		//	Index = li.Index;
-		//	Lo.Set(li.Lo());
-		//	Hi.Set(li.Hi());
-		//	return this;
-		//}
 		/// <summary>
 		/// "Refer To". Make this variable a pointer to a particular memory address.
 		/// </summary>
@@ -58,11 +49,6 @@ namespace NESSharp.Core {
 			Hi.Set(vn[1]);
 			return this;
 		}
-		//public static VWord Ref(VByte b1, VByte b2) {
-		//	return new VWord {
-		//		Address = new Address[] { b1, b2 }
-		//	};
-		//}
 
 		//This format is best to ensure addresses are sequential
 		public static new VWord Ref(Address addr, ushort len) {

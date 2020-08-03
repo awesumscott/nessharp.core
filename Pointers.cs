@@ -7,6 +7,7 @@ namespace NESSharp.Core {
 		//public virtual Address Lo { get; private set; }
 		//public virtual Address Hi { get; private set; }
 		public string Name;
+
 		public Ptr(RAM Zp, string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
@@ -16,6 +17,7 @@ namespace NESSharp.Core {
 			DebugFile.WriteVariable(Zp, Address[0], Address[1], name);
 			VarRegistry.Add(name, this);
 		}
+
 		//public Ptr(Address? pointToAddr = null, string name = "?") {
 		//	Address = GlobalZp.Dim(2);
 		//	Lo = Address[0];
@@ -84,8 +86,9 @@ namespace NESSharp.Core {
 
 	
 	public interface IPtrIndexed {}
-	public class PtrY : IPtrIndexed {
+	public class PtrY : IPtrIndexed, IOperand<PtrY> {
 		public Ptr Ptr { get; private set; }
+		public PtrY Value => this;
 		public PtrY(Ptr p) {
 			Ptr = p;
 		}
@@ -105,7 +108,7 @@ namespace NESSharp.Core {
 			//if (string.IsNullOrEmpty(loMatch))
 			//	return hiMatch + "[1]";
 			//return loMatch + "[0]";
-			return "pointer";
+			return "pointer"; //TODO
 		}
 	}
 }
