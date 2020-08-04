@@ -146,13 +146,13 @@ namespace NESSharp.Core {
 		
 		public static void ForEach<T>(IndexingRegister index, Array<T> items, Action<T> block) where T : Var, new() {
 			if (index is RegisterX) {
-				AscendWhile(X.Set(0), () => X.NotEquals((U8)items.Length), _ => {
+				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
 					var before = X.State.Hash;
 					block?.Invoke(items[X]);
 					X.State.Verify(before);
 				});
 			} else { 
-				AscendWhile(Y.Set(0), () => Y.NotEquals((U8)items.Length), _ => {
+				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
 					var before = Y.State.Hash;
 					block?.Invoke(items[Y]);
 					Y.State.Verify(before);
@@ -161,13 +161,13 @@ namespace NESSharp.Core {
 		}
 		public static void ForEach<T>(IndexingRegister index, StructOfArrays<T> items, Action<T> block) where T : Struct, new() {
 			if (index is RegisterX) {
-				AscendWhile(X.Set(0), () => X.NotEquals((U8)items.Length), _ => {
+				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
 					var before = X.State.Hash;
 					block?.Invoke(items[X]);
 					X.State.Verify(before);
 				});
 			} else { 
-				AscendWhile(Y.Set(0), () => Y.NotEquals((U8)items.Length), _ => {
+				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
 					var before = Y.State.Hash;
 					block?.Invoke(items[Y]);
 					Y.State.Verify(before);
