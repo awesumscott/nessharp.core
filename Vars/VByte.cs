@@ -120,6 +120,11 @@ namespace NESSharp.Core {
 			else										throw new NotImplementedException();
 			return this;
 		}
+		public VByte SetASL() {
+			if (Index == null || Index is RegisterX)	CPU6502.ASL(this[0]);
+			else										throw new NotImplementedException();
+			return this;
+		}
 		public Condition Equals(U8 v) {
 			A.Set(this);
 			if (v != 0)
