@@ -119,6 +119,16 @@ namespace NESSharp.Core {
 					Data.Set(val);
 				});
 			}
+			public static void ClearNametable3(U8 val) {
+				SetHorizontalWrite();
+				SetAddress(0x2C00);
+				Loop.Repeat(X.Set(0), 256, _ => {
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
+					Data.Set(val);
+				});
+			}
 		}
 		public static class APU {
 				
