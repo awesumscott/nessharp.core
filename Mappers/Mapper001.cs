@@ -86,8 +86,8 @@ namespace NESSharp.Core.Mappers {
 		//}
 
 		public enum Mirroring {
-			Vertical = 0,
-			Horizontal = 1
+			Horizontal = 0,
+			Vertical = 1
 		};
 
 		public class Module : Core.Module {

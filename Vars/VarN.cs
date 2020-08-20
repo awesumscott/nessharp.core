@@ -107,10 +107,11 @@ namespace NESSharp.Core {
 			}
 			yield break;
 		}
-		public IEnumerable<RegisterA> Add(U8 u8) {
+		public IEnumerable<RegisterA> Add(U8 v) => Add((IOperand)v);
+		public IEnumerable<RegisterA> Add(IOperand v) {
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Set(this[0]).Add(u8);
+			yield return A.Set(this[0]).Add(v);
 			for (var i = 1; i < Size; i++) {
 				yield return A.Set(this[i]).ADC(0);
 			}

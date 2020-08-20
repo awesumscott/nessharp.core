@@ -108,11 +108,9 @@ namespace NESSharp.Core {
 			return y;
 		}
 		public Condition Equals(U8 v) {
-			//TODO: CPY if X wasn't last register to alter Carry
-			if (v == 0)
-				return Condition.EqualsZero;
-			throw new NotImplementedException();
-			//TODO: CPY in here
+			if (v != 0)	//TODO: If X wasn't last register to alter Carry...
+				CPU6502.CPY(v);
+			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(U8 v) {
 			//TODO: CMP if Y wasn't last register to alter Carry
@@ -120,7 +118,6 @@ namespace NESSharp.Core {
 				return Condition.NotEqualsZero;
 			CPU6502.CPY(v);
 			return Condition.NotEqualsZero;
-			throw new NotImplementedException();
 		}
 		public Condition Equals(Address addr) {
 			CPU6502.CPY(addr);

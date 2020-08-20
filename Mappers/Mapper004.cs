@@ -29,14 +29,14 @@ using static NESSharp.Core.AL;
 */
 
 namespace NESSharp.Core.Mappers {
-	public class Mapper004 : IMapper {
+	public class Mapper004_OLD : IMapper {
 		public int Number => 4;
 		public bool BatteryBacked = false;
 		public RAM WRAM;
 		public Label[] ChrLabel;
 		private int _prgRom, _chrRom, _chrRam, _wRam;
 
-		public Mapper004(int PrgROMSize, int ChrROMSize, int ChrRAMSize, int WRAMSize, bool batteryBacked = false) {
+		public Mapper004_OLD(int PrgROMSize, int ChrROMSize, int ChrRAMSize, int WRAMSize, bool batteryBacked = false) {
 			_prgRom = PrgROMSize;
 			_chrRom = ChrROMSize;
 			_chrRam = ChrRAMSize;
@@ -110,7 +110,7 @@ namespace NESSharp.Core.Mappers {
 							_irqLatch, _irqReload, _irqDisable, _irqEnable;
 			[Dependencies]
 			public void Dependencies() {
-				_irqSub			= Ptr.New(Zp,		$"{nameof(Mapper004)}.{nameof(Module)}{nameof(_irqSub)}");
+				_irqSub			= Ptr.New(Zp,		$"{nameof(Mapper004_OLD)}.{nameof(Module)}{nameof(_irqSub)}");
 				_bankSelect		= VByte.Ref(Addr(0x8000));
 				_bankData		= VByte.Ref(Addr(0x8001));
 				_mirroring		= VByte.Ref(Addr(0xA000));
