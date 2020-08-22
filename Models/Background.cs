@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace NESSharp.Core.Models {
@@ -30,5 +31,8 @@ namespace NESSharp.Core.Models {
 		public U8 Id { get; set; }
 		public string Name { get; set; }
 		public List<U8> Tiles { get; set; }
+		[MinLength(4)]
+		[MaxLength(4)]
+		public U8[] Neighbors { get; set; }
 	}
 }
