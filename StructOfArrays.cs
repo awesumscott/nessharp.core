@@ -45,6 +45,7 @@ namespace NESSharp.Core {
 					//if type has >1 bytes, grab values from appropriate arrays, create an instance, and set its address array properly
 					var numBytes = VarSize.GetSizeOf(p.PropertyType);
 					var v = (Var)Activator.CreateInstance(p.PropertyType);
+					v.Index = index;
 					if (numBytes > 1) {
 						var bytes = new List<Var>();
 						for (var byteIndex = 0; byteIndex < numBytes; byteIndex++) {
