@@ -114,6 +114,7 @@ namespace NESSharp.Core {
 		}
 		public Condition NotEquals(U8 v) {
 			//TODO: CMP if Y wasn't last register to alter Carry
+
 			if (v == 0)
 				return Condition.NotEqualsZero;
 			CPU6502.CPY(v);
@@ -136,7 +137,8 @@ namespace NESSharp.Core {
 		public RegisterA Value => this;
 		public RegisterA Set(IOperand operand) {
 			if (operand is RegisterA)
-				throw new Exception("Attempting to set A to A");
+				return this; //do nothing, this should be okay to support IOperands this way
+				//throw new Exception("Attempting to set A to A");
 			else if (operand is RegisterX)
 				CPU6502.TXA();
 			else if (operand is RegisterY)

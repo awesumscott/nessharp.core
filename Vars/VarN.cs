@@ -56,7 +56,7 @@ namespace NESSharp.Core {
 
 		public VarN Set(Func<VarN, object> func) => Set(func.Invoke(this));
 		public VarN Set(object o) {
-			if (o is U8 u8) {
+			if (o is IOperand u8) {
 				this[0].Set(u8);
 				for (var i = 1; i < Address.Length; i++)
 					this[i].Set(0);
@@ -95,6 +95,7 @@ namespace NESSharp.Core {
 			} else throw new Exception("Type not supported by VarN: " + o.GetType().ToString());
 			return this;
 		}
+		//TODO: combine this with IOperand to avoid specifying/casting from caller
 		public IEnumerable<RegisterA> Add(IVarAddressArray iva) {
 			var srcLen = iva.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
@@ -138,7 +139,8 @@ namespace NESSharp.Core {
 			}
 			yield break;
 		}
-		public IEnumerable<RegisterA> Subtract(U8 u8) {
+		public IEnumerable<RegisterA> Subtract(U8 v) => Subtract((IOperand)v);
+		public IEnumerable<RegisterA> Subtract(IOperand u8) {
 			//var srcLen = iva.Address.Length;
 			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
 			yield return A.Set(this[0]).Subtract(u8);

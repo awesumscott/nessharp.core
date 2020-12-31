@@ -6,6 +6,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class StructOfArrays<StructType> : Var where StructType : Struct, new() {
+		private static byte nameSuffix = 0;
 		private Struct _baseInstance;
 		private Array<VByte>[] _arrays;
 		public static StructOfArrays<StructType> New(string name, int arrayLength) {
@@ -23,10 +24,10 @@ namespace NESSharp.Core {
 				if (numBytes < 1) throw new Exception("Variable length types cannot be used in structs--make a new Var type with a fixed length"); //Alternative: a Size attribute on the property (may not work for Decimal, which has two size args)
 
 				if (numBytes == 1) {
-					arrs.Add(Array<VByte>.New((U8)Length, ram, $"{ _baseInstance.GetType().Name }_{ p.Name }"));
+					arrs.Add(Array<VByte>.New((U8)Length, ram, $"{ _baseInstance.GetType().Name }{nameSuffix++}_{ p.Name }"));
 				} else {
 					for (var i = 0; i < numBytes; i++)
-						arrs.Add(Array<VByte>.New((U8)Length, ram, $"{ _baseInstance.GetType().Name }_{ p.Name }_{ i }"));
+						arrs.Add(Array<VByte>.New((U8)Length, ram, $"{ _baseInstance.GetType().Name }{nameSuffix++}_{ p.Name }_{ i }"));
 				}
 			}
 			_arrays = arrs.ToArray();
