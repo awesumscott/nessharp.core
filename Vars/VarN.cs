@@ -133,9 +133,9 @@ namespace NESSharp.Core {
 			yield return A.Set(this[0]).Subtract(iva[0]);
 			for (var i = 1; i < Size; i++) {
 				if (i < srcLen)
-					yield return A.Set(this[i]).Subtract(iva[i]);
+					yield return A.Set(this[i]).SBC(iva[i]);
 				else
-					yield return A.Set(this[i]).Subtract(0);
+					yield return A.Set(this[i]).SBC(0);
 			}
 			yield break;
 		}
