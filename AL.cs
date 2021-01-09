@@ -60,7 +60,7 @@ namespace NESSharp.Core {
 	public class UniquenessState {
 		private long _state = 0, _nextState = 1;
 		public long Hash => _state;
-		private Stack<long> _stateStack = new Stack<long>();
+		private readonly Stack<long> _stateStack = new Stack<long>();
 		public void Alter() {
 			_state = _nextState++;
 		}
@@ -161,26 +161,22 @@ namespace NESSharp.Core {
 
 		public static void Use(IOperation op) => Code[CodeContextIndex].Add(op);
 		public static void Use(OpCode op, IResolvable<Address> r) {
-			//if (op.Length != 2)
-			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = r;
 			Use(op);
 		}
 		public static void Use(OpCode op, IResolvable<U8> r) {
-			//if (op.Length != 2)
-			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = r;
 			Use(op);
 		}
 		public static void Use(OpCode op, U8 param) {
-			if (op.Length != 2)
-				throw new Exception("Invalid parameter length for this opcode");
+			//if (op.Length != 2)
+			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}
 		public static void Use(OpCode op, U16 param) {
-			if (op.Length != 3)
-				throw new Exception("Invalid parameter length for this opcode");
+			//if (op.Length != 3)
+			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}
@@ -228,122 +224,41 @@ namespace NESSharp.Core {
 			Flags.Reset();
 		}
 
-		//public static void Origin(int origin) {
-			
-		//}
+		//public static void Origin(int origin) {}
 		
 		//For reference:
 		//(byte)(-128)==(byte)0x80
 		//(byte)(127)==(byte)0x7F
-		
-		public interface IOption {}
-		public class IfOption : IOption {
-			public object Condition;
-			public Action Block;
-			public Func<Condition>? FallThroughCondition;
 
-			public IfOption(object condition, Action block) {
-				Condition = condition;
-				Block = block;
-			}
-		}
-		public class IfDefault : IOption {
-			public Action Block;
-
-			public IfDefault(Action block) {
-				Block = block;
-			}
-		}
-		public static Func<Condition> FallThroughIf(Func<Condition> condition) => condition;
-		public static IfOption Option(Func<object> condition, Action block, Func<Condition>? fallThroughCondition = null)
-						=> new IfOption(condition, block) { FallThroughCondition = fallThroughCondition };
-		public static IfOption Option(Func<Condition> condition, Action block, Func<Condition>? fallThroughCondition = null)
-						=> new IfOption(condition, block) { FallThroughCondition = fallThroughCondition };
-
-		//TODO: 3rd optional param for Option(): FallThroughIf(condition)--might this be a case to make a Switch block or something similar?
-
-		public static IfDefault Default(Action block) => new IfDefault(block);
-		/// <summary>Multi-condition If block</summary>
-		/// <example>
-		/// If(
-		///		Option(() => A.Equals(1), () => {
-		/// 		A.Set(2);
-		/// 	}),
-		/// 	Option(() => A.Equals(2), () => {
-		/// 		A.Set(9);
-		/// 	}),
-		/// 	Default(() => {
-		/// 		A.Set(5);
-		/// 	})
-		/// );
-		/// </example>
-		/// <param name="options"></param>
-		public static void If(params IOption[] options) {
-			var numOptions = options.Length;
-			var optionConditions = options.Where(x => x is IfOption).Cast<IfOption>().ToList();
-			var optionDefault = options.Where(x => x is IfDefault).Cast<IfDefault>().ToList();
-			var hasElse = optionDefault.Any();
-			Label? lblEnd = null;
-			if (numOptions > 1 || hasElse)
-				lblEnd = Labels.New();
-			var lastCondition = optionConditions.Last();
-			foreach (var oc in optionConditions) {
-				var isLast = oc == lastCondition;
-				//var c = oc.Condition.Invoke();
-				//_WriteIfCondition(c, oc.Block, hasElse || !isLast ? lblEnd : null, !isLast || hasElse ? oc.FallThroughCondition : null); //don't output "GoTo EndIf" if this is the last condition
-				_WriteCondition(oc.Condition, oc.Block, hasElse || !isLast ? lblEnd : null); //don't output "GoTo EndIf" if this is the last condition
-			}
-			if (numOptions > 1) {
-				if (hasElse)
-					optionDefault[0].Block?.Invoke();
-				if (lblEnd != null) //always true in this block, suppressing nullable complaint
-					Use(lblEnd);
-			}
-			Reset();
-		}
-		public static void If(Func<object> expression, Action block) {
-			_WriteCondition(expression, block);
-		}
-		public static void If(AdvancedCondition condition, Action block) {
-			_WriteCondition(condition, block);
-		}
-		public static void If(object condition, Action block) {
-			_WriteCondition(condition, block);
-		}
-		public static void If(Func<Condition> condition, Action block) => _WriteCondition(condition, block);
 		public static void Branch(Condition condition, U8 len, bool inverted = false) {
 			if (inverted) {
 				//Opposite of "IF" condition
 				switch (condition) {
-					case Condition.EqualsZero:		Use(Asm.BNE, len); break;
-					case Condition.NotEqualsZero:	Use(Asm.BEQ, len); break;
-					case Condition.IsPositive:		Use(Asm.BMI, len); break;
-					case Condition.IsNegative:		Use(Asm.BPL, len); break;
+					case Condition.EqualsZero:			CPU6502.BNE(len); break;
+					case Condition.NotEqualsZero:		CPU6502.BEQ(len); break;
+					case Condition.IsPositive:			CPU6502.BMI(len); break;
+					case Condition.IsNegative:			CPU6502.BPL(len); break;
 					case Condition.IsCarrySet:
 					case Condition.IsGreaterThanOrEqualTo:
-					case Condition.IsLessThanOrEqualTo:
-													Use(Asm.BCC, len); break;
+					case Condition.IsLessThanOrEqualTo:	CPU6502.BCC(len); break;
 					case Condition.IsCarryClear:
 					case Condition.IsGreaterThan:
-					case Condition.IsLessThan:
-													Use(Asm.BCS, len); break;
+					case Condition.IsLessThan:			CPU6502.BCS(len); break;
 					default: throw new NotImplementedException();
 				}
 			} else {
 				//Same as "IF" condition
 				switch (condition) {
-					case Condition.EqualsZero:		Use(Asm.BEQ, len); break;
-					case Condition.NotEqualsZero:	Use(Asm.BNE, len); break;
-					case Condition.IsPositive:		Use(Asm.BPL, len); break;
-					case Condition.IsNegative:		Use(Asm.BMI, len); break;
+					case Condition.EqualsZero:			CPU6502.BEQ(len); break;
+					case Condition.NotEqualsZero:		CPU6502.BNE(len); break;
+					case Condition.IsPositive:			CPU6502.BPL(len); break;
+					case Condition.IsNegative:			CPU6502.BMI(len); break;
 					case Condition.IsCarrySet:
 					case Condition.IsGreaterThanOrEqualTo:
-					case Condition.IsLessThanOrEqualTo:
-													Use(Asm.BCS, len); break;
+					case Condition.IsLessThanOrEqualTo:	CPU6502.BCS(len); break;
 					case Condition.IsCarryClear:
 					case Condition.IsGreaterThan:
-					case Condition.IsLessThan:
-													Use(Asm.BCC, len); break;
+					case Condition.IsLessThan:			CPU6502.BCC(len); break;
 					default: throw new NotImplementedException();
 				}
 			}

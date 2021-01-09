@@ -16,7 +16,7 @@ namespace NESSharp.Core {
 		//TODO: implement AL.LastUsedRegister for determining if a CMP is still needed before a branch operation
 		public void While(Func<Condition> condition) {
 			//An outer context to account for conditions that output some code
-			Use(_labels.Continue);
+			Use(_labels.ContinueLabel);
 			Context.New(() => {
 				_block?.Invoke(_labels);
 				var c = condition.Invoke();
@@ -28,69 +28,156 @@ namespace NESSharp.Core {
 					CPU6502.JMP(Context.StartLabel); //Use(Asm.JMP.Absolute, Context.StartLabel);
 				}
 			});
-			Use(_labels.Break);
+			Use(_labels.BreakLabel);
 		}
 	}
 
 	public class LoopLabels {
-		public Label Continue = Labels.New();
-		public Label Break = Labels.New();
+		public Label ContinueLabel = Labels.New();
+		public Label BreakLabel = Labels.New();
+		public Action Continue => () => GoTo(ContinueLabel);
+		public Action Break => () => GoTo(BreakLabel);
 	}
 	//public delegate void LoopAction(LoopLabels? labels = null);
 
 	public static class Loop {
+		/*
+			Loop.{Ascend|Descend}(reg).{Until|While}(condition).Do(block);
+			Loop.{Ascend|Descend}(reg).Do(block).{Until|While}(condition);
+			Loop.Do(block).{Ascend|Descend}(reg).{Until|While}(condition);
+			Loop.While(condition).Do(block);
+			Loop.Until(condition).Do(block);
+			Loop.Do(block).While(condition);
+			Loop.Do(block).While(Until);
+		*/
+		//public interface ILoop {}
+		//public interface ILoop_Block : ILoop {}
+		//public interface ILoop_Iterate : ILoop {
+		//	ILoop Ascend(IndexingRegister reg);
+		//	ILoop Descend(IndexingRegister reg);
+		//}
+		//public interface ILoop_Condition : ILoop {
+		//	ILoop While(Func<Condition> condition);
+		//	ILoop Until(Func<Condition> condition);
+		//}
+		//public class LoopBlockIteratingCondition : ILoop {
+			
+		//}
+		//public class LoopBlockIterating : ILoop_Condition {
+		//	public ILoop Ascend(IndexingRegister reg) {
+			
+		//	}
+		//	public ILoop Descend(IndexingRegister reg) {
+			
+		//	}
+		//}
+
+		public class LoopBlock {
+			public Action<LoopLabels>? Block = null;
+			public IndexingRegister? Reg = null;
+			public bool? Ascending = null;
+			public bool PostCondition = true;
+			public bool Inverted = false;
+			public Func<Condition>? Condition = null;
+
+			//TODO: for each method, test if loop executed already, exception of true
+
+			public LoopBlock Ascend(IndexingRegister reg) {
+				if (reg != null) throw new Exception("Loop index already set");
+				Reg = reg;
+				Ascending = true;
+				return this;
+			}
+			public LoopBlock Descend(IndexingRegister reg) {
+				if (reg != null) throw new Exception("Loop index already set");
+				Reg = reg;
+				Ascending = false;
+				return this;
+			}
+			public LoopBlock Do(Action<LoopLabels>? block = null) {
+				Block = block;
+				//TODO: if Condition is set, execute loop
+				return this;
+			}
+			public LoopBlock While(Func<Condition> condition) {
+				Condition = condition;
+				Inverted = false;
+				//TODO: if Block is set, execute loop
+				return this;
+			}
+			public LoopBlock Until(Func<Condition> condition) {
+				Condition = condition;
+				Inverted = true;
+				//TODO: if Block is set, execute loop
+				return this;
+			}
+		}
+		public static LoopBlock Ascend(IndexingRegister reg) => new LoopBlock().Ascend(reg);
+		public static LoopBlock Descend(IndexingRegister reg) => new LoopBlock().Descend(reg);
+		public static LoopBlock Do(Action<LoopLabels>? block = null) => new LoopBlock().Do(block);
+		public static LoopBlock While(Func<Condition> condition) => new LoopBlock().While(condition);
+		public static LoopBlock Until(Func<Condition> condition) => new LoopBlock().Until(condition);
+
+
+
+
+
+
+
+
+
 		public static void Infinite(Action<LoopLabels>? block = null) {
 			var labels = new LoopLabels();
 			//var lbl = Labels.New();
-			Use(labels.Continue);
+			Use(labels.ContinueLabel);
 			if (block != null) {
 				Context.New(() => block(labels));
 			}
-			GoTo(labels.Continue);
-			Use(labels.Break);
+			GoTo(labels.ContinueLabel);
+			Use(labels.BreakLabel);
 		}
-		public static DoLoop Do(Action<LoopLabels>? block = null) => new DoLoop(block);
-		public static void Descend(IndexingRegister reg, Action<LoopLabels> block) {
+		public static DoLoop Do_old(Action<LoopLabels>? block = null) => new DoLoop(block);
+		public static void Descend_Post(IndexingRegister reg, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
-			Do(_ => {
+			Do_old(_ => {
 				var before = reg.State.Hash;
 				block?.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.Continue);
+				Use(labels.ContinueLabel);
 				reg--;
 			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
-			Use(labels.Break);
+			Use(labels.BreakLabel);
 		}
 		public static void Descend_Pre(IndexingRegister reg, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
-			Do(_ => {
-				Use(labels.Continue);
+			Do_old(_ => {
+				Use(labels.ContinueLabel);
 				reg--;
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
 			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
-			Use(labels.Break);
+			Use(labels.BreakLabel);
 		}
 		public static void AscendWhile(IndexingRegister reg, Func<Condition> condition, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
-			Do(_ => {
+			Do_old(_ => {
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.Continue);
+				Use(labels.ContinueLabel);
 				reg++;
 			}).While(condition);
-			Use(labels.Break);
+			Use(labels.BreakLabel);
 		}
-		public static void While(Func<Condition> condition, Action<LoopLabels> block) {
+		public static void While_Pre(Func<Condition> condition, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
 			//var lblStart = Labels.New();
-			Use(labels.Continue);
+			Use(labels.ContinueLabel);
 			var c = condition.Invoke();
 			Context.New(() => {
 				block(labels);
-				GoTo(labels.Continue);
+				GoTo(labels.ContinueLabel);
 				var len = Context.Length;
 				if (len <= HIGHEST_BRANCH_VAL) {
 					Context.Parent(() => {
@@ -106,7 +193,7 @@ namespace NESSharp.Core {
 					Use(lblEnd);
 				}
 			});
-			Use(labels.Break);
+			Use(labels.BreakLabel);
 		}
 		/// <summary>
 		/// 
@@ -123,25 +210,25 @@ namespace NESSharp.Core {
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.Continue);
+				Use(labels.ContinueLabel);
 				reg++;
 				if (Context.StartBranchable) {
 					if (length < 256) {
 						if (reg is RegisterX)	CPU6502.CPX((U8)length);	//TODO: verify (U8)length == (int)length
 						else					CPU6502.CPY((U8)length);	//TODO: verify (U8)length == (int)length
 					}
-					Use(Asm.BNE, Context.Start);
+					CPU6502.BNE(Context.Start);
 				} else {
 					//TODO: verify this works!
 					if (length < 256) {
 						if (reg is RegisterX)	CPU6502.CPX((U8)length);	//TODO: verify (U8)length == (int)length
 						else					CPU6502.CPY((U8)length);	//TODO: verify (U8)length == (int)length
 					}
-					Use(Asm.BEQ, (U8)3);
+					CPU6502.BEQ(3);
 					GoTo(lblStart);
 				}
 			});
-			Use(labels.Break);
+			Use(labels.BreakLabel);
 		}
 		
 		public static void ForEach<T>(IndexingRegister index, Array<T> items, Action<T> block) where T : Var, new() {
@@ -159,6 +246,7 @@ namespace NESSharp.Core {
 				});
 			}
 		}
+		[Obsolete("Include loop labels")]
 		public static void ForEach<T>(IndexingRegister index, StructOfArrays<T> items, Action<T> block) where T : Struct, new() {
 			if (index is RegisterX) {
 				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
@@ -170,6 +258,22 @@ namespace NESSharp.Core {
 				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
 					var before = Y.State.Hash;
 					block?.Invoke(items[Y]);
+					Y.State.Verify(before);
+				});
+			}
+		}
+		
+		public static void ForEach<T>(IndexingRegister index, StructOfArrays<T> items, Action<T, LoopLabels> block) where T : Struct, new() {
+			if (index is RegisterX) {
+				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), lblsX => {
+					var before = X.State.Hash;
+					block?.Invoke(items[X], lblsX);
+					X.State.Verify(before);
+				});
+			} else { 
+				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), lblsY => {
+					var before = Y.State.Hash;
+					block?.Invoke(items[Y], lblsY);
 					Y.State.Verify(before);
 				});
 			}

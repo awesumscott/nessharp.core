@@ -176,6 +176,10 @@ namespace NESSharp.Core {
 			GreaterThanOrEqualTo(v);
 			return Condition.IsLessThan;
 		}
+		//public Condition LessThan(Func<IOperand> v) {
+		//	GreaterThanOrEqualTo(v);
+		//	return Condition.IsLessThan;
+		//}
 		public Condition LessThan(VByte v) {
 			GreaterThanOrEqualTo(v);
 			return Condition.IsLessThan;

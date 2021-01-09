@@ -24,7 +24,7 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public override Var Copy(Var v) => throw new NotImplementedException();
-		public T this[int index] {
+		public new T this[int index] {
 			get {
 				if (Vars is null) throw new Exception("Array hasn't been dimmed");
 				if (index >= 0 && index < Vars.Length)

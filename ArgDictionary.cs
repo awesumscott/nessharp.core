@@ -35,7 +35,7 @@ namespace NESSharp.Core {
 			return new ArgDictionary(args);
 		}
 
-		public void Handle(string argName, string shortName, Action<string> handler, string defaultValue = null) {
+		public void Handle(string argName, string shortName, Action<string> handler, string? defaultValue = null) {
 			if (_dict.ContainsKey(argName))
 				handler(_dict[argName]);
 			else if (_dict.ContainsKey(shortName))

@@ -77,7 +77,8 @@ namespace NESSharp.Core {
 
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
-		public Condition LessThan(object v) {
+		public Condition LessThan(U8 u8) => LessThan((IOperand)u8);
+		public Condition LessThan(IOperand v) {
 			CPU6502.CPX(v);
 			return Condition.IsLessThan;
 		}
@@ -128,7 +129,7 @@ namespace NESSharp.Core {
 			CPU6502.CPY(addr);
 			return Condition.NotEqualsZero;
 		}
-		public Condition LessThan(object o) {
+		public Condition LessThan(IOperand o) {
 			CPU6502.CPY(o);
 			return Condition.IsLessThan;
 		}
@@ -201,7 +202,7 @@ namespace NESSharp.Core {
 		public RegisterA ASL() {					CPU6502.ASL(this);	return this; }
 		public RegisterA ROR() {					CPU6502.ROR(this);	return this; }
 		public RegisterA ROL() {					CPU6502.ROL(this);	return this; }
-		public void CMP(object o) => CPU6502.CMP(o);
+		public void CMP(IOperand o) => CPU6502.CMP(o);
 
 		public Condition Equals(U8 v) {
 			if (v != 0)
@@ -224,14 +225,14 @@ namespace NESSharp.Core {
 			Equals(addr);
 			return Condition.NotEqualsZero;
 		}
-		public Condition Equals(Ptr p) {
-			CMP(p);
-			return Condition.EqualsZero;
-		}
-		public Condition NotEquals(Ptr p) {
-			Equals(p);
-			return Condition.NotEqualsZero;
-		}
+		//public Condition Equals(Ptr p) {
+		//	CMP(p);
+		//	return Condition.EqualsZero;
+		//}
+		//public Condition NotEquals(Ptr p) {
+		//	Equals(p);
+		//	return Condition.NotEqualsZero;
+		//}
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
 		public Condition GreaterThan(U8 v) {

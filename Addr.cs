@@ -5,7 +5,7 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public class AddrLo : U8 {
 		public Address Address;
-		public AddrLo(byte b) : base(b) {}
+		//public AddrLo(byte b) : base(b) {}
 		public AddrLo(Address a, byte b) : base(b) {
 			Address = a;
 		}
@@ -21,12 +21,12 @@ namespace NESSharp.Core {
 	}
 	public class AddrHi : U8 {
 		public Address Address;
-		public AddrHi(byte b) : base(b) {}
+		//public AddrHi(byte b) : base(b) {}
 		public AddrHi(Address a, byte b) : base(b) {
 			Address = a;
 		}
 		public override string ToString() {
-			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == this && x.Lo == Address.Lo)).Select(x => new {Key = x.Key, Index = System.Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
+			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == this && x.Lo == Address.Lo)).Select(x => new {Key = x.Key, Index = Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
 			
 			if (match == null || string.IsNullOrEmpty(match.Key))
 				return base.ToString();
@@ -77,7 +77,7 @@ namespace NESSharp.Core {
 
 			var matchVar = VarRegistry[matchName];
 			var matchByteInstance = matchVar.Address.Where(x => x.Hi == Hi && x.Lo == Lo).FirstOrDefault(); //necessary instead of "this" because instance refs may be different
-			int? index = (matchVar.Address.Count() > 1  && matchByteInstance != null) ? matchVar.Address.ToList().IndexOf(matchByteInstance) : (int?)null;
+			int? index = (matchVar.Address.Length > 1  && matchByteInstance != null) ? matchVar.Address.ToList().IndexOf(matchByteInstance) : (int?)null;
 			return matchName + (index!=null ? $"[{index}]" : "");
 		}
 

@@ -25,10 +25,7 @@ namespace NESSharp.Core {
 			//Console.WriteLine(string.Join(',',
 
 			ROMManager.SetInfinite();
-
 			ROMManager.CompileBin(BinTest);
-
-
 			ROMManager.WriteToFile(@"test");
 		}
 	}
@@ -47,7 +44,7 @@ namespace NESSharp.Core {
 			Y.Set(6);
 
 			Comment("a==$10 && (x==0 || x == 1)");
-			If(All(Any(() => X.Equals(0), () => X.Equals(1)), () => A.Equals(0x10)), () => {
+			If.True(All(Any(() => X.Equals(0), () => X.Equals(1)), () => A.Equals(0x10)), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			});
@@ -59,31 +56,34 @@ namespace NESSharp.Core {
 			//});
 
 			Comment("Combined");
-			If(	Option(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+			If.Block(c => c
+				.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
-				}),
-				Option(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
+				})
+				.True(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
 				})
 			);
 			Comment("Combined");
-			If(	Option(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
+			If.Block(c => c
+				.True(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
-				}),
-				Option(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+				})
+				.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
 				})
 			);
 			Comment("First option has only Anys");
-			If(	Option(Any(() => X.Equals(0), Any(() => A.Equals(0x10), () => X.Equals(1))), () => {
+			If.Block(c => c
+				.True(Any(() => X.Equals(0), Any(() => A.Equals(0x10), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
-				}),
-				Option(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+				})
+				.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
 					A.Set(0x69);
 					X.Set(0x69);
 				})
