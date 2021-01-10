@@ -6,8 +6,8 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public class Prototypes {
 		class TestVals {
-			U8 a = new U8(5);
-			U8 b = new U8(10);
+			readonly U8 a = 5;
+			readonly U8 b = 10;
 			public (U8, U8) g() => (a, b);
 		}
 		public static void BinTest() {

@@ -1,7 +1,6 @@
 ﻿using System;
 
 namespace NESSharp.Core {
-	public interface IU8 {}
 	#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 	#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 	public class U8 : IOperand<U8> {
@@ -24,6 +23,6 @@ namespace NESSharp.Core {
 
 		public static bool operator ==(U8 a, U8 b) => a.Value == b.Value;
 		public static bool operator !=(U8 a, U8 b) => a.Value != b.Value;
-		public override string ToString() => "$" + Value.ToString("X2");
+		public override string ToString() => $"${Value:X2}";
 	}
 }

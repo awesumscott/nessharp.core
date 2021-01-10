@@ -5,7 +5,7 @@ using System.Text;
 namespace NESSharp.Core.Mappers {
 	public class Mapper000 : IMapper {
 		public int Number => 0;
-		private MirroringOptions _mirroring;
+		private readonly MirroringOptions _mirroring;
 		
 		public Mapper000(MirroringOptions mirroring = MirroringOptions.Vertical) {
 			_mirroring = mirroring;

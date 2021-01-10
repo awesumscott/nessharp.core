@@ -21,12 +21,12 @@ namespace NESSharp.Core {
 		Unknown
 	};
 	public class FlagStates {
-		public UniquenessState Carry = new UniquenessState();
-		public UniquenessState Zero = new UniquenessState();
-		public UniquenessState InterruptDisable = new UniquenessState();
-		public UniquenessState Decimal = new UniquenessState();
-		public UniquenessState Overflow = new UniquenessState();
-		public UniquenessState Negative = new UniquenessState();
+		public UniquenessState Carry			= new();
+		public UniquenessState Zero				= new();
+		public UniquenessState InterruptDisable	= new();
+		public UniquenessState Decimal			= new();
+		public UniquenessState Overflow			= new();
+		public UniquenessState Negative			= new();
 		public void Reset() {
 			Carry.Alter();
 			Zero.Alter();
@@ -60,17 +60,18 @@ namespace NESSharp.Core {
 	public class UniquenessState {
 		private long _state = 0, _nextState = 1;
 		public long Hash => _state;
+		public RegisterBase? LastReg { get; private set; } //register modified by last op that was responsible for the latest state change
 		private readonly Stack<long> _stateStack = new Stack<long>();
-		public void Alter() {
+		public void Alter(RegisterBase? reg = null) {
 			_state = _nextState++;
+			LastReg = reg;
 		}
+
 		public void Push() {
 			_stateStack.Push(_state);
 			_nextState = _state + 1;
 		}
-		public void Pop() {
-			_state = _stateStack.Pop();
-		}
+		public void Pop() => _state = _stateStack.Pop();
 
 		/// <summary>
 		/// Ensure the integrity of the value after a code block.
@@ -95,17 +96,15 @@ namespace NESSharp.Core {
 		}
 	}
 	public static class AL {
-		public static RegisterA A = new RegisterA();
-		public static RegisterX X = new RegisterX();
-		public static RegisterY Y = new RegisterY();
-		public static FlagStates Flags = new FlagStates();
-		
-		//TODO: eliminate references to these in game code, and eventually remove them, so only hardware-specific code specifies its own allocators
-		public static RAM GlobalRam;
-		public static RAM GlobalZp;
+		//TODO: transition "using static NESSharp.Core.AL" statements to "using static NESSharp.Core.CPU6502" everywhere to get these out of here
+		public static RegisterA A = CPU6502.A;
+		public static RegisterX X = CPU6502.X;
+		public static RegisterY Y = CPU6502.Y;
+		public static FlagStates Flags = CPU6502.Flags;
+
 		public static Bank									CurrentBank;
 		public static U8									CurrentBankId;
-		public static List<List<IOperation>>					Code;
+		public static List<List<IOperation>>				Code;
 		public static LabelDictionary						Labels				= new LabelDictionary();
 		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
 		public static ConstantCollection					Constants			= new ConstantCollection();
@@ -121,8 +120,6 @@ namespace NESSharp.Core {
 
 		static AL() {
 			NES.Init(); //TODO: get rid of this when it's no longer static
-			GlobalZp	= NES.zp;
-			GlobalRam	= NES.ram;
 			OAM			= new OAMDictionary(NES.ShadowOAM.Ram);
 			Temp		= new VByte[] {VByte.New(NES.zp, "Temp0"), VByte.New(NES.zp, "Temp1"), VByte.New(NES.zp, "Temp2")};
 			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");//new Ptr((Address)null, "tempPtr0");
@@ -134,21 +131,10 @@ namespace NESSharp.Core {
 			CodeContextIndex = 0;
 			Code.Add(new List<IOperation>());
 		}
-		//public static T? Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
-		//	var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
-		//	if (instance == null) {
-		//		instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
-		//		_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
-		//		_Modules.Add(typeof(T), instance);
-		//	}
-		//	instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
-		//	return instance;
-		//}
 		public static T Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
-			var instance = (T)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			if (instance == null) {
-				instance = Activator.CreateInstance<T>(); //(T)Activator.CreateInstance(typeof(T));
-				//_Modules.Add(typeof(T), (IScene)instance); //TODO: keep this around until flickertest is updated
+				instance = Activator.CreateInstance<T>();
 				_Modules.Add(typeof(T), instance);
 			}
 			instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
@@ -326,7 +312,7 @@ namespace NESSharp.Core {
 			Comment("after goto endif and before writeany's lblend");
 			Use(lblEnd);
 		}
-		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null) {
+		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null) {
 			var currentCondition = conditions.First();
 			_WriteCondition(currentCondition, conditions.Length > 1 ? () => _WriteAllCondition(conditions.Skip(1).ToArray(), block, lblEndIf) : block, conditions.Length == 1 ? lblEndIf : null);
 		}

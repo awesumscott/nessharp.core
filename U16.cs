@@ -12,10 +12,10 @@
 			Lo = a.Lo;
 		}
 
-		public U16 IncrementedValue() => new U16((ushort)(this + 1));
+		//public U16 IncrementedValue() => new U16((ushort)(this + 1));
 
 		public static implicit operator U16(ushort s) => new U16(s);
 		public static implicit operator ushort(U16 p) => (ushort)((p.Hi << 8) + p.Lo);
-		public override string ToString() => "$" + Hi.ToString().Substring(1) + Lo.ToString().Substring(1);
+		public override string ToString() => $"${ Hi.ToString()[1..] }{ Lo.ToString()[1..] }";
 	}
 }

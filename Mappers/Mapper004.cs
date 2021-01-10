@@ -111,13 +111,13 @@ namespace NESSharp.Core.Mappers {
 			[Dependencies]
 			public void Dependencies() {
 				_irqSub			= Ptr.New(Zp,		$"{nameof(Mapper004_OLD)}.{nameof(Module)}{nameof(_irqSub)}");
-				_bankSelect		= VByte.Ref(Addr(0x8000));
-				_bankData		= VByte.Ref(Addr(0x8001));
-				_mirroring		= VByte.Ref(Addr(0xA000));
-				_irqLatch		= VByte.Ref(Addr(0xC000));
-				_irqReload		= VByte.Ref(Addr(0xC001));
-				_irqDisable		= VByte.Ref(Addr(0xE000));
-				_irqEnable		= VByte.Ref(Addr(0xE001));
+				_bankSelect		= VByte.Ref(0x8000);
+				_bankData		= VByte.Ref(0x8001);
+				_mirroring		= VByte.Ref(0xA000);
+				_irqLatch		= VByte.Ref(0xC000);
+				_irqReload		= VByte.Ref(0xC001);
+				_irqDisable		= VByte.Ref(0xE000);
+				_irqEnable		= VByte.Ref(0xE001);
 			}
 			[Interrupt]
 			public void IRQ() {
@@ -130,10 +130,10 @@ namespace NESSharp.Core.Mappers {
 			public void IRQIndirect() => GoTo_Indirect(_irqSub);
 			
 			private void SetIrqHandler(Action action) {
-				_irqSub.Ref(LabelFor(action));
+				_irqSub.PointTo(LabelFor(action));
 			}
 			private void UnsetIrqHandler() {
-				_irqSub.Ref(Addr(0));
+				_irqSub.PointTo(Addr(0));
 			}
 
 			private void Disable() => _irqDisable.Set(1); //turn off IRQ

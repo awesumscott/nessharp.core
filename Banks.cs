@@ -73,7 +73,7 @@ namespace NESSharp.Core {
 					}
 				}
 
-				ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param, opCode.Param2) + "\n";
+				ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param) + "\n";
 			}
 			InitCode();
 		}

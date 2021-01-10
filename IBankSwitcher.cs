@@ -21,7 +21,7 @@ namespace NESSharp.Core {
 		public static VByte Bank;
 
 		public BankSwitcher() {
-			Bank = VByte.New(GlobalZp, "bank_current");
+			Bank = VByte.New(NES.zp, "bank_current");
 		}
 		protected abstract void Load();
 		public abstract void Step();

@@ -44,7 +44,7 @@ namespace NESSharp.Core {
 		public static void Block(Func<_IfBlock, _IfBlock> block) {
 			var ifBlock = block.Invoke(new _IfBlock());
 			
-			var numOptions = ifBlock._options.Count();
+			var numOptions = ifBlock._options.Count;
 			var optionConditions = ifBlock._options.Where(x => x is _IfBlock._Option).Cast<_IfBlock._Option>().ToList();
 			var optionDefault = ifBlock._options.Where(x => x is _IfBlock._Default).Cast<_IfBlock._Default>().ToList();
 			var hasElse = optionDefault.Any();
@@ -216,7 +216,7 @@ namespace NESSharp.Core {
 			Comment("after goto endif and before writeany's lblend");
 			Use(lblEnd);
 		}
-		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null) {
+		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null) {
 			var currentCondition = conditions.First();
 			_WriteCondition(currentCondition, conditions.Length > 1 ? () => _WriteAllCondition(conditions.Skip(1).ToArray(), block, lblEndIf) : block, conditions.Length == 1 ? lblEndIf : null);
 		}

@@ -4,7 +4,7 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public abstract class RegisterBase {
 		//public byte? Number;
-		public object? LastLoaded = null;
+		public IOperand? LastLoaded = null;
 		/// <summary>
 		/// Reference to the var to which this register was last stored
 		/// </summary>
@@ -59,21 +59,24 @@ namespace NESSharp.Core {
 			CPU6502.DEX();
 			return x;
 		}
-		//public void CPX(object o) {
-		//	CPU6502.CPX(o);
-		//}
-		public new Condition Equals(IOperand o) {
-			//TODO: CPX if X wasn't last register to alter Carry
+		public Condition Equals(IOperand o) {
 			CPU6502.CPX(o);
 			return Condition.EqualsZero;
 		}
-		public Condition Equals(U8 v) => Equals((IOperand)v);
-
-		public Condition NotEquals(IOperand o) {
-			Equals(o);
+		public Condition Equals(U8 v) {
+			if (v != 0 || Flags.Zero.LastReg != this)
+				CPU6502.CPX(v);
+			return Condition.EqualsZero;
+		}
+		public Condition NotEquals(U8 v) {
+			if (v != 0 || Flags.Zero.LastReg != this)
+				CPU6502.CPX(v);
 			return Condition.NotEqualsZero;
 		}
-		public Condition NotEquals(U8 v) => NotEquals((IOperand)v);
+		public Condition NotEquals(IOperand o) {
+			CPU6502.CPX(o);
+			return Condition.NotEqualsZero;
+		}
 
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
@@ -109,23 +112,20 @@ namespace NESSharp.Core {
 			return y;
 		}
 		public Condition Equals(U8 v) {
-			if (v != 0)	//TODO: If X wasn't last register to alter Carry...
+			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPY(v);
 			return Condition.EqualsZero;
 		}
 		public Condition NotEquals(U8 v) {
-			//TODO: CMP if Y wasn't last register to alter Carry
-
-			if (v == 0)
-				return Condition.NotEqualsZero;
-			CPU6502.CPY(v);
+			if (v != 0 || Flags.Zero.LastReg != this)
+				CPU6502.CPY(v);
 			return Condition.NotEqualsZero;
 		}
-		public Condition Equals(Address addr) {
+		public Condition Equals(IOperand addr) {
 			CPU6502.CPY(addr);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(Address addr) {
+		public Condition NotEquals(IOperand addr) {
 			CPU6502.CPY(addr);
 			return Condition.NotEqualsZero;
 		}
@@ -137,15 +137,10 @@ namespace NESSharp.Core {
 	public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA> {
 		public RegisterA Value => this;
 		public RegisterA Set(IOperand operand) {
-			if (operand is RegisterA)
-				return this; //do nothing, this should be okay to support IOperands this way
-				//throw new Exception("Attempting to set A to A");
-			else if (operand is RegisterX)
-				CPU6502.TXA();
-			else if (operand is RegisterY)
-				CPU6502.TYA();
-			else
-				CPU6502.LDA(operand);
+			if (operand is RegisterA)		return this; //do nothing, this should be okay to support IOperands this way //throw new Exception("Attempting to set A to A");
+			else if (operand is RegisterX)	CPU6502.TXA();
+			else if (operand is RegisterY)	CPU6502.TYA();
+			else							CPU6502.LDA(operand);
 			return this;
 		}
 		//TODO: figure out how to handle indexing reg's. They should never get into GenericAssembler, but they should also act as operands for higher level stuff.
@@ -185,7 +180,7 @@ namespace NESSharp.Core {
 
 		public RegisterA And(IOperand o) {			CPU6502.AND(o);		return this; }
 		public RegisterA And(U8 o) => And((IOperand)o);
-		public RegisterA Or(IOperand o) {				CPU6502.ORA(o);		return this; }
+		public RegisterA Or(IOperand o) {			CPU6502.ORA(o);		return this; }
 		public RegisterA Or(U8 o) => Or((IOperand)o);
 		public RegisterA Xor(IOperand o) {			CPU6502.EOR(o);		return this; }
 		public RegisterA Xor(U8 o) => Xor((IOperand)o);
@@ -204,35 +199,25 @@ namespace NESSharp.Core {
 		public RegisterA ROL() {					CPU6502.ROL(this);	return this; }
 		public void CMP(IOperand o) => CPU6502.CMP(o);
 
-		public Condition Equals(U8 v) {
-			if (v != 0)
-				CMP(v);
-			return Condition.EqualsZero;
-			//throw new Exception("NYI");
-			//TODO: CMP in here
-		}
-		public Condition NotEquals(U8 v) {
-			if (v != 0)
-				CMP(v);
-			return Condition.NotEqualsZero;
-			throw new Exception("NYI");
-		}
-		public Condition Equals(Address addr) {
+		public Condition Equals(IOperand addr) {
 			CMP(addr);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(Address addr) {
-			Equals(addr);
+		public Condition Equals(U8 v) {
+			if (v != 0 || Flags.Zero.LastReg != this)
+				CMP(v);
+			return Condition.EqualsZero;
+		}
+		public Condition NotEquals(IOperand addr) {
+			CMP(addr);
 			return Condition.NotEqualsZero;
 		}
-		//public Condition Equals(Ptr p) {
-		//	CMP(p);
-		//	return Condition.EqualsZero;
-		//}
-		//public Condition NotEquals(Ptr p) {
-		//	Equals(p);
-		//	return Condition.NotEqualsZero;
-		//}
+		public Condition NotEquals(U8 v) {
+			if (v != 0 || Flags.Zero.LastReg != this)
+				CMP(v);
+			return Condition.NotEqualsZero;
+		}
+		//TODO: check LastReg for these
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
 		public Condition GreaterThan(U8 v) {
@@ -266,18 +251,12 @@ namespace NESSharp.Core {
 			A.Set(Temp[0]).CMP(Temp[1]);
 			return Condition.IsLessThan;
 		}
-		public Condition LessThan(U8 v) {
+		public Condition LessThan(U8 v) => LessThan((IOperand)v);
+		public Condition LessThan(IOperand v) {
 			CMP(v);
 			return Condition.IsLessThan;
 		}
-		public Condition LessThan(Address v) {
-			CMP(v);
-			return Condition.IsLessThan;
-		}
-		public Condition LessThanOrEqualTo(U8 v) {
-			GreaterThan(v);
-			return Condition.IsLessThanOrEqualTo;
-		}
+		public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
 		public Condition LessThanOrEqualTo(IOperand v) {
 			GreaterThan(v);
 			return Condition.IsLessThanOrEqualTo;

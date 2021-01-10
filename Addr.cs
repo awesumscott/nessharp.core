@@ -26,7 +26,7 @@ namespace NESSharp.Core {
 			Address = a;
 		}
 		public override string ToString() {
-			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == this && x.Lo == Address.Lo)).Select(x => new {Key = x.Key, Index = Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
+			var match = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == this && x.Lo == Address.Lo)).Select(x => new {x.Key, Index = Array.IndexOf(x.Value.Address, Address), HasIndex = x.Value.Address.Length > 1}).FirstOrDefault();
 			
 			if (match == null || string.IsNullOrEmpty(match.Key))
 				return base.ToString();
@@ -62,12 +62,12 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public virtual Address Set(U8 u8) => Set((IOperand)u8);
-		public Address Set(Func<Address, IOperand> func) => Set(func.Invoke(this));
+		//public Address Set(Func<Address, IOperand> func) => Set(func.Invoke(this));
 
 		public RegisterA ToA() => A.Set(this);
 
 		public static Address New(ushort value) => new Address(value);
-		//public static implicit operator Address(ushort s) => new Address(s);
+		public static implicit operator Address(ushort s) => new Address(s);
 		public static implicit operator ushort(Address p) => (ushort)((p.Hi << 8) + p.Lo);
 		public override string ToString() {
 			var matchName = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Hi && x.Lo == Lo)).FirstOrDefault().Key;
@@ -83,7 +83,7 @@ namespace NESSharp.Core {
 
 		public new Address IncrementedValue => New((ushort)((U16)this + 1));
 
-		public Condition Equals(RegisterA a) {
+		public Condition Equals(RegisterA _) {
 			CPU6502.CMP(this);
 			return Condition.EqualsZero;
 		}
@@ -93,9 +93,12 @@ namespace NESSharp.Core {
 		}
 
 		public AddressIndexed this[IndexingRegister r] => new AddressIndexed(this, r);
+
+		//public static implicit operator Address(ushort s) => new Address(s);
+		//public static implicit operator ushort(Address p) => (ushort)((p.Hi << 8) + p.Lo);
 	}
 	public class AddressIndexed : Address {
-		public IndexingRegister Index = null;
+		public IndexingRegister? Index = null;
 		public AddressIndexed(ushort value, IndexingRegister reg) : base(value) => Index = reg;
 
 		public static implicit operator ushort(AddressIndexed p) => (ushort)((p.Hi << 8) + p.Lo);

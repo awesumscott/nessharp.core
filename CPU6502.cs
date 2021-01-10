@@ -6,28 +6,35 @@ namespace NESSharp.Core {
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>
 	public static class CPU6502 {
+		public static RegisterA A = new RegisterA();
+		public static RegisterX X = new RegisterX();
+		public static RegisterY Y = new RegisterY();
+		public static FlagStates Flags = new FlagStates();
+
 		public static void ADC(IOperand o) {					//N V Z C
 			GenericAssembler(Asm.OC["ADC"], o);
 			Carry.Reset();
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Overflow.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Overflow.Alter(A);
+			Flags.Zero.Alter(A);
+			Flags.Carry.Alter(A);
 		}
 		public static void AND(IOperand o) {					//N Z
 			GenericAssembler(Asm.OC["AND"], o);
-			if (o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			//if (o is RegisterA) 
+			A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
 		}
 		public static void ASL(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["ASL"], o);
 			Carry.Reset();
-			if (o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			if (o is RegisterA) A.State.Alter();
+			var reg = o is RegisterA ? A : null;
+			Flags.Negative.Alter(reg);
+			Flags.Zero.Alter(reg);
+			Flags.Carry.Alter(reg);
 		}
 
 		public static void BPL(U8 len) => AL.Use(Asm.OC["BPL"][Asm.Mode.Relative].Use(), len);
@@ -41,9 +48,9 @@ namespace NESSharp.Core {
 
 		public static void BIT(IOperand o) {					//N V Z
 			GenericAssembler(Asm.OC["BIT"], o);
-			AL.Flags.Negative.Alter();
-			AL.Flags.Overflow.Alter();
-			AL.Flags.Zero.Alter();
+			Flags.Negative.Alter();
+			Flags.Overflow.Alter();
+			Flags.Zero.Alter();
 		}
 		public static void BRK() {								//B
 			AL.Use(Asm.OC["BRK"][Asm.Mode.Implied].Use());
@@ -51,7 +58,7 @@ namespace NESSharp.Core {
 		public static void CLC() {								//C
 			AL.Use(Asm.OC["CLC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Cleared;
-			AL.Flags.Carry.Alter();
+			Flags.Carry.Alter();
 		}
 		public static void CLD() {								//none
 			AL.Use(Asm.OC["CLD"][Asm.Mode.Implied].Use());
@@ -62,63 +69,63 @@ namespace NESSharp.Core {
 		public static void CMP(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["CMP"], o);
 			Carry.Reset();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			Flags.Negative.Alter();
+			Flags.Zero.Alter(A);
+			Flags.Carry.Alter(A);
 		}
 		public static void CPX(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["CPX"], o);
 			Carry.Reset();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			Flags.Negative.Alter();
+			Flags.Zero.Alter(X);
+			Flags.Carry.Alter(X);
 		}
 		public static void CPY(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["CPY"], o);
 			Carry.Reset();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			Flags.Negative.Alter();
+			Flags.Zero.Alter(Y);
+			Flags.Carry.Alter(Y);
 		}
 		public static void DEC(IOperand o) {					//N Z
 			GenericAssembler(Asm.OC["DEC"], o);
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			Flags.Negative.Alter();
+			Flags.Zero.Alter();
 		}
 		public static void DEX() {								//N Z
 			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
-			AL.X.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			X.State.Alter();
+			Flags.Negative.Alter(X);
+			Flags.Zero.Alter(X);
 		}
 		public static void DEY() {								//N Z
 			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
-			AL.Y.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			Y.State.Alter();
+			Flags.Negative.Alter(Y);
+			Flags.Zero.Alter(Y);
 		}
 		public static void EOR(IOperand o) {					//N Z
 			GenericAssembler(Asm.OC["EOR"], o);
-			if (o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			if (o is RegisterA) A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
 		}
 		public static void INC(IOperand o) {					//N Z
 			GenericAssembler(Asm.OC["INC"], o);
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			Flags.Negative.Alter();
+			Flags.Zero.Alter();
 		}
 		public static void INX() {								//N Z
 			AL.Use(Asm.OC["INX"][Asm.Mode.Implied].Use());
-			AL.X.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			X.State.Alter();
+			Flags.Negative.Alter(X);
+			Flags.Zero.Alter(X);
 		}
 		public static void INY() {								//N Z
 			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
-			AL.Y.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			Y.State.Alter();
+			Flags.Negative.Alter(Y);
+			Flags.Zero.Alter(Y);
 		}
 		public static void JMP(IOperand o) {					//none
 			GenericAssembler(Asm.OC["JMP"], o);
@@ -133,41 +140,42 @@ namespace NESSharp.Core {
 			var opVal = GetOperandValue(o);
 			if ((
 					(
-						AL.A.LastLoaded != null &&
-						AL.A.LastLoaded is U8 &&
-						AL.A.LastLoaded == opVal
-					) || AL.A.LastStored == opVal
+						A.LastLoaded != null &&
+						A.LastLoaded is U8 &&
+						A.LastLoaded == opVal
+					) || A.LastStored == opVal
 				)
-				&& AL.A.LastStoredHash == AL.A.State.Hash && AL.A.LastStoredFlagN == AL.Flags.Negative.Hash && AL.A.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
+				&& A.LastStoredHash == A.State.Hash && A.LastStoredFlagN == Flags.Negative.Hash && A.LastStoredFlagZ == Flags.Zero.Hash) return; //same address, same states for A, N, and Z
 			GenericAssembler(Asm.OC["LDA"], o);
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.A.LastLoaded = o;
+			A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
+			A.LastLoaded = o;
 		}
 		public static void LDX(IOperand o) {					//N Z
-			if (AL.X.LastStored == GetOperandValue(o) && AL.X.LastStoredHash == AL.X.State.Hash && AL.X.LastStoredFlagN == AL.Flags.Negative.Hash && AL.X.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
+			if (X.LastStored == GetOperandValue(o) && X.LastStoredHash == X.State.Hash && X.LastStoredFlagN == Flags.Negative.Hash && X.LastStoredFlagZ == Flags.Zero.Hash) return; //same address, same states for X, N, and Z
 			GenericAssembler(Asm.OC["LDX"], o);
-			AL.X.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.X.LastLoaded = o;
+			X.State.Alter();
+			Flags.Negative.Alter(X);
+			Flags.Zero.Alter(X);
+			X.LastLoaded = o;
 		}
 		public static void LDY(IOperand o) {					//N Z
-			if (AL.Y.LastStored == GetOperandValue(o) && AL.Y.LastStoredHash == AL.Y.State.Hash && AL.Y.LastStoredFlagN == AL.Flags.Negative.Hash && AL.Y.LastStoredFlagZ == AL.Flags.Zero.Hash) return; //same address, same states for A, N, and Z
+			if (Y.LastStored == GetOperandValue(o) && Y.LastStoredHash == Y.State.Hash && Y.LastStoredFlagN == Flags.Negative.Hash && Y.LastStoredFlagZ == Flags.Zero.Hash) return; //same address, same states for Y, N, and Z
 			GenericAssembler(Asm.OC["LDY"], o);
-			AL.Y.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Y.LastLoaded = o;
+			Y.State.Alter();
+			Flags.Negative.Alter(Y);
+			Flags.Zero.Alter(Y);
+			Y.LastLoaded = o;
 		}
 		public static void LSR(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["LSR"], o);
 			Carry.Reset();
-			if (o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			if (o is RegisterA) A.State.Alter();
+			var reg = o is RegisterA ? A : null;
+			Flags.Negative.Alter(reg);
+			Flags.Zero.Alter(reg);
+			Flags.Carry.Alter(reg);
 		}
 		public static void NOP() {								//none
 			AL.Use(Asm.OC["NOP"][Asm.Mode.Implied].Use());
@@ -180,33 +188,35 @@ namespace NESSharp.Core {
 		}
 		public static void PLA() {
 			AL.Use(Asm.OC["PLA"][Asm.Mode.Implied].Use());
-			AL.A.State.Alter();
+			A.State.Alter();
 		}
 		public static void PLP() {
 			AL.Use(Asm.OC["PLP"][Asm.Mode.Implied].Use());
-			AL.A.State.Alter();
+			A.State.Alter();
 		}
 		public static void ORA(IOperand o) {					//N Z
 			GenericAssembler(Asm.OC["ORA"], o);
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
 		}
 		public static void ROL(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["ROL"], o);
 			Carry.Reset();
-			if(o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			if(o is RegisterA) A.State.Alter();
+			var reg = o is RegisterA ? A : null;
+			Flags.Negative.Alter(reg);
+			Flags.Zero.Alter(reg);
+			Flags.Carry.Alter(reg);
 		}
 		public static void ROR(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["ROR"], o);
 			Carry.Reset();
-			if(o is RegisterA) AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			if(o is RegisterA) A.State.Alter();
+			var reg = o is RegisterA ? A : null;
+			Flags.Negative.Alter(reg);
+			Flags.Zero.Alter(reg);
+			Flags.Carry.Alter(reg);
 		}
 		public static void RTI() {								//all
 			AL.Use(Asm.OC["RTI"][Asm.Mode.Implied].Use());
@@ -219,72 +229,72 @@ namespace NESSharp.Core {
 		public static void SBC(IOperand o) {					//N V Z C
 			GenericAssembler(Asm.OC["SBC"], o);
 			Carry.Reset();
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Overflow.Alter();
-			AL.Flags.Zero.Alter();
-			AL.Flags.Carry.Alter();
+			A.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Overflow.Alter(A);
+			Flags.Zero.Alter(A);
+			Flags.Carry.Alter(A);
 		}
 		public static void SEC() {								//C
 			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Set;
-			AL.Flags.Carry.Alter();
+			Flags.Carry.Alter();
 		}
 		public static void SEI() {								//I
 			AL.Use(Asm.OC["SEI"][Asm.Mode.Implied].Use());
-			AL.Flags.InterruptDisable.Alter();
+			Flags.InterruptDisable.Alter();
 		}
 		public static void STA(IOperand o) {					//none
 			GenericAssembler(Asm.OC["STA"], o);
-			AL.A.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
-			AL.A.LastStoredHash = AL.A.State.Hash;
-			AL.A.LastStoredFlagN = AL.Flags.Negative.Hash;
-			AL.A.LastStoredFlagZ = AL.Flags.Zero.Hash;
+			A.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
+			A.LastStoredHash = A.State.Hash;
+			A.LastStoredFlagN = Flags.Negative.Hash;
+			A.LastStoredFlagZ = Flags.Zero.Hash;
 		}
 		public static void STX(IOperand o) {					//none
 			GenericAssembler(Asm.OC["STX"], o);
-			AL.X.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
-			AL.X.LastStoredHash = AL.A.State.Hash;
-			AL.X.LastStoredFlagN = AL.Flags.Negative.Hash;
-			AL.X.LastStoredFlagZ = AL.Flags.Zero.Hash;
+			X.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
+			X.LastStoredHash = A.State.Hash;
+			X.LastStoredFlagN = Flags.Negative.Hash;
+			X.LastStoredFlagZ = Flags.Zero.Hash;
 		}
 		public static void STY(IOperand o) {					//none
 			GenericAssembler(Asm.OC["STY"], o);
-			AL.Y.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
-			AL.Y.LastStoredHash = AL.A.State.Hash;
-			AL.Y.LastStoredFlagN = AL.Flags.Negative.Hash;
-			AL.Y.LastStoredFlagZ = AL.Flags.Zero.Hash;
+			Y.LastStored = GetOperandValue(o); //TODO: clean all this up with a helper
+			Y.LastStoredHash = A.State.Hash;
+			Y.LastStoredFlagN = Flags.Negative.Hash;
+			Y.LastStoredFlagZ = Flags.Zero.Hash;
 		}
 		public static void TAX() {								//N Z
 			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
-			AL.X.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			X.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
 		}
 		public static void TAY() {								//N Z
 			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
-			AL.Y.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			Y.State.Alter();
+			Flags.Negative.Alter(A);
+			Flags.Zero.Alter(A);
 		}
 		public static void TSX() {								//?
 			AL.Use(Asm.OC["TSX"][Asm.Mode.Implied].Use());
-			AL.X.State.Alter();
+			X.State.Alter();
 		}
 		public static void TXA() {								//N Z
 			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			A.State.Alter();
+			Flags.Negative.Alter(X);
+			Flags.Zero.Alter(X);
 		}
 		public static void TXS() {								//?
 			AL.Use(Asm.OC["TXS"][Asm.Mode.Implied].Use());
 		}
 		public static void TYA() {								//N Z
 			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
-			AL.A.State.Alter();
-			AL.Flags.Negative.Alter();
-			AL.Flags.Zero.Alter();
+			A.State.Alter();
+			Flags.Negative.Alter(Y);
+			Flags.Zero.Alter(Y);
 		}
 		private static object GetOperandValue(IOperand o) {
 			if (o is IOperand operand) {

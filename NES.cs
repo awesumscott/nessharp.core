@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -46,24 +44,16 @@ namespace NESSharp.Core {
 				NMIDisabled		= 0,
 				NMIEnabled		= 0b10000000,
 			};
-			public static Address	Control =			Addr(0x2000);
+			public static Address	Control =			0x2000;
 			public static VByte		LazyControl =		VByte.New(zp, "ppuLazyCtrl");
 			public static VByte		LazyMask =			VByte.New(zp, "ppuLazyMask");
-			public static Address	Mask =				Addr(0x2001);
-			public static Address	Status =			Addr(0x2002);
-			public static Address	Scroll =			Addr(0x2005);
+			public static Address	Mask =				0x2001;
+			public static Address	Status =			0x2002;
+			public static Address	Scroll =			0x2005;
 			public static VByte		LazyScrollX =		VByte.New(zp, "ppuLazyScrollX");
 			public static VByte		LazyScrollY =		VByte.New(zp, "ppuLazyScrollY");
-			public static Bus	Address =			Bus.Ref(0x2006);
-			public static Bus	Data =				Bus.Ref(0x2007);
-			//public static void ScrollTo(U8 x, U8 y) {
-			//	Scroll.Set(x);
-			//	Scroll.Set(y);
-			//}
-			//public static void ScrollTo(Address x, Address y) {
-			//	Scroll.Set(x);
-			//	Scroll.Set(y);
-			//}
+			public static Bus		Address =			Bus.Ref(0x2006);
+			public static Bus		Data =				Bus.Ref(0x2007);
 			public static void ScrollTo(IOperand x, IOperand y) {
 				Scroll.Set(x);
 				Scroll.Set(y);
@@ -82,9 +72,9 @@ namespace NESSharp.Core {
 				Address.Write(iva.Address[1], iva.Address[0]);
 			}
 			public static class OAM {
-				public static Address Address =			Addr(0x2003);
-				public static Address Data =			Addr(0x2004);   //Don't worry about this; let OAM_DMA do the work for you.
-				public static Address DMA =				Addr(0x4014);
+				public static Address Address =			0x2003;
+				public static Address Data =			0x2004;   //Don't worry about this; let OAM_DMA do the work for you.
+				public static Address DMA =				0x4014;
 				public static void Write(Address shadowOam) {
 					Address.Set(shadowOam.Lo);	//low byte of RAM address
 					DMA.Set(shadowOam.Hi);		//high byte of RAM address
@@ -93,12 +83,7 @@ namespace NESSharp.Core {
 			public static void ClearNametable0(U8 val) {
 				SetHorizontalWrite();
 				SetAddress(0x2000);
-				Loop.Repeat(X.Set(0), 256, _ => {
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-				});
+				Loop.Repeat(X.Set(0), 256, _ => Data.Write(val, val, val, val));
 				//Attribute table is already covered by the above loop
 				//NES.PPU.Address.Set(0x23);
 				//NES.PPU.Address.Set(0xC0);
@@ -112,58 +97,47 @@ namespace NESSharp.Core {
 			public static void ClearNametable2(U8 val) {
 				SetHorizontalWrite();
 				SetAddress(0x2800);
-				Loop.Repeat(X.Set(0), 256, _ => {
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-				});
+				Loop.Repeat(X.Set(0), 256, _ => Data.Write(val, val, val, val));
 			}
 			public static void ClearNametable3(U8 val) {
 				SetHorizontalWrite();
 				SetAddress(0x2C00);
-				Loop.Repeat(X.Set(0), 256, _ => {
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-					Data.Set(val);
-				});
+				Loop.Repeat(X.Set(0), 256, _ => Data.Write(val, val, val, val));
 			}
 		}
 		public static class APU {
-				
 			public static class Pulse1 {
-				public static Address Volume =			Addr(0x4000);
-				public static Address Sweep =			Addr(0x4001);
-				public static Address Lo =				Addr(0x4002);
-				public static Address Hi =				Addr(0x4003);
+				public static Address Volume =			0x4000;
+				public static Address Sweep =			0x4001;
+				public static Address Lo =				0x4002;
+				public static Address Hi =				0x4003;
 			}
 			public static class Pulse2 {
-				public static Address Volume =			Addr(0x4004);
-				public static Address Sweep =			Addr(0x4005);
-				public static Address Lo =				Addr(0x4006);
-				public static Address Hi =				Addr(0x4007);
+				public static Address Volume =			0x4004;
+				public static Address Sweep =			0x4005;
+				public static Address Lo =				0x4006;
+				public static Address Hi =				0x4007;
 			}
 			public static class Triangle {
-				public static Address Linear =			Addr(0x4008);
-				public static Address Lo =				Addr(0x400A);
-				public static Address Hi =				Addr(0x400B);
+				public static Address Linear =			0x4008;
+				public static Address Lo =				0x400A;
+				public static Address Hi =				0x400B;
 			}
 			public static class Noise {
-				public static Address Volume =			Addr(0x400C);
-				public static Address Lo =				Addr(0x400E);
-				public static Address Hi =				Addr(0x400F);
+				public static Address Volume =			0x400C;
+				public static Address Lo =				0x400E;
+				public static Address Hi =				0x400F;
 			}
 			public static class DMC {
-				public static Address Settings =		Addr(0x4010);
-				public static Address LoadCounter =		Addr(0x4011);
-				public static Address SampleAddress =	Addr(0x4012);
-				public static Address SampleLength =	Addr(0x4013);
+				public static Address Settings =		0x4010;
+				public static Address LoadCounter =		0x4011;
+				public static Address SampleAddress =	0x4012;
+				public static Address SampleLength =	0x4013;
 
 				public static void Disable() => Settings.Set(0);
 			}
 			public static Bus Status =				Bus.Ref(0x4015);
-			public static Address FrameCounter =		Addr(0x4017);
+			public static Address FrameCounter =		0x4017;
 			public enum Channels : byte {
 				Pulse1 =	0b00001,
 				Pulse2 =	0b00010,
@@ -174,8 +148,8 @@ namespace NESSharp.Core {
 			public static void SetChannelsEnabled(Channels chs) => Status.Set((byte)chs);
 		}
 		public static class Controller {
-			public static Address One =		Addr(0x4016);
-			public static Address Two =		Addr(0x4017);
+			public static Address One =		0x4016;
+			public static Address Two =		0x4017;
 			public static void Latch() {
 				One.Set(1);
 				One.Set(0);

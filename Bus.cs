@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -15,7 +13,7 @@ namespace NESSharp.Core {
 			Loop.Do_old(_ => {
 				Set(LabelFor(dataSection)[X]);
 				X++;
-			}).While(() => X.NotEquals((U8)(len == 256 ? 0 : len)));
+			}).While(() => X.NotEquals(len == 256 ? 0 : len));
 
 			//TODO: use ptr to send 256 at a time, rebaselining ptr after each pass
 		}

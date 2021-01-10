@@ -102,8 +102,8 @@ namespace NESSharp.Core {
 			if (bytesTotal != 0)
 				Console.WriteLine($"\nTotal:\t\t{ bytesUsed,-2 } / { bytesTotal,-5 }\t{ Math.Round((decimal)bytesUsed / bytesTotal * 100),-4 }%\n");
 			
-			Console.WriteLine($"ZP:\t\t{ GlobalZp.Used,-5 } / { GlobalZp.Size,-5 }\t{ Math.Round((decimal)GlobalZp.Used / GlobalZp.Size * 100),-4 }%");
-			Console.WriteLine($"RAM:\t\t{ GlobalRam.Used,-5 } / { GlobalRam.Size,-5 }\t{ Math.Round((decimal)GlobalRam.Used / GlobalRam.Size * 100),-4 }%");
+			Console.WriteLine($"ZP:\t\t{ NES.zp.Used,-5 } / { NES.zp.Size,-5 }\t{ Math.Round((decimal)NES.zp.Used / NES.zp.Size * 100),-4 }%");
+			Console.WriteLine($"RAM:\t\t{ NES.ram.Used,-5 } / { NES.ram.Size,-5 }\t{ Math.Round((decimal)NES.ram.Used / NES.ram.Size * 100),-4 }%");
 
 			if (Interrupts.Any())
 				WriteInterrupts();

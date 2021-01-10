@@ -22,7 +22,7 @@ namespace NESSharp.Core {
 				var c = condition.Invoke();
 				var len = -Context.Length - 2; //-2 is to account for the branch instruction
 				if (len >= LOWEST_BRANCH_VAL) {
-					Branch(c, (U8)len);
+					Branch(c, len);
 				} else {
 					Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length, true);
 					CPU6502.JMP(Context.StartLabel); //Use(Asm.JMP.Absolute, Context.StartLabel);

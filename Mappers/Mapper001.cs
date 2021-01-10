@@ -95,9 +95,9 @@ namespace NESSharp.Core.Mappers {
 							_mirroring;
 			[Dependencies]
 			public void Dependencies() {
-				_bankSelect		= VByte.Ref(Addr(0x8000));
-				_bankData		= VByte.Ref(Addr(0x8001));
-				_mirroring		= VByte.Ref(Addr(0xA000));
+				_bankSelect		= VByte.Ref(0x8000);
+				_bankData		= VByte.Ref(0x8001);
+				_mirroring		= VByte.Ref(0xA000);
 			}
 
 			public void SetMirroring(Mirroring m) {
