@@ -9,10 +9,10 @@ namespace NESSharp.Core {
 	public class OpRaw : IOperation {
 		public int Length {get;set;}
 		public object[] Value;
-		public OpRaw(U8 v) {
-			Length = 1;
-			Value = new object[]{ v };
-		}
+		//public OpRaw(U8 v) {
+		//	Length = 1;
+		//	Value = new object[]{ v };
+		//}
 		public OpRaw(params byte[] v) {
 			Length = v.Length;
 			Value = v.Cast<object>().ToArray();

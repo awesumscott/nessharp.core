@@ -170,8 +170,9 @@ namespace NESSharp.Core {
 			op.Param = label;
 			Use(op);
 		}
-		public static void Raw(U16 u16) => Use(new OpRaw((byte)u16.Lo, (byte)u16.Hi));
+		public static void Raw(U16 u16) => Use(new OpRaw(u16.Lo, u16.Hi));
 		public static void Raw(params byte[] bytes) => Use(new OpRaw(bytes));
+		//public static void Raw(params U8[] u8s) => Use(new OpRaw(u8s.Cast<byte>().ToArray()));
 		public static void Raw(params IResolvable<U8>[] u8s) => Use(new OpRaw(u8s));
 		public static void Raw(params IResolvable<Address>[] addrs) => Use(new OpRaw(addrs));
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));

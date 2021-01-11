@@ -29,6 +29,7 @@ namespace NESSharp.Core {
 			for (var i = 0; i < codeLength; i++) {
 				var op = Code[CodeContextIndex][i];
 				if (!(op is OpCode)) {
+					//Handle non-code ops
 					if (op is Label label) {
 						label.Address = Addr((U16)(Origin + offset));
 
@@ -50,27 +51,23 @@ namespace NESSharp.Core {
 				offset++;
 
 				if (opCode.Length == 2) {
-					if (opCode.Param.IsResolvable()) {
+					if (opCode.Param?.IsResolvable() ?? false) {
 						AsmWithRefs.Add(opCode.Param);
-						offset++;
-					}  else {
+					} else {
 						AsmWithRefs.Add(((U8)opCode.Param).Value);
-						offset++;
 					}
-				}
-				if (opCode.Length == 3) {
+					offset++;
+				} else if (opCode.Length == 3) {
 					if (opCode.Param is Label lbl) {
 						AsmWithRefs.Add(lbl);
-						offset += 2;
 					} else if (opCode.Param is LabelIndexed li) {
 						AsmWithRefs.Add(li.Label);
-						offset += 2;
 					} else { //assume the parameters are for a 2 byte value
 						var addr = (U16)opCode.Param;
 						AsmWithRefs.Add(((U16)opCode.Param).Lo.Value);
 						AsmWithRefs.Add(((U16)opCode.Param).Hi.Value);
-						offset += 2;
 					}
+					offset += 2;
 				}
 
 				ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param) + "\n";

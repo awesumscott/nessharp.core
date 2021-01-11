@@ -21,9 +21,7 @@ namespace NESSharp.Core {
 	public class Var : IVarAddressArray {
 		public string Name = string.Empty;
 
-		//public virtual static int Size_New { get; set; } = -1;
-
-		//TODO: get rid of Length
+		//TODO: get rid of Length, so it can be used only for arrays
 		public virtual int Length { get; set; } = 1;
 		public virtual int Size { get; set; } = 1;
 

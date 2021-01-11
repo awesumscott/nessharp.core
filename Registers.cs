@@ -256,6 +256,7 @@ namespace NESSharp.Core {
 			CMP(v);
 			return Condition.IsLessThan;
 		}
+		//public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
 		public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
 		public Condition LessThanOrEqualTo(IOperand v) {
 			GreaterThan(v);

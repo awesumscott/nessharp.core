@@ -6,10 +6,10 @@ namespace NESSharp.Core {
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>
 	public static class CPU6502 {
-		public static RegisterA A = new RegisterA();
-		public static RegisterX X = new RegisterX();
-		public static RegisterY Y = new RegisterY();
-		public static FlagStates Flags = new FlagStates();
+		public static readonly RegisterA A = new RegisterA();
+		public static readonly RegisterX X = new RegisterX();
+		public static readonly RegisterY Y = new RegisterY();
+		public static readonly FlagStates Flags = new FlagStates();
 
 		public static void ADC(IOperand o) {					//N V Z C
 			GenericAssembler(Asm.OC["ADC"], o);

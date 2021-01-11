@@ -9,15 +9,17 @@ namespace NESSharp.Core {
 		public ushort IntLen, FracLen;
 		public VarN Integer {get; protected set;}// => _int;
 		public VarN Fractional {get; protected set;}// => _frac;
-		public override Var Dim(RAM ram, string name) {
+		public override VDecimal Dim(RAM ram, string name) {
 			base.Dim(ram, name);
 			Integer = VarN.Ref(Address[FracLen], IntLen);
 			Fractional = VarN.Ref(Address[0], FracLen);
 			return this;
 		}
-		public static VDecimal New(RAM ram, ushort intLen, ushort fracLen, string name) {
-			return (VDecimal)new VDecimal(){Size = intLen + fracLen, IntLen = intLen, FracLen = fracLen}.Dim(ram, name);
-		}
+		public static VDecimal New(RAM ram, ushort intLen, ushort fracLen, string name) => new VDecimal() {
+			Size = intLen + fracLen,
+			IntLen = intLen,
+			FracLen = fracLen
+		}.Dim(ram, name);
 
 		//TODO: verify this works
 		/// <summary>Addition of the integer portions of two vars</summary>

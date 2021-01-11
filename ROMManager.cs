@@ -77,14 +77,17 @@ namespace NESSharp.Core {
 				for (var i = 0; i < bank.AsmWithRefs.Count; i++) {
 					var item = bank.AsmWithRefs[i];
 					var type = item.GetType();
-					if (type == typeof(byte))
+					if (type == typeof(byte)) {
 						bank.Rom[outputIndex++] = (byte)item;
+						continue;
+					}
 					//TODO: add condition for U8s
-					else if (type.GetInterfaces().Contains(typeof(IResolvable<Address>))) {
+					var interfaces = type.GetInterfaces();
+					if (interfaces.Contains(typeof(IResolvable<Address>))) {
 						var addr = ((IResolvable<Address>)item).Resolve();
 						bank.Rom[outputIndex++] = addr.Lo;
 						bank.Rom[outputIndex++] = addr.Hi;
-					} else if (type.GetInterfaces().Contains(typeof(IResolvable<U8>))) {
+					} else if (interfaces.Contains(typeof(IResolvable<U8>))) {
 						bank.Rom[outputIndex++] = ((IResolvable<U8>)item).Resolve();
 					} else
 						throw new Exception($"Incorrect type in AsmWithRefs: {type}");
@@ -102,8 +105,8 @@ namespace NESSharp.Core {
 			if (bytesTotal != 0)
 				Console.WriteLine($"\nTotal:\t\t{ bytesUsed,-2 } / { bytesTotal,-5 }\t{ Math.Round((decimal)bytesUsed / bytesTotal * 100),-4 }%\n");
 			
-			Console.WriteLine($"ZP:\t\t{ NES.zp.Used,-5 } / { NES.zp.Size,-5 }\t{ Math.Round((decimal)NES.zp.Used / NES.zp.Size * 100),-4 }%");
-			Console.WriteLine($"RAM:\t\t{ NES.ram.Used,-5 } / { NES.ram.Size,-5 }\t{ Math.Round((decimal)NES.ram.Used / NES.ram.Size * 100),-4 }%");
+			Console.WriteLine($"ZP:\t\t{ NES.zp.Used,-5		} / { NES.zp.Size,-5	}\t{ Math.Round((decimal)NES.zp.Used / NES.zp.Size * 100),-4	}%");
+			Console.WriteLine($"RAM:\t\t{ NES.ram.Used,-5	} / { NES.ram.Size,-5	}\t{ Math.Round((decimal)NES.ram.Used / NES.ram.Size * 100),-4	}%");
 
 			if (Interrupts.Any())
 				WriteInterrupts();
@@ -115,11 +118,8 @@ namespace NESSharp.Core {
 				f.Write(header, 0, header.Length);
 				foreach (var prg in PrgBank)
 					f.Write(prg.Rom, 0, prg.Rom.Length);
-				if (ChrBank.Any()) {
-					foreach(var chrBank in ChrBank)
-						f.Write(chrBank.Rom, 0, chrBank.Rom.Length);
-					//f.Write(ChrBank[0].Rom, 0, ChrBank[0].Rom.Length);
-				}
+				foreach(var chrBank in ChrBank)
+					f.Write(chrBank.Rom, 0, chrBank.Rom.Length);
 			}
 
 			if (Mapper != null) {
@@ -147,7 +147,7 @@ namespace NESSharp.Core {
 			Mapper.WriteInterrupts(PrgBank, interrupts, WriteInterruptsInBank);
 		}
 		private static void WriteInterruptsInBank(Bank bank, byte[] interrupts) {
-			//TODO: raise an error if these bytes are used
+			//TODO: throw exception if these bytes are used
 			var lenInterrupts = interrupts.Length;
 			for (var i = 0; i < interrupts.Length; i++)
 				bank.Rom[bank.Rom.Length - 1 - i] = interrupts[lenInterrupts - 1 - i];
@@ -156,17 +156,13 @@ namespace NESSharp.Core {
 		public static void AddPrgBank(U8 id, Action<U8, Bank> bankSetup) {
 			CurrentBankId = id;
 			CurrentBank = PrgBank[id];
-			//Use(mwa.method.ToLabel());
 			bankSetup(id, CurrentBank);
-			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
 			CurrentBank.WriteContext();
 		}
 		public static void AddChrBank(U8 id, Action<U8, Bank> bankSetup) {
 			CurrentBankId = id;
 			CurrentBank = ChrBank[id];
-			//Use(mwa.method.ToLabel());
 			bankSetup(id, CurrentBank);
-			//ROMManager.FillBank();//prgBankLayoutAttr.Id);
 			CurrentBank.WriteContext();
 		}
 

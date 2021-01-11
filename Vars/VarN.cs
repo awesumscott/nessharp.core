@@ -6,7 +6,7 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public class VarN : Var {
 		public override int Size {get;set;}
-		public override Var Dim(RAM ram, string name) {
+		public override VarN Dim(RAM ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(Size);
 			Name = name;
@@ -14,15 +14,11 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 			return this;
 		}
-		
-		public static VarN New(RAM ram, int len, string name) {
-			return (VarN)new VarN(){Size = len}.Dim(ram, name);
-		}
-		public static VarN Ref(Address addr, ushort len) {
-			var v = new VarN();
-			v.Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray();
-			return v;
-		}
+
+		public static VarN New(RAM ram, int len, string name) => new VarN() { Size = len }.Dim(ram, name);
+		public static VarN Ref(Address addr, ushort len) => new() {
+			Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray()
+		};
 
 		int[] Slice(int start, int length) { 
 			var slice = new int[length];
@@ -65,7 +61,7 @@ namespace NESSharp.Core {
 				if (b != i32) {
 					//throw new ArgumentOutOfRangeException();
 					
-					this[1].Set((U8)((i32 - b) >> 8));
+					this[1].Set((i32 - b) >> 8);
 					this[0].Set(b);
 				} else
 					Set((U8)b);
@@ -96,13 +92,13 @@ namespace NESSharp.Core {
 			return this;
 		}
 		//TODO: combine this with IOperand to avoid specifying/casting from caller
-		public IEnumerable<RegisterA> Add(IVarAddressArray iva) {
-			var srcLen = iva.Address.Length;
+		public IEnumerable<RegisterA> Add(VarN vn) {
+			var srcLen = vn.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Set(this[0]).Add(iva[0]);
+			yield return A.Set(this[0]).Add(vn[0]);
 			for (var i = 1; i < Size; i++) {
 				if (i < srcLen)
-					yield return A.Set(this[i]).ADC(iva[i]);
+					yield return A.Set(this[i]).ADC(vn[i]);
 				else
 					yield return A.Set(this[i]).ADC(0);
 			}
@@ -110,30 +106,40 @@ namespace NESSharp.Core {
 		}
 		public IEnumerable<RegisterA> Add(U8 v) => Add((IOperand)v);
 		public IEnumerable<RegisterA> Add(IOperand v) {
-			//var srcLen = iva.Address.Length;
-			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Set(this[0]).Add(v);
-			for (var i = 1; i < Size; i++) {
+			//if (v is IVarAddressArray iva) {
+			//	var srcLen = iva.Address.Length;
+			//	if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
+			//	yield return A.Set(this[0]).Add(iva[0]);
+			//	for (var i = 1; i < Size; i++) {
+			//		if (i < srcLen)
+			//			yield return A.Set(this[i]).ADC(iva[i]);
+			//		else
+			//			yield return A.Set(this[i]).ADC(0);
+			//	}
+			//	yield break;
+			//}
+
+			if (v is RegisterA)	yield return A.Add(this[0]);
+			else				yield return A.Set(this[0]).Add(v);	//Possible optimization:
+			//this Else could test if A's last value is this[0] or v, and prefer one order over the other to remove a redundant LDA
+			for (var i = 1; i < Size; i++)
 				yield return A.Set(this[i]).ADC(0);
-			}
 			yield break;
 		}
-		public IEnumerable<RegisterA> Add(RegisterA a) {
-			//var srcLen = iva.Address.Length;
-			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Add(this[0]);
-			for (var i = 1; i < Size; i++) {
-				yield return A.Set(this[i]).ADC(0);
-			}
-			yield break;
-		}
-		public IEnumerable<RegisterA> Subtract(IVarAddressArray iva) {
-			var srcLen = iva.Address.Length;
+		//public IEnumerable<RegisterA> Add(RegisterA a) {
+		//	yield return A.Add(this[0]);
+		//	for (var i = 1; i < Size; i++) {
+		//		yield return A.Set(this[i]).ADC(0);
+		//	}
+		//	yield break;
+		//}
+		public IEnumerable<RegisterA> Subtract(VarN vn) {
+			var srcLen = vn.Address.Length;
 			if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
-			yield return A.Set(this[0]).Subtract(iva[0]);
+			yield return A.Set(this[0]).Subtract(vn[0]);
 			for (var i = 1; i < Size; i++) {
 				if (i < srcLen)
-					yield return A.Set(this[i]).SBC(iva[i]);
+					yield return A.Set(this[i]).SBC(vn[i]);
 				else
 					yield return A.Set(this[i]).SBC(0);
 			}
@@ -141,22 +147,17 @@ namespace NESSharp.Core {
 		}
 		public IEnumerable<RegisterA> Subtract(U8 v) => Subtract((IOperand)v);
 		public IEnumerable<RegisterA> Subtract(IOperand u8) {
-			//var srcLen = iva.Address.Length;
-			//if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
 			yield return A.Set(this[0]).Subtract(u8);
-			for (var i = 1; i < Size; i++) {
+			for (var i = 1; i < Size; i++)
 				yield return A.Set(this[i]).SBC(0);
-			}
 			yield break;
 		}
 
 		public Condition NotEquals(U8 v) {
-			if (v == 0) {
-				//fast way to check != 0
+			if (v == 0) { //Optimization: fast way to check != 0
 				A.Set(this[0]);
-				for (var i = 1; i < Size; i++) {
+				for (var i = 1; i < Size; i++)
 					A.Or(this[i]);
-				}
 				return A.NotEquals(0);
 			}
 			//TODO: Any(Address[0].NotEquals(0), Address[1].NotEquals(v))

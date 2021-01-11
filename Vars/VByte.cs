@@ -9,7 +9,7 @@ namespace NESSharp.Core {
 		public VByte() {}
 		public Address Value => this[0];
 
-		public override Var Dim(RAM ram, string name) {
+		public override VByte Dim(RAM ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(1);
 			Name = name;
@@ -17,7 +17,7 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 			return this;
 		}
-		public static VByte New(RAM ram, string name) => (VByte)new VByte().Dim(ram, name);
+		public static VByte New(RAM ram, string name) => new VByte().Dim(ram, name);
 		public static VByte Ref(Address addr, IndexingRegister? index = null) {
 			var v = new VByte();
 			v.Address = new Address[]{ addr };
@@ -31,7 +31,8 @@ namespace NESSharp.Core {
 			Address = v8.Address;
 			Name = v8.Name;
 			Index = v8.Index;
-			return v8;
+			//return v8;
+			return this;
 		}
 		
 		public VByte Set(IOperand operand) {
