@@ -14,11 +14,13 @@ namespace NESSharp.Core {
 	}
 	public class RAM {
 		//TODO: make a way to allocate a chunk
+		public string Name = "main";
 		private Address _start, _end, _next;
 		private List<RAMChunk> Taken = new List<RAMChunk>();
-		public RAM(Address startOffset, Address endOffset) {
+		public RAM(Address startOffset, Address endOffset, string name = "") {
 			_start = _next = startOffset;
 			_end = endOffset;
+			Name = name;
 		}
 		private void ValidateNext(int len = 1) {
 			while (true) {
@@ -50,7 +52,7 @@ namespace NESSharp.Core {
 			}
 			return addrs.ToArray();
 		}
-		public RAM Allocate(Address start, Address end) {
+		public RAM Allocate(Address start, Address end, string name) {
 			var length = end - start;
 			if (Taken.Where(x => (start >= x.Start && start <= x.End) || //start is within an existing range
 								(end >= x.Start && end <= x.End) || //end is within an existing range
@@ -58,12 +60,14 @@ namespace NESSharp.Core {
 				throw new Exception("Range already in use");
 
 			Taken.Add(new RAMChunk(start, end));
-			return new RAM(start, end);
+			return new RAM(start, end, name);
 			//Taken = Taken.OrderBy(x => x.Start).ToList();
 		}
 
-		public RAM Remainder() {
-			return new RAM(_next, _end){Taken = new List<RAMChunk>(Taken)};
+		public RAM Remainder(string name = "") {
+			return new(_next, _end, name) {
+				Taken = new List<RAMChunk>(Taken)
+			};
 		}
 
 		public int Size => _end - _start;

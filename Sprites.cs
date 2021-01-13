@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 
@@ -19,20 +15,16 @@ namespace NESSharp.Core {
 		public Func<Condition> IsHidden() {
 			return () => Y.Equals(0xFE);
 		}
-	}
 
-	public class OAMDictionary {
-		public ArrayOfStructs<SObject> Object;
-		public OAMDictionary(RAM ram) {
-			Object = ArrayOfStructs<SObject>.New("OAMObj", 64).Dim(ram);
+		public SObject SetPosition(IOperand x, IOperand y) {
+			X.Set(x);
+			Y.Set(y);
+			return this;
 		}
-		public void HideAll() {
-			Loop.Repeat(X.Set(0), 256, _ => {
-				Object[0].Y[X].Set(0xFE);
-				X.State.Unsafe(() => {
-					X++; X++; X++;
-				});
-			});
+		public SObject SetPosition(Func<IOperand> x, Func<IOperand> y) {
+			X.Set(x());
+			Y.Set(y());
+			return this;
 		}
 	}
 }

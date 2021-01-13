@@ -66,7 +66,7 @@ namespace NESSharp.Core.Mappers {
 			}
 
 			if (_wRam > 0) {
-				WRAM = new RAM(Addr(0x6000), Addr(0x7FFF));
+				WRAM = new RAM(Addr(0x6000), Addr(0x7FFF), "WRAM");
 			}
 			//headerOpts.
 		}

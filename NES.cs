@@ -8,18 +8,19 @@ namespace NESSharp.Core {
 		public static RAM StackRam; //eliminate stack page from possible allocations
 
 		public static void Init() {
-			ram				= new RAM(Addr(0), Addr(0x07FF));
-			zp				= ram.Allocate(Addr(0), Addr(0xFF));
-			StackRam		= ram.Allocate(Addr(0x0100), Addr(0x01FF));
-			ShadowOAM.Ram	= ram.Allocate(Addr(0x0200), Addr(0x02FF));
+			ram				= new RAM(0x0000, 0x07FF, "Main");
+			zp				= ram.Allocate(0x0000, 0x00FF, "ZP");
+			StackRam		= ram.Allocate(0x0100, 0x01FF, "Stack");
+			ShadowOAM.Ram	= ram.Allocate(0x0200, 0x02FF, "Shadow OAM");
+			PPU.OAM.Init();
 		}
 		public static class ShadowOAM {
 			public static RAM Ram; //eliminate shadow OAM from possible allocations
 		}
 		public static class MemoryMap {
-			public static Address Palette		= Addr(0x3F00);
-			public static Address Background	= Addr(0x2000);
-			public static Address Attributes	= Addr(0x23C0);
+			public static Address Palette		= 0x3F00;
+			public static Address Background	= 0x2000;
+			public static Address Attributes	= 0x23C0;
 		}
 		public static class IRQ {
 			public static void Disable() => CPU6502.SEI();
@@ -72,12 +73,24 @@ namespace NESSharp.Core {
 				Address.Write(iva.Address[1], iva.Address[0]);
 			}
 			public static class OAM {
+				public static ArrayOfStructs<SObject> Object;
+				public static void Init() {
+					Object = ArrayOfStructs<SObject>.New("OAMObj", 64).Dim(ShadowOAM.Ram);
+				}
 				public static Address Address =			0x2003;
 				public static Address Data =			0x2004;   //Don't worry about this; let OAM_DMA do the work for you.
 				public static Address DMA =				0x4014;
 				public static void Write(Address shadowOam) {
 					Address.Set(shadowOam.Lo);	//low byte of RAM address
 					DMA.Set(shadowOam.Hi);		//high byte of RAM address
+				}
+				public static void HideAll() {
+					Loop.Repeat(X.Set(0), 256, _ => {
+						Object[X].Hide();
+						X.State.Unsafe(() => {
+							X++; X++; X++;
+						});
+					});
 				}
 			}
 			public static void ClearNametable0(U8 val) {
@@ -107,32 +120,32 @@ namespace NESSharp.Core {
 		}
 		public static class APU {
 			public static class Pulse1 {
-				public static Address Volume =			0x4000;
-				public static Address Sweep =			0x4001;
-				public static Address Lo =				0x4002;
-				public static Address Hi =				0x4003;
+				public static readonly Address Volume =			0x4000;
+				public static readonly Address Sweep =			0x4001;
+				public static readonly Address Lo =				0x4002;
+				public static readonly Address Hi =				0x4003;
 			}
 			public static class Pulse2 {
-				public static Address Volume =			0x4004;
-				public static Address Sweep =			0x4005;
-				public static Address Lo =				0x4006;
-				public static Address Hi =				0x4007;
+				public static readonly Address Volume =			0x4004;
+				public static readonly Address Sweep =			0x4005;
+				public static readonly Address Lo =				0x4006;
+				public static readonly Address Hi =				0x4007;
 			}
 			public static class Triangle {
-				public static Address Linear =			0x4008;
-				public static Address Lo =				0x400A;
-				public static Address Hi =				0x400B;
+				public static readonly Address Linear =			0x4008;
+				public static readonly Address Lo =				0x400A;
+				public static readonly Address Hi =				0x400B;
 			}
 			public static class Noise {
-				public static Address Volume =			0x400C;
-				public static Address Lo =				0x400E;
-				public static Address Hi =				0x400F;
+				public static readonly Address Volume =			0x400C;
+				public static readonly Address Lo =				0x400E;
+				public static readonly Address Hi =				0x400F;
 			}
 			public static class DMC {
-				public static Address Settings =		0x4010;
-				public static Address LoadCounter =		0x4011;
-				public static Address SampleAddress =	0x4012;
-				public static Address SampleLength =	0x4013;
+				public static readonly Address Settings =		0x4010;
+				public static readonly Address LoadCounter =	0x4011;
+				public static readonly Address SampleAddress =	0x4012;
+				public static readonly Address SampleLength =	0x4013;
 
 				public static void Disable() => Settings.Set(0);
 			}
@@ -148,22 +161,22 @@ namespace NESSharp.Core {
 			public static void SetChannelsEnabled(Channels chs) => Status.Set((byte)chs);
 		}
 		public static class Controller {
-			public static Address One =		0x4016;
-			public static Address Two =		0x4017;
+			public static readonly Address One =		0x4016;
+			public static readonly Address Two =		0x4017;
 			public static void Latch() {
 				One.Set(1);
 				One.Set(0);
 			}
 		}
 		public static class Button {
-			public static U8 Right =	0b00000001;
-			public static U8 Left =		0b00000010;
-			public static U8 Down =		0b00000100;
-			public static U8 Up =		0b00001000;
-			public static U8 Start =	0b00010000;
-			public static U8 Select =	0b00100000;
-			public static U8 B =		0b01000000;
-			public static U8 A =		0b10000000;
+			public static U8 Right =>	0b00000001;
+			public static U8 Left =>	0b00000010;
+			public static U8 Down =>	0b00000100;
+			public static U8 Up =>		0b00001000;
+			public static U8 Start =>	0b00010000;
+			public static U8 Select =>	0b00100000;
+			public static U8 B =>		0b01000000;
+			public static U8 A =>		0b10000000;
 		}
 	}
 }

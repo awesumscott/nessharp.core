@@ -39,20 +39,7 @@ namespace NESSharp.Core {
 	public static class Carry {
 		public static CarryState State;
 		public static void Clear() => CPU6502.CLC();
-		//public static void NewClear() {
-		//	if (State != CarryState.Cleared) {
-		//		CPU6502.CLC();
-		//		State = CarryState.Cleared;
-		//	}
-		//}
-
 		public static void Set() => CPU6502.SEC();
-		//public static void NewSet() {
-		//	if (State != CarryState.Set) {
-		//		CPU6502.SEC();
-		//		State = CarryState.Set;
-		//	}
-		//}
 		public static Condition IsClear() => Condition.IsCarryClear;
 		public static Condition IsSet() => Condition.IsCarrySet;
 		public static void Reset() => State = CarryState.Unknown;
@@ -95,6 +82,7 @@ namespace NESSharp.Core {
 			Pop();
 		}
 	}
+
 	public static class AL {
 		//TODO: transition "using static NESSharp.Core.AL" statements to "using static NESSharp.Core.CPU6502" everywhere to get these out of here
 		public static RegisterA A = CPU6502.A;
@@ -105,13 +93,11 @@ namespace NESSharp.Core {
 		public static Bank									CurrentBank;
 		public static U8									CurrentBankId;
 		public static List<List<IOperation>>				Code;
-		public static LabelDictionary						Labels				= new LabelDictionary();
-		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new Dictionary<string, IVarAddressArray>();
-		public static ConstantCollection					Constants			= new ConstantCollection();
+		public static LabelDictionary						Labels				= new();
+		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new();
+		public static ConstantCollection					Constants			= new();
 		public static short									CodeContextIndex;
-		private static readonly Dictionary<Type, Module>	_Modules			= new Dictionary<Type, Module>();
-		public static OAMDictionary							OAM;
-		//public static Address[] Temp = zp.Dim(3);
+		private static readonly Dictionary<Type, Module>	_Modules			= new();
 		public static VByte[] Temp;
 		public static Ptr TempPtr0, TempPtr1;
 
@@ -120,7 +106,6 @@ namespace NESSharp.Core {
 
 		static AL() {
 			NES.Init(); //TODO: get rid of this when it's no longer static
-			OAM			= new OAMDictionary(NES.ShadowOAM.Ram);
 			Temp		= new VByte[] {VByte.New(NES.zp, "Temp0"), VByte.New(NES.zp, "Temp1"), VByte.New(NES.zp, "Temp2")};
 			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");//new Ptr((Address)null, "tempPtr0");
 			TempPtr1	= Ptr.New(NES.zp, "tempPtr1");
@@ -155,14 +140,10 @@ namespace NESSharp.Core {
 			Use(op);
 		}
 		public static void Use(OpCode op, U8 param) {
-			//if (op.Length != 2)
-			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}
 		public static void Use(OpCode op, U16 param) {
-			//if (op.Length != 3)
-			//	throw new Exception("Invalid parameter length for this opcode");
 			op.Param = param;
 			Use(op);
 		}

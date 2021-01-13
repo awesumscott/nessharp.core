@@ -26,12 +26,6 @@ namespace NESSharp.Core {
 			Mapper.Init(PrgBank, ChrBank, Header);
 		}
 
-		public static void SetInterrupts(Label? NMI, Label? Reset, Label? IRQ) {
-			Interrupts.Add(NMI);
-			Interrupts.Add(Reset);
-			Interrupts.Add(IRQ);
-		}
-
 		public static string LabelNameFromMethodInfo(MethodInfo methodInfo) => $"{methodInfo.DeclaringType?.Name ?? "???"}_{methodInfo.Name}";
 		public static Label ToLabel(this MethodInfo methodInfo) => Labels[LabelNameFromMethodInfo(methodInfo)];
 
