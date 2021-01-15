@@ -10,7 +10,7 @@ namespace NESSharp.Core {
 			Address = Zp.Dim(2);
 			//Lo = Address[0];
 			//Hi = Address[1];
-			DebugFile.WriteVariable(Zp, Address[0], Address[1], name);
+			DebugFileNESASM.WriteVariable(Zp, Address[0], Address[1], name);
 			VarRegistry.Add(name, this);
 		}
 

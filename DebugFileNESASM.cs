@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NESSharp.Core {
 	//TODO: require a RAM instance for the option of outputting one debug file per RAM remainder
@@ -8,7 +6,7 @@ namespace NESSharp.Core {
 	//accumulate Contents based on their RAM instance ID
 	//Make a method to output one file per Contents/ID entry. ROM entries may need to be added to all Contents instances.
 	//This may need RAM instance names to make the debug files easy to identify.
-	public static class DebugFile {
+	public static class DebugFileNESASM {
 		public static string Contents = string.Join('\n',
 			new string[]{	"G:2000:PpuControl_2000",
 							"G:2001:PpuMask_2001",
@@ -57,5 +55,26 @@ namespace NESSharp.Core {
 		public static void WriteLabel(Address startAddr, Address endAddr, string name) {
 			Contents += $"P:{ startAddr.ToString().Substring(1) }-{ endAddr.ToString().Substring(1) }:{ name }\n";
 		}
+
+		public static string OpToAsm(Asm.OpRef op) =>
+			string.Format(
+				op.Mode switch {
+					Asm.Mode.Immediate			=> "{0} #{{0}}",
+					Asm.Mode.Absolute			=> "{0} {{0}}",
+					Asm.Mode.ZeroPage			=> "{0} {{0}}",
+					Asm.Mode.Implied			=> "{0}",
+					Asm.Mode.IndirectAbsolute	=> "{0} ({{0}})",
+					Asm.Mode.AbsoluteX			=> "{0} {{0}}, X",
+					Asm.Mode.AbsoluteY			=> "{0} {{0}}, Y",
+					Asm.Mode.ZeroPageX			=> "{0} {{0}}, X",
+					Asm.Mode.ZeroPageY			=> "{0} {{0}}, Y",
+					Asm.Mode.IndirectX			=> "{0} ({{0}}, X)",
+					Asm.Mode.IndirectY			=> "{0} ({{0}}), Y",
+					Asm.Mode.Relative			=> "{0} {{0}}",
+					Asm.Mode.Accumulator		=> "{0} A",
+					_ => throw new Exception("Invalid addressing mode")
+				},
+				op.Token
+			);
 	}
 }

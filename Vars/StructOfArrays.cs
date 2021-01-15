@@ -6,6 +6,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class StructOfArrays<StructType> : Var where StructType : Struct, new() {
+		public int			Length	{ get; set; }
 		private static byte nameSuffix = 0;
 		private Struct _baseInstance;
 		private Array<VByte>[] _arrays;
@@ -35,18 +36,18 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public StructType this[IndexingRegister index] => _makeCopy(0, index);
-		public StructType this[int index] => _makeCopy(index, null);
-		private StructType _makeCopy(int offset, IndexingRegister index) {
+		public new StructType this[int index] => _makeCopy(index, null);
+		private StructType _makeCopy(int offset, IndexingRegister? index) {
 				var structType = _baseInstance.GetType();
-				var newInstance = (Struct)Activator.CreateInstance(structType);
+				var newInstance = (Struct?)Activator.CreateInstance(structType);
 				newInstance.Name = _baseInstance.Name;
-				newInstance.Length = _baseInstance.Length;
-				//newInstance.Size = _baseInstance.Size; //TODO: NYI
+				//newInstance.Length = _baseInstance.Length;
+				newInstance.Size = _baseInstance.Size; //TODO: NYI
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
 					//if type has >1 bytes, grab values from appropriate arrays, create an instance, and copy over properties
 					var numBytes = VarSize.GetSizeOf(p.PropertyType);
-					var v = (Var)Activator.CreateInstance(p.PropertyType);
+					var v = (Var?)Activator.CreateInstance(p.PropertyType);
 					v.Index = index;
 					if (numBytes > 1) {
 						//Make a duplicate list of bytes of item[0], to prepare to copy into the new Struct/Var instance
@@ -75,16 +76,18 @@ namespace NESSharp.Core {
 		public void Clear(byte clearValue = 0) {
 			Loop.Descend_Pre(X.Set(Length), _ => {
 				var structType = _baseInstance.GetType();
-				var newInstance = (Struct)Activator.CreateInstance(structType);
+				var newInstance = (Struct?)Activator.CreateInstance(structType);
 				newInstance.Name = _baseInstance.Name;
-				newInstance.Length = _baseInstance.Length;
+				newInstance.Size = _baseInstance.Size;
 				var i = 0;
 				foreach (var p in _baseInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) { //user-defined Var properties
 					var vType = _arrays[i][0].GetType();
-					var v = (Var)Activator.CreateInstance(vType);
+					var v = (Var?)Activator.CreateInstance(vType);
+					//if (v == null) throw new Exception("Problem creating struct property");
 					v.Copy(_arrays[i][0]);
 					v.Index = X;
-					vType.InvokeMember("Set", BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public, null, v, new object[]{ clearValue });
+					//vType.InvokeMember("Set", BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public, null, v, new object[]{ clearValue });
+					vType.GetMethod("Set", new Type[] { typeof(U8) }, null)?.Invoke(v, new object[]{ (U8)clearValue });
 					i++;
 				}
 			});

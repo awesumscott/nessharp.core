@@ -30,7 +30,7 @@ namespace NESSharp.Core {
 			Restore(reg);
 			reg.State.Pop();
 		}
-		public static void Preserve(IVarAddressArray v, Action block) {
+		public static void Preserve(Var v, Action block) {
 			Backup(v.Address);
 			block.Invoke();
 			Restore(v.Address);

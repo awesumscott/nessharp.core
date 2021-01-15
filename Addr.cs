@@ -81,7 +81,7 @@ namespace NESSharp.Core {
 			return matchName + (index!=null ? $"[{index}]" : "");
 		}
 
-		public new Address IncrementedValue => New((ushort)((U16)this + 1));
+		public Address IncrementedValue => New((ushort)((U16)this + 1));
 
 		public Condition Equals(RegisterA _) {
 			CPU6502.CMP(this);

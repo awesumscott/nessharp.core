@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace NESSharp.Core {
 	public class ArrayOfStructs<StructType> : Var where StructType : Struct, new() {
+		public int			Length	{ get; set; }
 		private Struct _baseInstance;
 		private StructType[] _structs;
 		public static ArrayOfStructs<StructType> New(string name, int arrayLength) {
@@ -47,7 +48,7 @@ namespace NESSharp.Core {
 		public StructType this[IndexingRegister reg] => _makeCopy(_structs[0], reg);
 
 		private StructType _makeCopy(StructType original, IndexingRegister index) {
-			var newInstance = ((StructType)Activator.CreateInstance(_baseInstance.GetType())).Copy(original);
+			var newInstance = ((StructType?)Activator.CreateInstance(_baseInstance.GetType()))?.Copy(original);
 			foreach (var p in newInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) //user-defined Var properties
 				((Var)p.GetGetMethod().Invoke(newInstance, null)).Index = index;
 			return newInstance;

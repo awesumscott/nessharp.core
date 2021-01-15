@@ -10,7 +10,7 @@ namespace NESSharp.Core {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(Size);
 			Name = name;
-			DebugFile.WriteVariable(ram, Address[0], Address[Size - 1], name);
+			DebugFileNESASM.WriteVariable(ram, Address[0], Address[Size - 1], name);
 			VarRegistry.Add(name, this);
 			return this;
 		}
@@ -69,7 +69,7 @@ namespace NESSharp.Core {
 				this[0].Set(addr);
 				for (var i = 1; i < Address.Length; i++)
 					this[i].Set(0);
-			} else if (o is IVarAddressArray iva) {
+			} else if (o is Var iva) {
 				var srcLen = iva.Address.Length;
 				if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
 				for (var i = 0; i < Size; i++) {

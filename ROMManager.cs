@@ -1,4 +1,5 @@
 ﻿using NESSharp.Core.Mappers;
+using NESSharp.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,34 @@ namespace NESSharp.Core {
 		public static List<Bank> ChrBank = new List<Bank>();
 		public static List<Label?> Interrupts = new List<Label?>();
 		public static string AsmOutput = string.Empty;
+
+
+		internal static class Tools {
+			private static IAssemblerOutput _asmOutput;
+			public static IAssemblerOutput?	AssemblerOutput => _asmOutput ??= _Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().FirstOrDefault();
+			//private static readonly List<IDebugFile>	_debugFile				= new();
+			//public class _AssemblerSupport : IAssemblerSupport {
+			//	public string OpToAsm(Asm.OpRef op) {
+			//		throw new NotImplementedException();
+			//	}
+			//}
+			private static IEnumerable<IDebugFile> _debugFiles;
+			public static IEnumerable<IDebugFile> DebugFiles => _debugFiles ??= _Tools.Where(x => x is IDebugFile).Cast<IDebugFile>().ToList();
+		}
+		//private static readonly Dictionary<Type, ITool>	_Tools			= new();
+		private static readonly List<ITool>	_Tools			= new();
+		public static T Tool<T>() where T : ITool {
+			//var instance = (T?)_Tools.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
+			var instance = (T?)_Tools.Where(x => x.GetType() == typeof(T)).FirstOrDefault();
+			if (instance == null) {
+				//_Tools.Add(typeof(T), instance);
+				_Tools.Add(instance = Activator.CreateInstance<T>());
+			}
+			//instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
+			return instance;
+		}
+
+
 
 		public static void SetInfinite() {
 			PrgBank.Add(new Bank(0, 0));
@@ -106,7 +135,7 @@ namespace NESSharp.Core {
 				WriteInterrupts();
 
 			foreach (var lbl in Labels)
-				DebugFile.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
+				DebugFileNESASM.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
 
 			using (var f = File.Open(fileName + ".nes", FileMode.Create)) {
 				f.Write(header, 0, header.Length);
@@ -117,7 +146,7 @@ namespace NESSharp.Core {
 			}
 
 			if (Mapper != null) {
-				WriteFile(fileName + ".mlb", DebugFile.Contents);
+				WriteFile(fileName + ".mlb", DebugFileNESASM.Contents);
 			}
 
 			WriteFile(fileName + ".asm", AsmOutput);

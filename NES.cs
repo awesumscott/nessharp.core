@@ -67,7 +67,7 @@ namespace NESSharp.Core {
 				Reset();
 				Address.Write(addr.Hi, addr.Lo);
 			}
-			public static void SetAddress(IVarAddressArray iva) {
+			public static void SetAddress(Var iva) {
 				if (iva.Address.Length != 2) throw new ArgumentException();
 				Reset();
 				Address.Write(iva.Address[1], iva.Address[0]);

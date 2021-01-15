@@ -43,6 +43,7 @@ namespace NESSharp.Core {
 						offset += raw.Length;
 					} else if (op is OpComment comment) {
 						ROMManager.AsmOutput += $"; { comment.Text }\n";
+						ROMManager.Tools.AssemblerOutput?.AppendComment(comment.Text);
 					}
 					continue;
 				}
@@ -70,7 +71,9 @@ namespace NESSharp.Core {
 					offset += 2;
 				}
 
-				ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param) + "\n";
+				//ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param) + "\n";
+				ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().ToAsm(DebugFileNESASM.OpToAsm), opCode.Param) + "\n";
+				ROMManager.Tools.AssemblerOutput?.AppendOp(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First(), opCode);
 			}
 			InitCode();
 		}

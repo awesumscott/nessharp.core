@@ -2,6 +2,7 @@
 
 namespace NESSharp.Core {
 	public class Array<T> : Var where T : Var, new() {
+		public int			Length	{ get; set; }
 		private T[]? Vars;
 
 		public Array() {}

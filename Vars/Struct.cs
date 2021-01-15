@@ -12,7 +12,7 @@ namespace NESSharp.Core {
 			var structInstance = new T();
 			var size = 0;
 			foreach (var p in structInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {
-				var v = (Var)Activator.CreateInstance(p.PropertyType);
+				var v = (Var?)Activator.CreateInstance(p.PropertyType);
 				v.Dim(ram, $"{ (string.IsNullOrEmpty(name) ? structInstance.GetType().Name : name) }_{ p.Name }");
 				size += v.Size;
 				structInstance.GetType().InvokeMember(p.Name, BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, structInstance, new object[]{ v });
@@ -27,7 +27,7 @@ namespace NESSharp.Core {
 			//TODO: since this is only used in AoS now, and no AoS has used a multi-byte var, ensure this works with mbvs, and then use it in SoA[]
 			foreach (var prop in newInstanceProperties) {
 				if (prop.PropertyType.IsSubclassOf(typeof(Var))) {
-					var v = (Var)Activator.CreateInstance(prop.PropertyType);
+					var v = (Var?)Activator.CreateInstance(prop.PropertyType);
 					prop.SetValue(newInstance, v.Copy((Var)prop.GetValue(original)));
 				//The following condition is probably not necessary because AoS now explicitly sets and unsets indexes on Var properties
 				//} else if (prop.Name == nameof(Index)) {
@@ -46,7 +46,7 @@ namespace NESSharp.Core {
 			foreach (var prop in properties) {
 				if (prop.PropertyType.IsSubclassOf(typeof(Var))) {
 					//SoA can copy these references, but in case this method ever gets used elsewhere, it's probably best to leave this extra copy.
-					var v8 = (Var)Activator.CreateInstance(prop.PropertyType);
+					var v8 = (Var?)Activator.CreateInstance(prop.PropertyType);
 					prop.SetValue(this, v8.Copy(varArray[i]));	//varArray[i]); //(the direct ref version)
 					i++;
 				}

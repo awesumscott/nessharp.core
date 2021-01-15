@@ -85,16 +85,16 @@ namespace NESSharp.Core {
 
 	public static class AL {
 		//TODO: transition "using static NESSharp.Core.AL" statements to "using static NESSharp.Core.CPU6502" everywhere to get these out of here
-		public static RegisterA A = CPU6502.A;
-		public static RegisterX X = CPU6502.X;
-		public static RegisterY Y = CPU6502.Y;
-		public static FlagStates Flags = CPU6502.Flags;
+		public static RegisterA A		= CPU6502.A;
+		public static RegisterX X		= CPU6502.X;
+		public static RegisterY Y		= CPU6502.Y;
+		public static FlagStates Flags	= CPU6502.Flags;
 
 		public static Bank									CurrentBank;
 		public static U8									CurrentBankId;
 		public static List<List<IOperation>>				Code;
 		public static LabelDictionary						Labels				= new();
-		public static Dictionary<string, IVarAddressArray>	VarRegistry			= new();
+		public static Dictionary<string, Var>	VarRegistry			= new();
 		public static ConstantCollection					Constants			= new();
 		public static short									CodeContextIndex;
 		private static readonly Dictionary<Type, Module>	_Modules			= new();
@@ -159,11 +159,13 @@ namespace NESSharp.Core {
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));
 
 		public static void GoTo(Label label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
-		public static void GoTo_Indirect(Ptr p) => Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
+		//public static void GoTo_Indirect(Ptr p) => Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
+		public static void GoTo_Indirect(Ptr p) => Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
 		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
 			//CPU6502.JMP(vn.Lo);
-			Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), vn.Lo);
+			//Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), vn.Lo);
+			Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), vn.Lo);
 		}
 
 		public static void GoSub(Label label) => CPU6502.JSR(label);
@@ -329,5 +331,12 @@ namespace NESSharp.Core {
 			for (var i = 0; i < times; i++)
 				block.Invoke();
 		}
+	}
+
+	public static class LinqExtensions {
+		public static void ForEach<T>(this IEnumerable<T> source, Action<T> action) {
+            foreach (var element in source)
+                action(element);
+        }
 	}
 }
