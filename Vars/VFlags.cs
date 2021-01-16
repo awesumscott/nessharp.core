@@ -2,7 +2,7 @@
 
 namespace NESSharp.Core {
 	public class VFlags : VByte {
-		public static new VFlags New(RAM ram, string name) => (VFlags)new VFlags().Dim(ram, name);
+		public static new VFlags New(RAMRange ram, string name) => (VFlags)new VFlags().Dim(ram, name);
 		public void SetBit(int position, bool value) {
 			if (value)
 				Set(Or(0b1 << position));

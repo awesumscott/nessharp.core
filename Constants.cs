@@ -10,6 +10,9 @@ namespace NESSharp.Core {
 	public class ConstU8 : IConstant, IResolvable<U8> {
 		public string Name { get; set; }
 		public object Value { get; set; }
+
+		U8 IOperand<U8>.Value => (U8)Value;
+
 		public ConstU8(string name, U8 val) {
 			Name = name;
 			Value = val;
@@ -20,6 +23,9 @@ namespace NESSharp.Core {
 	public class ConstU16 : IConstant, IResolvable<U16> {
 		public string Name { get; set; }
 		public object Value { get; set; }
+
+		U16 IOperand<U16>.Value => (U16)Value;
+
 		public ConstU16(string name, U16 val) {
 			Name = name;
 			Value = val;

@@ -6,7 +6,7 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	public class VarN : Var {
 		public override int Size {get;set;}
-		public override VarN Dim(RAM ram, string name) {
+		public override VarN Dim(RAMRange ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(Size);
 			Name = name;
@@ -15,7 +15,7 @@ namespace NESSharp.Core {
 			return this;
 		}
 
-		public static VarN New(RAM ram, int len, string name) => new VarN() { Size = len }.Dim(ram, name);
+		public static VarN New(RAMRange ram, int len, string name) => new VarN() { Size = len }.Dim(ram, name);
 		public static VarN Ref(Address addr, ushort len) => new() {
 			Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray()
 		};

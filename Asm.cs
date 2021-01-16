@@ -36,6 +36,7 @@ namespace NESSharp.Core {
 	public class OpCode : IOperation {
 		public int Length {get;set;}
 		public byte Value;
+		//public IOperand? Param;
 		public object? Param;
 		public OpCode(byte opVal, byte len = 1) {
 			Value = opVal;

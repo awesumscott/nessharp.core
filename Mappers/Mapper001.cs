@@ -32,7 +32,7 @@ namespace NESSharp.Core.Mappers {
 	public class Mapper001 : IMapper {
 		public int Number => 4;
 		public bool BatteryBacked = false;
-		public RAM WRAM;
+		public RAMRange WRAM;
 		public Label[] ChrLabel;
 		private int _prgRom, _chrRom, _chrRam, _wRam;
 
@@ -66,7 +66,7 @@ namespace NESSharp.Core.Mappers {
 			}
 
 			if (_wRam > 0) {
-				WRAM = new RAM(Addr(0x6000), Addr(0x7FFF), "WRAM");
+				WRAM = new RAMRange(Addr(0x6000), Addr(0x7FFF), "WRAM");
 			}
 			//headerOpts.
 		}

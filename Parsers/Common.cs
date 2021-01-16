@@ -4,35 +4,24 @@ using System.Linq;
 
 namespace NESSharp.Core.Parsers {
 	public static class Common {
-		public class Param {
-			
-		}
+		public class Param {}
 		public interface ILine {}
 		public class ByteList : ILine {
 			public List<object> List;
-			public ByteList(List<object> list) {
-				List = list;
-			}
+			public ByteList(List<object> list) => List = list;
 		}
 		public class WordList : ILine {
 			public List<object> List;
-			public WordList(List<object> list) {
-				List = list;
-			}
+			public WordList(List<object> list) => List = list;
 		}
 		public class Label : ILine {
 			public string Name;
-			//public boo
-			public Label(string name) {
-				Name = name;
-			}
+			public Label(string name) => Name = name;
 		}
 		public class Instruction : ILine {
 			public OpCode Op;
 			//public List<Param> Params;
-			public Instruction(OpCode op) {
-				Op = op;
-			}
+			public Instruction(OpCode op) => Op = op;
 		}
 		public class Constant : ILine {
 			public string Name;
@@ -44,15 +33,11 @@ namespace NESSharp.Core.Parsers {
 		}
 		public class Hi : ILine {
 			public object Value;
-			public Hi(object value) {
-				Value = value;
-			}
+			public Hi(object value) => Value = value;
 		}
 		public class Lo : ILine {
 			public object Value;
-			public Lo(object value) {
-				Value = value;
-			}
+			public Lo(object value) => Value = value;
 		}
 		//public class Offset : ILine {
 		//	public object Value;
@@ -119,27 +104,19 @@ namespace NESSharp.Core.Parsers {
 			} else if (token.StartsWith("$")) {
 				//hex
 				var hexNum = Convert.ToInt32(token.Substring(1), 16);
-				if (token.Length <= 3)
-					return (U8)hexNum;
-				else if (token.Length <= 5)
-					return (U16)hexNum;
+				if (token.Length <= 3)		return (U8)hexNum;
+				else if (token.Length <= 5)	return (U16)hexNum;
 				else throw new Exception("Only U8s and U16s allowed");
 			} else if (int.TryParse(token, out var num)) {
 				//decimal
-				if (num <= 255)
-					return (U8)num;
-				else
-					return (U16)num;
+				if (num <= 255)				return (U8)num;
+				else						return (U16)num;
 			}
 
 			//expressions / functions need more work than this, but this is to expedite song file parsing to test ggsound:
 			if (token.EndsWith(")")) {
-				if (token.StartsWith("low(")) {
-					return new Lo(ParseParam(token[4..^1]));
-				} else if (token.StartsWith("high(")) {
-					return new Hi(ParseParam(token[5..^1]));
-			
-				}
+				if (token.StartsWith("low("))		return new Lo(ParseParam(token[4..^1]));
+				else if (token.StartsWith("high("))	return new Hi(ParseParam(token[5..^1]));
 			}
 
 			if (token.Contains(">>")) {
@@ -205,9 +182,9 @@ namespace NESSharp.Core.Parsers {
 				//if (isConstant(s)) return new List<object>{AL.Constants[s].Value};
 				throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is U8 u8) {
-					return new List<object>{(byte)u8, (byte)0};
+				return new List<object>{(byte)u8, (byte)0};
 			} else if (o is U16 u16) {
-					return new List<object>{(byte)u16.Lo, (byte)u16.Hi};
+				return new List<object>{(byte)u16.Lo, (byte)u16.Hi};
 			}
 			return new List<object>{o};
 		}

@@ -2,6 +2,60 @@
 using System.Collections.Generic;
 
 namespace NESSharp.Core {
+	public class UniquenessState {
+		private long _state = 0, _nextState = 1;
+		public long Hash => _state;
+		public RegisterBase? LastReg { get; private set; } //register modified by last op that was responsible for the latest state change
+		private readonly Stack<long> _stateStack = new Stack<long>();
+		public void Alter(RegisterBase? reg = null) {
+			_state = _nextState++;
+			LastReg = reg;
+		}
+
+		public void Push() {
+			_stateStack.Push(_state);
+			_nextState = _state + 1;
+		}
+		public void Pop() => _state = _stateStack.Pop();
+
+		/// <summary>
+		/// Ensure the integrity of the value after a code block.
+		/// </summary>
+		//TODO: check Clobber method attributes for calls to GoSub, and if none are specified, maybe throw an exception anyway to encourage their use for safety with this
+		//Maybe a non-exception way would be to have GoSubs/GoTos set an "unsure" bool on the reg states, then Ensure can clear it before and check afterwards to warn if an "unsure" was encountered
+		//Reset may already be the way to handle this, it is called in goto/gosub. Or maybe that's just where these changes should be located.
+		public void Ensure(Action block) {
+			var before = Hash;
+			block();
+			Verify(before);
+		}
+
+		public void Verify(long before) {
+			if (Hash != before) throw new Exception($"{GetType().Name} was modified while being used as a loop index! Use Stack.Preserve");
+		}
+
+		public void Unsafe(Action block) {
+			Push();
+			block();
+			Pop();
+		}
+	}
+	public class FlagStates {
+		public UniquenessState Carry			= new();
+		public UniquenessState Zero				= new();
+		public UniquenessState InterruptDisable	= new();
+		public UniquenessState Decimal			= new();
+		public UniquenessState Overflow			= new();
+		public UniquenessState Negative			= new();
+		public void Reset() {
+			Carry.Alter();
+			Zero.Alter();
+			InterruptDisable.Alter();
+			Decimal.Alter();
+			Overflow.Alter();
+			Negative.Alter();
+		}
+	}
 	/// <summary>
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>

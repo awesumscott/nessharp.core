@@ -9,7 +9,7 @@ namespace NESSharp.Core {
 		public VByte() {}
 		public Address Value => this[0];
 
-		public override VByte Dim(RAM ram, string name) {
+		public override VByte Dim(RAMRange ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(1);
 			Name = name;
@@ -17,21 +17,21 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 			return this;
 		}
-		public static VByte New(RAM ram, string name) => new VByte().Dim(ram, name);
+		public static VByte New(RAMRange ram, string name) => new VByte().Dim(ram, name);
 		public static VByte Ref(Address addr, IndexingRegister? index = null) {
-			var v = new VByte();
-			v.Address = new Address[]{ addr };
-			v.Index = index;
+			var v = new VByte {
+				Address = new Address[] { addr },
+				Index = index
+			};
 			return v;
 		}
 		public override Var Copy(Var v) {
-			if (!(v is VByte))
+			if (v is not VByte)
 				throw new Exception("Type must be Var8");
 			var v8 = (VByte)v;
 			Address = v8.Address;
 			Name = v8.Name;
 			Index = v8.Index;
-			//return v8;
 			return this;
 		}
 		
@@ -56,64 +56,58 @@ namespace NESSharp.Core {
 			return this;
 		}
 
-		public RegisterA Add(IOperand v) {
-			Carry.Clear();
-			if (v is RegisterA)
-				return A.Add(this);
-			return A.Set(this).ADC(v);
-		}
-		public RegisterA Add(U8 v) => Add((IOperand)v);
+		public RegisterA Add(IOperand v) =>				A.Set(this).Add(v);
+		public RegisterA Add(U8 v) =>					A.Set(this).Add(v);
+		public RegisterA Add(RegisterA _) =>			A.Add(this);
 
-		public RegisterA Subtract(IOperand o) {
-			Carry.Set();
-			if (o is RegisterA) {
-				Temp[0].Set(A);
-				A.Set(this);
-				return A.Subtract(Temp[0]);
-			}
-			return A.Set(this).SBC(o);
+		public RegisterA Subtract(IOperand v) =>		A.Set(this).Subtract(v);
+		public RegisterA Subtract(U8 v) =>				A.Set(this).Subtract(v);
+		public RegisterA Subtract(RegisterA _) {
+			Temp[0].Set(A);
+			return A.Set(this).Subtract(Temp[0]);
 		}
-		public RegisterA Subtract(U8 v) => Subtract((IOperand)v);
 
-		public RegisterA And(IOperand v) => A.Set(this).And(v);
-		public RegisterA And(U8 v) => And((IOperand)v);
-		public RegisterA Or(IOperand v) {
-			if (v is RegisterA) {
-				Temp[0].Set(A);
-				return A.Set(this).Or(Temp[0]);
-			}
-			return A.Set(this).Or(v);
+		public RegisterA And(IOperand v) =>				A.Set(this).And(v);
+		public RegisterA And(U8 v) =>					A.Set(this).And(v);
+		public RegisterA Or(IOperand v) =>				A.Set(this).Or(v);
+		public RegisterA Or(U8 v) =>					A.Set(this).Or(v);
+		public RegisterA Or(RegisterA _) {
+			Temp[0].Set(A);
+			return A.Set(this).Or(Temp[0]);
 		}
-		public RegisterA Or(U8 v) => A.Set(this).Or(v);
-		public RegisterA Xor(IOperand v) => A.Set(this).Xor(v);
-		public RegisterA Xor(U8 v) => Xor((IOperand)v);
+		public RegisterA Xor(IOperand v) =>				A.Set(this).Xor(v);
+		public RegisterA Xor(U8 v) =>					A.Set(this).Xor(v);
 
 		public VByte SetROL() {
-			if (Index == null)
-				CPU6502.ROL(Address[0]);
-			else if (Index is RegisterX) {
-				CPU6502.ROL(Address[0][Index]);
-			} else if (Index is RegisterY) {
-				Temp[0].Set(Y);
-				X.Set(Temp[0]);
-				Index = X;
-				CPU6502.ROL(Address[0][Index]);
-				Index = Y;
-			}
+			if (Index is RegisterY) throw new Exception("Cannot SetROL with index Y");
+			CPU6502.ROL(this);
+			//if (Index == null)
+			//	CPU6502.ROL(Address[0]);
+			//else if (Index is RegisterX) {
+			//	CPU6502.ROL(Address[0][Index]);
+			//} else if (Index is RegisterY) {
+			//	Temp[0].Set(Y);
+			//	X.Set(Temp[0]);
+			//	Index = X;
+			//	CPU6502.ROL(Address[0][Index]);
+			//	Index = Y;
+			//}
 			return this;
 		}
 		public VByte SetROR() {
-			if (Index == null)
-				CPU6502.ROR(Address[0]);
-			else if (Index is RegisterX) {
-				CPU6502.ROR(Address[0][Index]);
-			} else if (Index is RegisterY) {
-				Temp[0].Set(Y);
-				X.Set(Temp[0]);
-				Index = X;
-				CPU6502.ROR(Address[0][Index]);
-				Index = Y;
-			}
+			if (Index is RegisterY) throw new Exception("Cannot SetROR with index Y");
+			CPU6502.ROR(this);
+			//if (Index == null)
+			//	CPU6502.ROR(Address[0]);
+			//else if (Index is RegisterX) {
+			//	CPU6502.ROR(Address[0][Index]);
+			//} else if (Index is RegisterY) {
+			//	Temp[0].Set(Y);
+			//	X.Set(Temp[0]);
+			//	Index = X;
+			//	CPU6502.ROR(Address[0][Index]);
+			//	Index = Y;
+			//}
 			return this;
 		}
 		public VByte SetLSR() {
@@ -126,72 +120,27 @@ namespace NESSharp.Core {
 			else										throw new NotImplementedException();
 			return this;
 		}
-		public Condition Equals(U8 v) {
-			A.Set(this);
-			if (v != 0)
-				A.CMP(v);
-			return Condition.EqualsZero;
-		}
-		public Condition Equals(VByte v) {
-			A.Set(this).CMP(v);
-			return Condition.EqualsZero;
-		}
-		public Condition Equals(RegisterA a) => this[0].Equals(a);
-		public Condition NotEquals(U8 v) {
-			Equals(v);
-			return Condition.NotEqualsZero;
-		}
-		public Condition NotEquals(VByte v) {
-			Equals(v);
-			return Condition.NotEqualsZero;
-		}
-		public Condition NotEquals(RegisterA a) => this[0].NotEquals(a);
+		public Condition Equals(U8 v) =>						A.Set(this).Equals(v);
+		public Condition Equals(IOperand v) =>					A.Set(this).Equals(v);
+		public Condition Equals(RegisterA a) =>					A.Equals(this[0]);
+		public Condition NotEquals(U8 v) =>						A.Set(this).NotEquals(v);
+		public Condition NotEquals(IOperand v) =>				A.Set(this).NotEquals(v);
+		public Condition NotEquals(RegisterA a) =>				A.NotEquals(this[0]);
 
-		public Condition GreaterThan(U8 v) {
-			Temp[0].Set(this);
-			A.Set(v);
-			A.CMP(Temp[0]);
-			return Condition.IsGreaterThan;
-		}
-		public Condition GreaterThan(VByte v) {
-			Temp[0].Set(this);
-			A.Set(v);
-			A.CMP(Temp[0]);
-			return Condition.IsGreaterThan;
-		}
+		public Condition GreaterThan(U8 v) =>					A.Set(this).GreaterThan(v);
+		public Condition GreaterThan(IOperand v) =>				A.Set(this).GreaterThan(v);
+		public Condition GreaterThanOrEqualTo(IOperand v) =>	A.Set(this).GreaterThanOrEqualTo(v);
+		public Condition GreaterThanOrEqualTo(U8 v) =>			A.Set(this).GreaterThanOrEqualTo(v);
+		public Condition LessThan(IOperand v) =>				A.Set(this).LessThan(v);
+		public Condition LessThan(U8 v) =>						A.Set(this).LessThan(v);
+		public Condition LessThanOrEqualTo(U8 v) =>				A.Set(this).LessThanOrEqualTo(v);
+		public Condition LessThanOrEqualTo(IOperand v) =>		A.Set(this).LessThanOrEqualTo(v);
+
 		public Condition GreaterThan(RegisterA a) {
 			Temp[1].Set(A);
 			Temp[0].Set(this);
 			A.Set(Temp[1]).CMP(Temp[0]);
 			return Condition.IsGreaterThan;
-		}
-		public Condition GreaterThanOrEqualTo(U8 v) {
-			A.Set(this).CMP(v);
-			return Condition.IsGreaterThanOrEqualTo;
-		}
-		public Condition GreaterThanOrEqualTo(VByte v) {
-			A.Set(this).CMP(v);
-			return Condition.IsGreaterThanOrEqualTo;
-		}
-		public Condition LessThan(U8 v) {
-			GreaterThanOrEqualTo(v);
-			return Condition.IsLessThan;
-		}
-		//public Condition LessThan(Func<IOperand> v) {
-		//	GreaterThanOrEqualTo(v);
-		//	return Condition.IsLessThan;
-		//}
-		public Condition LessThan(VByte v) {
-			GreaterThanOrEqualTo(v);
-			return Condition.IsLessThan;
-		}
-		public Condition LessThanOrEqualTo(U8 v) {
-			GreaterThan(v);
-			return Condition.IsLessThanOrEqualTo;
-		}
-		public Condition LessThanOrEqualTo(VByte v) {
-			GreaterThan(v);
-			return Condition.IsLessThanOrEqualTo;
 		}
 		public Condition LessThanOrEqualTo(RegisterA a) {
 			GreaterThan(a);

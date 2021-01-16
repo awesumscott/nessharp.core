@@ -12,7 +12,7 @@ namespace NESSharp.Core {
 		//public virtual int			Length	{ get => throw new Exception("Var.Length used"); set => throw new Exception("Var.Length used"); }//	= 1;	//TODO: get rid of Length, so it can be used only for arrays
 		public virtual int			Size	{ get; set; }	= 1;
 
-		public virtual Var Dim(RAM ram, string name) => throw new NotSupportedException();
+		public virtual Var Dim(RAMRange ram, string name) => throw new NotSupportedException();
 		public virtual Var Copy(Var v) => throw new NotSupportedException();
 		public virtual Var Copy(IEnumerable<Var> v) => throw new NotSupportedException();
 

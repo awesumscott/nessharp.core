@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NESSharp.Core.Tools {
 
@@ -11,8 +12,11 @@ namespace NESSharp.Core.Tools {
 	}
 	public interface IAssemblerOutput : ITool {
 		//TODO: property to register for pings to a method when beginning a bank, or when hitting bank thresholds
-
+		
+		void WriteFile(Action<string, string> fileWriteMethod);
 		void AppendComment(string comment);
 		void AppendOp(Asm.OpRef opref, OpCode opcode);
+		void AppendLabel(string name);
+		void AppendBytes(IEnumerable<string> bytes);
 	}
 }

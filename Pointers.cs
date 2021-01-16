@@ -4,7 +4,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public class Ptr : VWord {
-		public Ptr(RAM Zp, string name) {
+		public Ptr(RAMRange Zp, string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
 			Address = Zp.Dim(2);
@@ -14,7 +14,7 @@ namespace NESSharp.Core {
 			VarRegistry.Add(name, this);
 		}
 
-		public static new Ptr New(RAM Zp, string name) => new Ptr(Zp, name);
+		public static new Ptr New(RAMRange Zp, string name) => new Ptr(Zp, name);
 		public PtrY this[RegisterY offset] => new PtrY(this);
 		public override string ToString() {
 			//var loMatch = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Lo.Hi && x.Lo == Lo.Lo)).FirstOrDefault().Key;

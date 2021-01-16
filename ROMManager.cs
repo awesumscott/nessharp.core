@@ -15,31 +15,39 @@ namespace NESSharp.Core {
 		public static List<Bank> PrgBank = new List<Bank>();
 		public static List<Bank> ChrBank = new List<Bank>();
 		public static List<Label?> Interrupts = new List<Label?>();
-		public static string AsmOutput = string.Empty;
+		public static Bank									CurrentBank;
+		public static U8									CurrentBankId;
+		//public static string AsmOutput = string.Empty;
 
 
 		internal static class Tools {
-			private static IAssemblerOutput _asmOutput;
-			public static IAssemblerOutput?	AssemblerOutput => _asmOutput ??= _Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().FirstOrDefault();
+			private static IEnumerable<IAssemblerOutput> _asmOutputs;
+			public static IEnumerable<IAssemblerOutput>	AssemblerOutputOld => _asmOutputs ??= _Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().ToList();
+
+			public static _AssemblerOutput AssemblerOutput = new(_Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().ToList());
+
 			//private static readonly List<IDebugFile>	_debugFile				= new();
-			//public class _AssemblerSupport : IAssemblerSupport {
-			//	public string OpToAsm(Asm.OpRef op) {
-			//		throw new NotImplementedException();
-			//	}
-			//}
 			private static IEnumerable<IDebugFile> _debugFiles;
 			public static IEnumerable<IDebugFile> DebugFiles => _debugFiles ??= _Tools.Where(x => x is IDebugFile).Cast<IDebugFile>().ToList();
+			public class _AssemblerOutput : IAssemblerOutput {
+				private IEnumerable<IAssemblerOutput> _instances;
+				public _AssemblerOutput(IEnumerable<IAssemblerOutput> instances) => _instances = instances;
+				public void AppendBytes(IEnumerable<string> bytes) => _instances.ForEach(x => x.AppendBytes(bytes));
+				public void AppendComment(string comment) => _instances.ForEach(x => x.AppendComment(comment));
+				public void AppendLabel(string name) => _instances.ForEach(x => x.AppendLabel(name));
+				public void AppendOp(Asm.OpRef opref, OpCode opcode) => _instances.ForEach(x => x.AppendOp(opref, opcode));
+				public void WriteFile(Action<string, string> fileWriteMethod) => _instances.ForEach(x => x.WriteFile(fileWriteMethod));
+			}
+			public class _DebugFile : IDebugFile {
+				public void WriteFile(Action<string, string> fileWriteMethod) {}
+			}
 		}
-		//private static readonly Dictionary<Type, ITool>	_Tools			= new();
+
 		private static readonly List<ITool>	_Tools			= new();
 		public static T Tool<T>() where T : ITool {
-			//var instance = (T?)_Tools.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			var instance = (T?)_Tools.Where(x => x.GetType() == typeof(T)).FirstOrDefault();
-			if (instance == null) {
-				//_Tools.Add(typeof(T), instance);
+			if (instance == null)
 				_Tools.Add(instance = Activator.CreateInstance<T>());
-			}
-			//instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
 			return instance;
 		}
 
@@ -149,7 +157,9 @@ namespace NESSharp.Core {
 				WriteFile(fileName + ".mlb", DebugFileNESASM.Contents);
 			}
 
-			WriteFile(fileName + ".asm", AsmOutput);
+			//WriteFile(fileName + ".asm", AsmOutput);
+
+			Tools.AssemblerOutput.WriteFile(WriteFile);
 		}
 
 		private static void WriteFile(string filename, string contents) {

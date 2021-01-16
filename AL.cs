@@ -7,12 +7,16 @@ namespace NESSharp.Core {
 	public abstract class Module {
 		//TODO: turn these into properties to check if initialized
 		public U8 Bank;
-		public RAM Ram;
-		public RAM Zp;
-		public void Init(U8 bank, RAM zpChunk, RAM ramChunk) {
+		public RAM ModuleMem;
+		//TODO: possibly remove these
+		public RAMRange Ram;
+		public RAMRange Zp;
+
+		public void Init(U8 bank, RAM remainder) {
 			Bank = bank;
-			Ram = ramChunk ?? NES.ram;
-			Zp = zpChunk ?? NES.zp;
+			ModuleMem = remainder;
+			Ram = remainder?.Ram ?? NES.ram;
+			Zp = remainder?.Zp ?? NES.zp;
 		}
 	}
 	public enum CarryState {
@@ -20,83 +24,27 @@ namespace NESSharp.Core {
 		Cleared,
 		Unknown
 	};
-	public class FlagStates {
-		public UniquenessState Carry			= new();
-		public UniquenessState Zero				= new();
-		public UniquenessState InterruptDisable	= new();
-		public UniquenessState Decimal			= new();
-		public UniquenessState Overflow			= new();
-		public UniquenessState Negative			= new();
-		public void Reset() {
-			Carry.Alter();
-			Zero.Alter();
-			InterruptDisable.Alter();
-			Decimal.Alter();
-			Overflow.Alter();
-			Negative.Alter();
-		}
-	}
 	public static class Carry {
 		public static CarryState State;
-		public static void Clear() => CPU6502.CLC();
-		public static void Set() => CPU6502.SEC();
-		public static Condition IsClear() => Condition.IsCarryClear;
-		public static Condition IsSet() => Condition.IsCarrySet;
-		public static void Reset() => State = CarryState.Unknown;
-	}
-	public class UniquenessState {
-		private long _state = 0, _nextState = 1;
-		public long Hash => _state;
-		public RegisterBase? LastReg { get; private set; } //register modified by last op that was responsible for the latest state change
-		private readonly Stack<long> _stateStack = new Stack<long>();
-		public void Alter(RegisterBase? reg = null) {
-			_state = _nextState++;
-			LastReg = reg;
-		}
-
-		public void Push() {
-			_stateStack.Push(_state);
-			_nextState = _state + 1;
-		}
-		public void Pop() => _state = _stateStack.Pop();
-
-		/// <summary>
-		/// Ensure the integrity of the value after a code block.
-		/// </summary>
-		//TODO: check Clobber method attributes for calls to GoSub, and if none are specified, maybe throw an exception anyway to encourage their use for safety with this
-		//Maybe a non-exception way would be to have GoSubs/GoTos set an "unsure" bool on the reg states, then Ensure can clear it before and check afterwards to warn if an "unsure" was encountered
-		//Reset may already be the way to handle this, it is called in goto/gosub. Or maybe that's just where these changes should be located.
-		public void Ensure(Action block) {
-			var before = Hash;
-			block();
-			Verify(before);
-		}
-
-		public void Verify(long before) {
-			if (Hash != before) throw new Exception($"{GetType().Name} was modified while being used as a loop index! Use Stack.Preserve");
-		}
-
-		public void Unsafe(Action block) {
-			Push();
-			block();
-			Pop();
-		}
+		public static void Clear() =>			CPU6502.CLC();
+		public static void Set() =>				CPU6502.SEC();
+		public static Condition IsClear() =>	Condition.IsCarryClear;
+		public static Condition IsSet() =>		Condition.IsCarrySet;
+		public static void Reset() =>			State = CarryState.Unknown;
 	}
 
 	public static class AL {
 		//TODO: transition "using static NESSharp.Core.AL" statements to "using static NESSharp.Core.CPU6502" everywhere to get these out of here
-		public static RegisterA A		= CPU6502.A;
-		public static RegisterX X		= CPU6502.X;
-		public static RegisterY Y		= CPU6502.Y;
-		public static FlagStates Flags	= CPU6502.Flags;
+		public static readonly RegisterA A		= CPU6502.A;
+		public static RegisterX X				= CPU6502.X;
+		public static RegisterY Y				= CPU6502.Y;
+		public static readonly FlagStates Flags	= CPU6502.Flags;
 
-		public static Bank									CurrentBank;
-		public static U8									CurrentBankId;
 		public static List<List<IOperation>>				Code;
-		public static LabelDictionary						Labels				= new();
-		public static Dictionary<string, Var>	VarRegistry			= new();
-		public static ConstantCollection					Constants			= new();
 		public static short									CodeContextIndex;
+		public static readonly LabelDictionary				Labels				= new();
+		public static readonly Dictionary<string, Var>		VarRegistry			= new();
+		public static readonly ConstantCollection			Constants			= new();
 		private static readonly Dictionary<Type, Module>	_Modules			= new();
 		public static VByte[] Temp;
 		public static Ptr TempPtr0, TempPtr1;
@@ -107,7 +55,7 @@ namespace NESSharp.Core {
 		static AL() {
 			NES.Init(); //TODO: get rid of this when it's no longer static
 			Temp		= new VByte[] {VByte.New(NES.zp, "Temp0"), VByte.New(NES.zp, "Temp1"), VByte.New(NES.zp, "Temp2")};
-			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");//new Ptr((Address)null, "tempPtr0");
+			TempPtr0	= Ptr.New(NES.zp, "tempPtr0");
 			TempPtr1	= Ptr.New(NES.zp, "tempPtr1");
 			InitCode();
 		}
@@ -116,13 +64,13 @@ namespace NESSharp.Core {
 			CodeContextIndex = 0;
 			Code.Add(new List<IOperation>());
 		}
-		public static T Module<T>(RAM? Zp = null, RAM? Ram = null) where T : Module {
+		public static T Module<T>(RAM? memory = null) where T : Module {
 			var instance = (T?)_Modules.Where(x => x.Key == typeof(T)).Select(x => x.Value).FirstOrDefault();
 			if (instance == null) {
 				instance = Activator.CreateInstance<T>();
 				_Modules.Add(typeof(T), instance);
 			}
-			instance.Init(CurrentBankId, Zp ?? NES.zp, Ram ?? NES.ram);
+			instance.Init(ROMManager.CurrentBankId, memory ?? NES.Mem);
 			return instance;
 		}
 
@@ -143,7 +91,7 @@ namespace NESSharp.Core {
 			op.Param = param;
 			Use(op);
 		}
-		public static void Use(OpCode op, U16 param) {
+		public static void Use(OpCode op, U16 param) { //public static void Use(OpCode op, IOperand<Address> param) {
 			op.Param = param;
 			Use(op);
 		}

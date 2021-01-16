@@ -42,10 +42,10 @@ namespace NESSharp.Core {
 		private static void Write(Address startAddr, Address endAddr, string name) {
 			//TODO: consolidation for the four functions below
 		}
-		public static void WriteVariable(RAM ram, Address addr, string name) {
+		public static void WriteVariable(RAMRange ram, Address addr, string name) {
 			Contents += $"R:{ addr.ToString().Substring(1) }:{ name }\n";
 		}
-		public static void WriteVariable(RAM ram, Address startAddr, Address endAddr, string name) {
+		public static void WriteVariable(RAMRange ram, Address startAddr, Address endAddr, string name) {
 			Contents += $"R:{ startAddr.ToString().Substring(1) }-{ endAddr.ToString().Substring(1) }:{ name }\n";
 		}
 		public static void WriteLabel(Address addr, string name) {

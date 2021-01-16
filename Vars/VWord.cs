@@ -12,7 +12,7 @@ namespace NESSharp.Core {
 			Size = 2;
 		}
 
-		public static VWord New(RAM ram, string name) => (VWord)new VWord() { Size = 2 }.Dim(ram, name);
+		public static VWord New(RAMRange ram, string name) => (VWord)new VWord().Dim(ram, name);
 		public override Var Copy(Var v) {
 			if (!(v is VWord))
 				throw new Exception("Type must be Var16");

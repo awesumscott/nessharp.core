@@ -2,7 +2,7 @@
 
 namespace NESSharp.Core {
 	public interface IResolvable {}
-	public interface IResolvable<T> : IResolvable {
+	public interface IResolvable<T> : IOperand<T>, IResolvable {
 		T Resolve();
 	}
 	public static class ResolverExtensions {

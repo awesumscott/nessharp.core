@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace NESSharp.Core.Tools {
 	public class OutputNESASM3 : IAssemblerOutput {
-		private StringBuilder _output = new StringBuilder();
-		public void AppendComment(string comment) {
-			_output.Append(';').Append(comment).Append('\n');
-		}
+		private readonly StringBuilder _output = new StringBuilder();
+		private string _fileName = string.Empty;
+
+		public void Setup(string fileName) => _fileName = fileName;
+		public void WriteFile(Action<string, string> fileWriteMethod) => fileWriteMethod(_fileName + ".asm", _output.ToString());
+
+		public void AppendBytes(IEnumerable<string> bytes) => _output.Append("\t.db").Append(string.Join(',', bytes)).Append('\n');
+		public void AppendComment(string comment) => _output.Append("; ").Append(comment).Append('\n');
+		public void AppendLabel(string name) => _output.Append(name).Append(":\n");
 
 		public void AppendOp(Asm.OpRef opref, OpCode opcode) {
 			_output	.Append('\t')

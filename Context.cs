@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public static class Context {
@@ -13,34 +12,34 @@ namespace NESSharp.Core {
 		}
 		/// <summary>Append code to scope right before current scope body</summary>
 		public static void Parent(Action body) {
-			CodeContextIndex--;
+			AL.CodeContextIndex--;
 			body.Invoke();
-			CodeContextIndex++;
+			AL.CodeContextIndex++;
 		}
 		public static void Push() {
-			Reset();
-			CodeContextIndex++;
-			Code.Add(new List<IOperation>());
-			var lbl = Labels.New();
+			AL.Reset();
+			AL.CodeContextIndex++;
+			AL.Code.Add(new List<IOperation>());
+			var lbl = AL.Labels.New();
 			_startLabels.Push(lbl);
-			Use(lbl);
+			AL.Use(lbl);
 		}
 		public static void Pop() {
-			Code[CodeContextIndex - 1].AddRange(Code[CodeContextIndex]);
-			Code.RemoveAt(CodeContextIndex);
-			CodeContextIndex--;
+			AL.Code[AL.CodeContextIndex - 1].AddRange(AL.Code[AL.CodeContextIndex]);
+			AL.Code.RemoveAt(AL.CodeContextIndex);
+			AL.CodeContextIndex--;
 			_startLabels.Pop();
-			Reset();
+			AL.Reset();
 		}
 		public static void Delete() {
-			Reset();
-			Code.RemoveAt(CodeContextIndex);
-			CodeContextIndex--;
+			AL.Reset();
+			AL.Code.RemoveAt(AL.CodeContextIndex);
+			AL.CodeContextIndex--;
 		}
 		public static int Length {
 			get {
 				int len = 0;
-				foreach (var o in Code[CodeContextIndex]) {
+				foreach (var o in AL.Code[AL.CodeContextIndex]) {
 					if (o.GetType().GetInterfaces().Contains(typeof(IOperation)))
 						len += o.Length;
 				}

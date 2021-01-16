@@ -42,6 +42,8 @@ namespace NESSharp.Core {
 
 		public Label Value => this;
 
+		Address IOperand<Address>.Value => Resolve();
+
 		public Address? Address;
 		public Label() {
 			Length = 0;

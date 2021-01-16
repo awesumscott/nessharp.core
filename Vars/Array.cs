@@ -6,19 +6,19 @@ namespace NESSharp.Core {
 		private T[]? Vars;
 
 		public Array() {}
-		public static Array<T> New(int len, RAM r, string name) {
+		public static Array<T> New(int len, RAMRange r, string name) {
 			var arr = new Array<T>(){Length = len};
 			arr.Dim(r, name);
 			return arr;
 		}
 
 		public override int Size => throw new NotImplementedException();
-		public override Var Dim(RAM ram, string name) {
+		public override Var Dim(RAMRange ram, string name) {
 			if (Vars is not null) throw new Exception("Array already dimmed");
 			Vars = new T[Length];
 			for (var i = 0; i < Length; i++) {
 				var v = new T();
-				v.Dim(ram, $"{ name }_{ i }");
+				v.Dim(ram, $"{name}_{i}");
 				Vars[i] = v;
 			}
 			Name = name;

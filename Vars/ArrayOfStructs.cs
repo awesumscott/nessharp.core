@@ -15,7 +15,7 @@ namespace NESSharp.Core {
 			return aos;
 		}
 		//TODO: see if the Dim(ram,name) override could just set or use existing name, and call Dim(ram) (or preferably just consolidate them somehow!)
-		public ArrayOfStructs<StructType> Dim(RAM ram) {
+		public ArrayOfStructs<StructType> Dim(RAMRange ram) {
 			var structs = new List<StructType>();
 			for (var i = 0; i < Length; i++) {
 				structs.Add(Struct.New<StructType>(ram, $"{ typeof(StructType).Name}_{i}" ));

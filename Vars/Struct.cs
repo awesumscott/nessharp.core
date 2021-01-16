@@ -6,9 +6,9 @@ using System.Reflection;
 namespace NESSharp.Core {
 	public class Struct : Var {
 		//TODO: determine if Size should be a static property tallied and cached once. If so, remove tallying from New and use the static prop.
-		public override Var Dim(RAM ram, string name) => throw new Exception("Lazy-dimming of structs not yet supported. Use Struct.New<T> for now."); //TODO: try to implement this for struct-in-struct support
+		public override Var Dim(RAMRange ram, string name) => throw new Exception("Lazy-dimming of structs not yet supported. Use Struct.New<T> for now."); //TODO: try to implement this for struct-in-struct support
 
-		public static T New<T>(RAM ram, string name) where T : Struct, new() {
+		public static T New<T>(RAMRange ram, string name) where T : Struct, new() {
 			var structInstance = new T();
 			var size = 0;
 			foreach (var p in structInstance.GetType().GetProperties().Where(x => typeof(Var).IsAssignableFrom(x.PropertyType)).ToList()) {
