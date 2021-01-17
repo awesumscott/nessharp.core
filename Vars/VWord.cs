@@ -5,8 +5,8 @@ using static NESSharp.Core.AL;
 namespace NESSharp.Core {
 	[VarSize(2)]
 	public class VWord : VarN {
-		public VByte Lo => VByte.Ref(Address[0], Index);
-		public VByte Hi => VByte.Ref(Address[1], Index);
+		public VByte Lo => VByte.Ref(Address[0], Index, $"{Name}_Lo");
+		public VByte Hi => VByte.Ref(Address[1], Index, $"{Name}_Hi");
 
 		public VWord() {
 			Size = 2;
@@ -14,7 +14,7 @@ namespace NESSharp.Core {
 
 		public static VWord New(RAMRange ram, string name) => (VWord)new VWord().Dim(ram, name);
 		public override Var Copy(Var v) {
-			if (!(v is VWord))
+			if (v is not VWord)
 				throw new Exception("Type must be Var16");
 			var v16 = (VWord)v;
 			Address = v16.Address;

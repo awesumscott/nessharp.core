@@ -91,6 +91,14 @@ namespace NESSharp.Core {
 			op.Param = param;
 			Use(op);
 		}
+		public static void Use(OpCode op, IOperand<Address> param) {
+			op.Param = param;
+			Use(op);
+		}
+		public static void Use(OpCode op, IOperand<U8> param) {
+			op.Param = param;
+			Use(op);
+		}
 		public static void Use(OpCode op, U16 param) { //public static void Use(OpCode op, IOperand<Address> param) {
 			op.Param = param;
 			Use(op);
@@ -107,19 +115,19 @@ namespace NESSharp.Core {
 		public static void Raw(params object[] objs) => Use(new OpRaw(objs));
 
 		public static void GoTo(Label label) => CPU6502.JMP(label); //Use(Asm.JMP.Absolute, label);
-		//public static void GoTo_Indirect(Ptr p) => Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
-		public static void GoTo_Indirect(Ptr p) => Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), p.Lo);//CPU6502.JMP(p.Lo); //Use(Asm.JMP.Indirect, p.Lo);
+		public static void GoTo_Indirect(Ptr p) => Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), (U16)p.Lo);//CPU6502.JMP(p.Lo)); //Use(Asm.JMP.Indirect, p.Lo);
+		//public static void GoTo_Indirect(Ptr p) => Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), (IResolvable<Address>)p.Lo);
 		public static void GoTo_Indirect(VWord vn) {
-			if (vn.Address[0].Lo.Value == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
+			if (vn.Address[0].Lo == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
 			//CPU6502.JMP(vn.Lo);
 			//Use(Asm.OpRef.Use("JMP", Asm.Mode.IndirectAbsolute), vn.Lo);
-			Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), vn.Lo);
+			Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), (U16)vn.Lo);
+			//Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), (IResolvable<Address>)vn.Lo);
 		}
 
 		public static void GoSub(Label label) => CPU6502.JSR(label);
 		public static void GoSub(Address addr) => CPU6502.JSR(addr);
 		public static void GoSub(Action method) => GoSub(LabelFor(method));
-		//public static void Inline(Action method) => method.Invoke();
 		public static void Return() => CPU6502.RTS();
 
 		public static int Length(Action a) {
@@ -142,8 +150,6 @@ namespace NESSharp.Core {
 			Flags.Reset();
 		}
 
-		//public static void Origin(int origin) {}
-		
 		//For reference:
 		//(byte)(-128)==(byte)0x80
 		//(byte)(127)==(byte)0x7F

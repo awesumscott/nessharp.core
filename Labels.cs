@@ -26,9 +26,10 @@ namespace NESSharp.Core {
 		}
 	}
 
-	public interface IIndexable<T> {
+	public interface IIndexable {
 		public IndexingRegister? Index {get;set;}
 	}
+	public interface IIndexable<T> : IIndexable {}
 
 	//TODO: 
 	//	DONE-Rename this to Label ffs, and rename AL.Label
@@ -48,6 +49,7 @@ namespace NESSharp.Core {
 		public Label() {
 			Length = 0;
 		}
+		public bool CanResolve() => Address is not null;
 		public Address Resolve() {
 			if (Address == null) throw new Exception($"Address not yet resolvable for label {this}");
 			return Address;
@@ -58,15 +60,17 @@ namespace NESSharp.Core {
 	}
 
 	//TODO: get rid of this and replace it with an implementation using Resolvers--maybe not. Index probably isn't needed by resolving phase--it's built into the opcode
-	public class LabelIndexed : IOperand<LabelIndexed> {
+	public class LabelIndexed : IOperand<LabelIndexed>, IIndexable {
 		public Label Label;
-		public IndexingRegister? Index = null;
+		//public IndexingRegister? Index = null;
 
 		public LabelIndexed Value => this;
 
+		IndexingRegister? IIndexable.Index { get; set; }
+
 		public LabelIndexed(Label label, IndexingRegister reg) {
 			Label = label;
-			Index = reg;
+			((IIndexable)this).Index = reg;
 		}
 
 		//public LabelIndexed Set(RegisterA a) {
@@ -78,6 +82,6 @@ namespace NESSharp.Core {
 			CPU6502.STA(this);
 			return this;
 		}
-		public override string ToString() => $"{ Labels.NameByRef(Label) } [{ Index }]";
+		public override string ToString() => $"{ Labels.NameByRef(Label) } [{ ((IIndexable)this).Index }]";
 	}
 }

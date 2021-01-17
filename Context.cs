@@ -3,10 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace NESSharp.Core {
+	/// <summary>
+	/// Create a new scoped block of operations. This keeps track of references needed for branching, and is useful for loops and conditions.
+	/// </summary>
 	public static class Context {
+		/*public enum StateMaintain {
+			None,
+			Entry
+		};*/
 		private static readonly Stack<Label> _startLabels = new Stack<Label>();
-		public static void New(Action body) {
-			Push();
+		public static void New(Action body/*, StateMaintain maintainState = StateMaintain.None*/) {
+			Push(/*maintainState*/);
 			body.Invoke();
 			Pop();
 		}
@@ -16,7 +23,8 @@ namespace NESSharp.Core {
 			body.Invoke();
 			AL.CodeContextIndex++;
 		}
-		public static void Push() {
+		public static void Push(/*StateMaintain maintainState = StateMaintain.None*/) {
+			/*if (maintainState != StateMaintain.Entry)*/
 			AL.Reset();
 			AL.CodeContextIndex++;
 			AL.Code.Add(new List<IOperation>());

@@ -27,7 +27,7 @@ namespace NESSharp.Core {
 		}
 
 		public override Var Copy(Var v) {
-			if (!(v is VarN))
+			if (v is not VarN)
 				throw new Exception("Type must be derived from VarN");
 			var vn = (VarN)v;
 			Size = vn.Size;
@@ -38,7 +38,7 @@ namespace NESSharp.Core {
 		}
 
 		public override Var Copy(IEnumerable<Var> v) {
-			//if (!(v is VarN))
+			//if (v is not VarN)
 			//	throw new Exception("Type must be derived from VarN");
 			//var vns = v.Select(x => (VarN)x).ToList();
 			var vns = v.ToList();

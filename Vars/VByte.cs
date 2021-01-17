@@ -3,25 +3,37 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	[VarSize(1)]
-	public class VByte : Var, IOperand<Address>, IOperable<VByte> {
+	public class VByte : Var, IOperand<Address>, IOperable<VByte> {//, IResolvable<Address> {
 		public override int Size => 1;
 
 		public VByte() {}
 		public Address Value => this[0];
+		public bool CanResolve() => true;
+		public Address Resolve() => Value;
+
+		private static int vbytecount = 0;	//TODO: num is temporary til I move VarRegistry to RAM instances
 
 		public override VByte Dim(RAMRange ram, string name) {
 			if (Address != null) throw new Exception("Var already dimmed");
 			Address = ram.Dim(1);
 			Name = name;
 			DebugFileNESASM.WriteVariable(ram, Address[0], name);
-			VarRegistry.Add(name, this);
+			VarRegistry.Add(name + vbytecount++, this);	//TODO: num is temporary til I move VarRegistry to RAM instances
 			return this;
 		}
 		public static VByte New(RAMRange ram, string name) => new VByte().Dim(ram, name);
-		public static VByte Ref(Address addr, IndexingRegister? index = null) {
+		public static VByte Ref(Address addr, IndexingRegister index, string name) {
 			var v = new VByte {
 				Address = new Address[] { addr },
-				Index = index
+				Index = index,
+				Name = string.IsNullOrEmpty(name) ? addr.ToString() : name
+			};
+			return v;
+		}
+		public static VByte Ref(Address addr, string name) {
+			var v = new VByte {
+				Address = new Address[] { addr },
+				Name = string.IsNullOrEmpty(name) ? addr.ToString() : name
 			};
 			return v;
 		}
@@ -37,15 +49,15 @@ namespace NESSharp.Core {
 		
 		public VByte Set(IOperand operand) {
 			if (operand is IOperand<Address> addr)
-				this[0].Set(addr.Value);
+				A.Set(addr).STA(this);
 			else if (operand is PtrY p) {
 				if (Index is RegisterY) throw new Exception("NYI for var8[Y] = [ptr],y -- possible with stack backup");
-					this[0].Set(A.Set(p));
+					A.Set(p).STA(this);
 			} else if (operand is IndexingRegister reg) {
 				if (Index != null && Index == reg) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
-					this[0].Set(reg);
+					A.Set(reg).STA(this);
 			} else
-				this[0].Set(operand);
+				A.Set(operand).STA(this);
 			return this;
 		}
 		public VByte Set(Func<VByte, RegisterA> func) => Set(func.Invoke(this));
@@ -81,33 +93,11 @@ namespace NESSharp.Core {
 		public VByte SetROL() {
 			if (Index is RegisterY) throw new Exception("Cannot SetROL with index Y");
 			CPU6502.ROL(this);
-			//if (Index == null)
-			//	CPU6502.ROL(Address[0]);
-			//else if (Index is RegisterX) {
-			//	CPU6502.ROL(Address[0][Index]);
-			//} else if (Index is RegisterY) {
-			//	Temp[0].Set(Y);
-			//	X.Set(Temp[0]);
-			//	Index = X;
-			//	CPU6502.ROL(Address[0][Index]);
-			//	Index = Y;
-			//}
 			return this;
 		}
 		public VByte SetROR() {
 			if (Index is RegisterY) throw new Exception("Cannot SetROR with index Y");
 			CPU6502.ROR(this);
-			//if (Index == null)
-			//	CPU6502.ROR(Address[0]);
-			//else if (Index is RegisterX) {
-			//	CPU6502.ROR(Address[0][Index]);
-			//} else if (Index is RegisterY) {
-			//	Temp[0].Set(Y);
-			//	X.Set(Temp[0]);
-			//	Index = X;
-			//	CPU6502.ROR(Address[0][Index]);
-			//	Index = Y;
-			//}
 			return this;
 		}
 		public VByte SetLSR() {
@@ -122,10 +112,10 @@ namespace NESSharp.Core {
 		}
 		public Condition Equals(U8 v) =>						A.Set(this).Equals(v);
 		public Condition Equals(IOperand v) =>					A.Set(this).Equals(v);
-		public Condition Equals(RegisterA a) =>					A.Equals(this[0]);
+		public Condition Equals(RegisterA a) =>					A.Equals(this);
 		public Condition NotEquals(U8 v) =>						A.Set(this).NotEquals(v);
 		public Condition NotEquals(IOperand v) =>				A.Set(this).NotEquals(v);
-		public Condition NotEquals(RegisterA a) =>				A.NotEquals(this[0]);
+		public Condition NotEquals(RegisterA a) =>				A.NotEquals(this);
 
 		public Condition GreaterThan(U8 v) =>					A.Set(this).GreaterThan(v);
 		public Condition GreaterThan(IOperand v) =>				A.Set(this).GreaterThan(v);
@@ -149,15 +139,19 @@ namespace NESSharp.Core {
 
 		public static VByte operator ++(VByte addr) => addr.Increment();
 		public VByte Increment() {
-			CPU6502.INC(this[0]);
+			CPU6502.INC(this);
 			return this;
 		}
 		public static VByte operator --(VByte addr) => addr.Decrement();
 		public VByte Decrement() {
-			CPU6502.DEC(this[0]);
+			CPU6502.DEC(this);
 			return this;
 		}
 
 		public AddressIndexed this[IndexingRegister r] => Address[0][r];
+
+		public override string ToString() {
+			return string.IsNullOrEmpty(Name) ? this[0].ToString() : Name;
+		}
 	}
 }

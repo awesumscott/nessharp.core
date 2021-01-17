@@ -120,6 +120,10 @@ namespace NESSharp.Core {
 						bank.Rom[outputIndex++] = addr.Hi;
 					} else if (interfaces.Contains(typeof(IResolvable<U8>))) {
 						bank.Rom[outputIndex++] = ((IResolvable<U8>)item).Resolve();
+					} else if (item is U8 u8) {													//TODO: simplify these after AddrLo and AddrHi are removed
+						bank.Rom[outputIndex++] = u8;
+					} else if (item is IOperand<U8> iopu8) {
+						bank.Rom[outputIndex++] = iopu8.Value;
 					} else
 						throw new Exception($"Incorrect type in AsmWithRefs: {type}");
 				}

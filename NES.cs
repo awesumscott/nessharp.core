@@ -49,14 +49,14 @@ namespace NESSharp.Core {
 				NMIDisabled		= 0,
 				NMIEnabled		= 0b10000000,
 			};
-			public static readonly VByte	Control =		VByte.Ref(0x2000);
-			public static readonly VByte	LazyControl =	VByte.New(zp, nameof(LazyControl));
-			public static readonly VByte	Mask =			VByte.Ref(0x2001);
-			public static readonly VByte	LazyMask =		VByte.New(zp, nameof(LazyMask));
-			public static readonly VByte	Status =		VByte.Ref(0x2002);
-			public static readonly VByte	Scroll =		VByte.Ref(0x2005);
-			public static readonly VByte	LazyScrollX =	VByte.New(zp, nameof(LazyScrollX));
-			public static readonly VByte	LazyScrollY =	VByte.New(zp, nameof(LazyScrollY));
+			public static readonly VByte	Control =		VByte.Ref(0x2000,	$"{nameof(PPU)}_{nameof(Control)}");
+			public static readonly VByte	LazyControl =	VByte.New(zp,		$"{nameof(PPU)}_{nameof(LazyControl)}");
+			public static readonly VByte	Mask =			VByte.Ref(0x2001,	$"{nameof(PPU)}_{nameof(Mask)}");
+			public static readonly VByte	LazyMask =		VByte.New(zp,		$"{nameof(PPU)}_{nameof(LazyMask)}");
+			public static readonly VByte	Status =		VByte.Ref(0x2002,	$"{nameof(PPU)}_{nameof(Status)}");
+			public static readonly VByte	Scroll =		VByte.Ref(0x2005,	$"{nameof(PPU)}_{nameof(Scroll)}");
+			public static readonly VByte	LazyScrollX =	VByte.New(zp,		$"{nameof(PPU)}_{nameof(LazyScrollX)}");
+			public static readonly VByte	LazyScrollY =	VByte.New(zp,		$"{nameof(PPU)}_{nameof(LazyScrollY)}");
 			public static readonly Bus		Address =		Bus.Ref(0x2006);
 			public static readonly Bus		Data =			Bus.Ref(0x2007);
 			public static void ScrollTo(IOperand x, IOperand y) {
@@ -84,12 +84,12 @@ namespace NESSharp.Core {
 				public static void Init() {
 					Object = ArrayOfStructs<SObject>.New("OAMObj", 64).Dim(ShadowOAM.Ram);
 				}
-				public static readonly VByte Address =	VByte.Ref(0x2003);
-				public static readonly VByte Data =		VByte.Ref(0x2004);   //Don't worry about this; let OAM_DMA do the work for you.
-				public static readonly VByte DMA =		VByte.Ref(0x4014);
+				public static readonly VByte Address =	VByte.Ref(0x2003,	$"{nameof(OAM)}_{nameof(Address)}");
+				public static readonly VByte Data =		VByte.Ref(0x2004,	$"{nameof(OAM)}_{nameof(Data)}");   //Don't worry about this; let OAM_DMA do the work for you.
+				public static readonly VByte DMA =		VByte.Ref(0x4014,	$"{nameof(OAM)}_{nameof(DMA)}");
 				public static void Write(Address shadowOam) {
-					Address.Set(shadowOam.Lo);	//low byte of RAM address
-					DMA.Set(shadowOam.Hi);		//high byte of RAM address
+					Address.Set(shadowOam.Lo());	//low byte of RAM address
+					DMA.Set(shadowOam.Hi());		//high byte of RAM address
 				}
 				public static void HideAll() {
 					Loop.Repeat(X.Set(0), 256, _ => {
@@ -127,37 +127,37 @@ namespace NESSharp.Core {
 		}
 		public static class APU {
 			public static class Pulse1 {
-				public static readonly VByte Volume =			VByte.Ref(0x4000);
-				public static readonly VByte Sweep =			VByte.Ref(0x4001);
-				public static readonly VByte Lo =				VByte.Ref(0x4002);
-				public static readonly VByte Hi =				VByte.Ref(0x4003);
+				public static readonly VByte Volume =			VByte.Ref(0x4000,	$"{nameof(APU)}_{nameof(Pulse1)}_{nameof(Volume)}");
+				public static readonly VByte Sweep =			VByte.Ref(0x4001,	$"{nameof(APU)}_{nameof(Pulse1)}_{nameof(Sweep)}");
+				public static readonly VByte Lo =				VByte.Ref(0x4002,	$"{nameof(APU)}_{nameof(Pulse1)}_{nameof(Lo)}");
+				public static readonly VByte Hi =				VByte.Ref(0x4003,	$"{nameof(APU)}_{nameof(Pulse1)}_{nameof(Hi)}");
 			}
 			public static class Pulse2 {
-				public static readonly VByte Volume =			VByte.Ref(0x4004);
-				public static readonly VByte Sweep =			VByte.Ref(0x4005);
-				public static readonly VByte Lo =				VByte.Ref(0x4006);
-				public static readonly VByte Hi =				VByte.Ref(0x4007);
+				public static readonly VByte Volume =			VByte.Ref(0x4004,	$"{nameof(APU)}_{nameof(Pulse2)}_{nameof(Volume)}");
+				public static readonly VByte Sweep =			VByte.Ref(0x4005,	$"{nameof(APU)}_{nameof(Pulse2)}_{nameof(Sweep)}");
+				public static readonly VByte Lo =				VByte.Ref(0x4006,	$"{nameof(APU)}_{nameof(Pulse2)}_{nameof(Lo)}");
+				public static readonly VByte Hi =				VByte.Ref(0x4007,	$"{nameof(APU)}_{nameof(Pulse2)}_{nameof(Hi)}");
 			}
 			public static class Triangle {
-				public static readonly VByte Linear =			VByte.Ref(0x4008);
-				public static readonly VByte Lo =				VByte.Ref(0x400A);
-				public static readonly VByte Hi =				VByte.Ref(0x400B);
+				public static readonly VByte Linear =			VByte.Ref(0x4008,	$"{nameof(APU)}_{nameof(Triangle)}_{nameof(Linear)}");
+				public static readonly VByte Lo =				VByte.Ref(0x400A,	$"{nameof(APU)}_{nameof(Triangle)}_{nameof(Lo)}");
+				public static readonly VByte Hi =				VByte.Ref(0x400B,	$"{nameof(APU)}_{nameof(Triangle)}_{nameof(Hi)}");
 			}
 			public static class Noise {
-				public static readonly VByte Volume =			VByte.Ref(0x400C);
-				public static readonly VByte Lo =				VByte.Ref(0x400E);
-				public static readonly VByte Hi =				VByte.Ref(0x400F);
+				public static readonly VByte Volume =			VByte.Ref(0x400C,	$"{nameof(APU)}_{nameof(Noise)}_{nameof(Volume)}");
+				public static readonly VByte Lo =				VByte.Ref(0x400E,	$"{nameof(APU)}_{nameof(Noise)}_{nameof(Lo)}");
+				public static readonly VByte Hi =				VByte.Ref(0x400F,	$"{nameof(APU)}_{nameof(Noise)}_{nameof(Hi)}");
 			}
 			public static class DMC {
-				public static readonly VByte Settings =			VByte.Ref(0x4010);
-				public static readonly VByte LoadCounter =		VByte.Ref(0x4011);
-				public static readonly VByte SampleAddress =	VByte.Ref(0x4012);
-				public static readonly VByte SampleLength =		VByte.Ref(0x4013);
+				public static readonly VByte Settings =			VByte.Ref(0x4010,	$"{nameof(APU)}_{nameof(DMC)}_{nameof(Settings)}");
+				public static readonly VByte LoadCounter =		VByte.Ref(0x4011,	$"{nameof(APU)}_{nameof(DMC)}_{nameof(LoadCounter)}");
+				public static readonly VByte SampleAddress =	VByte.Ref(0x4012,	$"{nameof(APU)}_{nameof(DMC)}_{nameof(SampleAddress)}");
+				public static readonly VByte SampleLength =		VByte.Ref(0x4013,	$"{nameof(APU)}_{nameof(DMC)}_{nameof(SampleLength)}");
 
 				public static void Disable() => Settings.Set(0);
 			}
 			public static Bus Status =						Bus.Ref(0x4015);
-			public static readonly VByte FrameCounter =		VByte.Ref(0x4017);
+			public static readonly VByte FrameCounter =		VByte.Ref(0x4017,	$"{nameof(APU)}_{nameof(FrameCounter)}");
 			public enum Channels : byte {
 				Pulse1 =	0b00001,
 				Pulse2 =	0b00010,
@@ -165,11 +165,11 @@ namespace NESSharp.Core {
 				Noise =		0b01000,
 				DMC =		0b10000,
 			}
-			public static void SetChannelsEnabled(Channels chs) => Status.Set((byte)chs);
+			public static void SetChannelsEnabled(Channels chs) => Status.Write((byte)chs);
 		}
 		public static class Controller {
-			public static readonly VByte One =	VByte.Ref(0x4016);
-			public static readonly VByte Two =	VByte.Ref(0x4017);
+			public static readonly VByte One =	VByte.Ref(0x4016,	$"{nameof(Controller)}_{nameof(One)}");
+			public static readonly VByte Two =	VByte.Ref(0x4017,	$"{nameof(Controller)}_{nameof(Two)}");
 			public static void Latch() {
 				One.Set(1);
 				One.Set(0);

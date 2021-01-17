@@ -4,7 +4,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	[VarSize(-1)]
-	public abstract class Var {
+	public abstract class Var : IIndexable {
 		public string				Name	= string.Empty;
 		public IndexingRegister?	Index	{ get; set; }
 		public Address[]			Address	{ get; set; }

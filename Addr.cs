@@ -38,10 +38,10 @@ namespace NESSharp.Core {
 		public Address(ushort value) : base(value) {}
 		public Address Value => this;
 
-		public override U8 Lo => new AddrLo(this, base.Lo);
-		public override U8 Hi => new AddrHi(this, base.Hi);
+		//public override IOperand<U8> Lo => this.Lo(); //new AddrLo(this, base.Lo);
+		//public override IOperand<U8> Hi => this.Hi(); //new AddrHi(this, base.Hi);
 
-		public bool IsZP() => Hi == 0;
+		public bool IsZP() => Hi.Value == 0;
 		public Address Set(IOperand operand) {
 			//These must be in here for things like generic IndexingRegister refs, which wouldn't get picked up by Set(RegisterX/Y)
 			if (operand is RegisterA)		A.STA(this);
@@ -71,9 +71,11 @@ namespace NESSharp.Core {
 
 		public AddressIndexed this[IndexingRegister r] => new AddressIndexed(this, r);
 	}
-	public class AddressIndexed : Address {
-		public IndexingRegister? Index = null;
+	public class AddressIndexed : Address, IIndexable {
+		//public IndexingRegister? Index = null;
 		public AddressIndexed(ushort value, IndexingRegister reg) : base(value) => Index = reg;
+
+		public IndexingRegister? Index { get; set; }
 
 		public static implicit operator ushort(AddressIndexed p) => (ushort)((p.Hi << 8) + p.Lo);
 	}

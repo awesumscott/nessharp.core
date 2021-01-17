@@ -146,7 +146,7 @@ namespace NESSharp.Core.Parsers {
 				throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is Hi hi) {
 				var val = getByteParam(hi.Value);
-				if (val is Address a) return (byte)a.Hi;
+				if (val is Address a) return (byte)a.Hi.Value;
 				//if (val is Core.Label lbl) return lbl.Hi();
 				if (val is IResolvable<Address> ira) return ira.Hi();
 				//return val;
