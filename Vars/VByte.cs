@@ -64,7 +64,8 @@ namespace NESSharp.Core {
 		public VByte Set(U8 u8) => Set((IOperand)u8);
 		public VByte Set(IndexingRegister reg) {
 			if (Index != null && Index == reg) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
-				this[0].Set(reg);
+			if (reg is RegisterX)	CPU6502.STX(this);
+			else					CPU6502.STY(this);
 			return this;
 		}
 
@@ -101,12 +102,12 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public VByte SetLSR() {
-			if (Index == null || Index is RegisterX)	CPU6502.LSR(this[0]);
+			if (Index == null || Index is RegisterX)	CPU6502.LSR(this);
 			else										throw new NotImplementedException();
 			return this;
 		}
 		public VByte SetASL() {
-			if (Index == null || Index is RegisterX)	CPU6502.ASL(this[0]);
+			if (Index == null || Index is RegisterX)	CPU6502.ASL(this);
 			else										throw new NotImplementedException();
 			return this;
 		}
