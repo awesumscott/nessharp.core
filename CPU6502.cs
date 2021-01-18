@@ -351,22 +351,20 @@ namespace NESSharp.Core {
 			Flags.Zero.Alter(Y);
 		}
 		private static object GetOperandValue(IOperand o) {
-			if (o is IOperand operand) {
-				if (operand is IResolvable res && !res.CanResolve())
-					return o;// operand;
-				else if (operand is IOperand<U8> u8)
-					return u8.Value;
-				else if (operand is IOperand<Address> addr)
-					return o;//addr.Value;	//Work on removing this
-				//else if (operand is IOperand<PtrY> ptrY)
-				//	return ptrY.Value;
-				else if (operand is IOperand<Label> lbl)	//this may not be necessary, since labels shouldn't be resolvable at this point
-					throw new Exception("GetOperandValue found a Label"); //return lbl.Value;
-				else if (operand is IOperand<LabelIndexed> li)
-					return li.Value;
-				else if (operand is IResolvable)	//this may not be necessary, since Constants bypass GenericAssembler
-					throw new Exception("GetOperandValue found an IResolvable"); //return operand;
-			}
+			if (o is IResolvable res && !res.CanResolve())
+				return o;
+			else if (o is IOperand<U8> u8) {
+				if (u8 is not U8)
+					Console.WriteLine($"####{u8.GetType()}####");
+				return u8.Value;}
+			else if (o is IOperand<Address> addr)
+				return o;
+			else if (o is IOperand<LabelIndexed> li)
+				return li.Value;
+			else if (o is IOperand<Label> lbl)	//this may not be necessary, since labels shouldn't be resolvable at this point
+				throw new Exception("GetOperandValue found a Label"); //return lbl.Value;
+			else if (o is IResolvable)	//this may not be necessary, since Constants bypass GenericAssembler
+				throw new Exception("GetOperandValue found an IResolvable"); //return operand;
 			return o;
 		}
 		//TODO: convert this to use IOperands with .Value, so other objects can resolve to these options
@@ -394,29 +392,19 @@ namespace NESSharp.Core {
 							if (addr.Value.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPageX))
 								AL.Use(opModes[Asm.Mode.ZeroPageX].Use(), addr.Lo());
 							else if (opModes.ContainsKey(Asm.Mode.AbsoluteX))
-								AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), (IOperand<Address>)addr);
+								AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), addr);
 							else throw new Exception("Invalid addressing mode");
 							break;
 						} else if (addrInd.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY)) {
-							AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), (IOperand<Address>)addr); //no ZPY mode
+							AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), addr); //no ZPY mode
 							break;
 						}
 					}
 					if (addr.Value.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPage))
 						AL.Use(opModes[Asm.Mode.ZeroPage].Use(), addr.Lo());
 					else if (opModes.ContainsKey(Asm.Mode.Absolute))
-						AL.Use(opModes[Asm.Mode.Absolute].Use(), (IOperand<Address>)addr);
+						AL.Use(opModes[Asm.Mode.Absolute].Use(), addr);
 					break;
-					//else throw new Exception("Invalid indexing register");
-					//break;
-				//case IOperand<Address> addr:
-				//	if (addr.Value.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPage))
-				//		AL.Use(opModes[Asm.Mode.ZeroPage].Use(), addr.Lo());
-				//	else if (opModes.ContainsKey(Asm.Mode.Absolute))
-				//		AL.Use(opModes[Asm.Mode.Absolute].Use(), (IOperand<Address>)addr);
-				//	break;
-				case Ptr _:
-					throw new Exception("Pointers must be indexed with X or Y");
 				case PtrY ptrY:
 					if (opModes.ContainsKey(Asm.Mode.IndirectY))
 						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo.Lo());
@@ -427,21 +415,6 @@ namespace NESSharp.Core {
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), u8);
 					break;
-				case int i:
-					U8 u = i;
-					if (u != i)
-						throw new Exception("Integer value out of range for A");
-					if (opModes.ContainsKey(Asm.Mode.Immediate))
-						AL.Use(opModes[Asm.Mode.Immediate].Use(), u);
-					break;
-				case byte b:
-					if (opModes.ContainsKey(Asm.Mode.Immediate))
-						AL.Use(opModes[Asm.Mode.Immediate].Use(), (U8)b);
-					break;
-				//case IResolvable<Address> ra:
-				//	if (opModes.ContainsKey(Asm.Mode.Absolute))
-				//		AL.Use(opModes[Asm.Mode.Absolute].Use(), ra); //TODO: see if this will be used, and if it'll be correct
-				//	break;
 				case IResolvable<U8> ru:
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
 						AL.Use(opModes[Asm.Mode.Immediate].Use(), ru); //Immediate, because label his/los will be used to set up pointers

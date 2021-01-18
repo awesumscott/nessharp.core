@@ -16,8 +16,9 @@ namespace NESSharp.Core {
 		}
 
 		public static VarN New(RAMRange ram, int len, string name) => new VarN() { Size = len }.Dim(ram, name);
-		public static VarN Ref(Address addr, ushort len) => new() {
-			Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray()
+		public static VarN Ref(Address addr, ushort len, string name) => new() {
+			Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray(),
+			Name = name
 		};
 
 		int[] Slice(int start, int length) { 
@@ -26,7 +27,7 @@ namespace NESSharp.Core {
 			return slice;
 		}
 
-		public override Var Copy(Var v) {
+		public override VarN Copy(Var v) {
 			if (v is not VarN)
 				throw new Exception("Type must be derived from VarN");
 			var vn = (VarN)v;
@@ -37,7 +38,7 @@ namespace NESSharp.Core {
 			return this;
 		}
 
-		public override Var Copy(IEnumerable<Var> v) {
+		public override VarN Copy(IEnumerable<Var> v) {
 			//if (v is not VarN)
 			//	throw new Exception("Type must be derived from VarN");
 			//var vns = v.Select(x => (VarN)x).ToList();
@@ -48,6 +49,14 @@ namespace NESSharp.Core {
 			//Name = Name.Substring(0, Name.LastIndexOf('_'));
 			Index = vns[0].Index;
 			return this;
+		}
+		
+		public new VByte this[int index] {
+			get {
+				if (index >= 0 && index < Address.Length)
+					return VByte.Ref(Index == null ? Address[index] : Address[index][Index], Index, $"{Name}__{index}");
+				throw new Exception("Index out of range");
+			}
 		}
 
 		public VarN Set(Func<VarN, object> func) => Set(func.Invoke(this));
@@ -74,7 +83,7 @@ namespace NESSharp.Core {
 				if (srcLen > Size) throw new Exception("Source var length is greater than destination var length");
 				for (var i = 0; i < Size; i++) {
 					if (i < srcLen) {
-						this[i].Set(iva[i]);
+						this[i].Set(VByte.Ref(iva[i], iva.Index, $"{iva.Name}__{i}"));
 					} else {
 						this[i].Set(0);
 					}

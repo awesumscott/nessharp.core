@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace NESSharp.Core.Tools {
-	public class OutputNESASM3 : IAssemblerOutput {
+	public class OutputNESASM3 : IAssemblerOutput, IFileLogTool {
 		private readonly StringBuilder _output = new StringBuilder();
 		private string _fileName = string.Empty;
 

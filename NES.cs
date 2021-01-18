@@ -71,13 +71,10 @@ namespace NESSharp.Core {
 				Reset();
 				Address.Write(addr.Hi, addr.Lo);
 			}
-			public static void SetAddress(Var iva) {
-				//Reset();
-				//if (iva.Address.Length == 1)	Address.Write(iva.Address[0].Hi, iva.Address[0].Lo);
-				//if (iva.Address.Length == 2)	Address.Write(iva.Address[1], iva.Address[0]);
+			public static void SetAddress(VarN iva) {
 				if (iva.Address.Length != 2) throw new ArgumentException();
 				Reset();
-				Address.Write(iva.Address[1], iva.Address[0]);
+				Address.Write(iva[1], iva[0]);
 			}
 			public static class OAM {
 				public static ArrayOfStructs<SObject> Object;

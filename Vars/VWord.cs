@@ -13,7 +13,7 @@ namespace NESSharp.Core {
 		}
 
 		public static VWord New(RAMRange ram, string name) => (VWord)new VWord().Dim(ram, name);
-		public override Var Copy(Var v) {
+		public override VarN Copy(Var v) {
 			if (v is not VWord)
 				throw new Exception("Type must be Var16");
 			var v16 = (VWord)v;
@@ -24,7 +24,7 @@ namespace NESSharp.Core {
 		}
 
 		/// <summary>
-		/// "Refer To". Make this variable a pointer to a particular memory address.
+		/// Make this variable a pointer to a particular memory address.
 		/// </summary>
 		public VWord PointTo(Address addr) {
 			if (addr is AddressIndexed ai)
@@ -41,7 +41,7 @@ namespace NESSharp.Core {
 			return this;
 		}
 		/// <summary>
-		/// "Refer To". Make this variable a pointer to a particular memory address.
+		/// Make this variable a pointer to a particular memory address.
 		/// </summary>
 		public VWord PointTo(VarN vn) {
 			if (vn.Size != 2) throw new Exception("Value must have a size of 2 bytes");
@@ -54,10 +54,11 @@ namespace NESSharp.Core {
 		}
 
 		//This format is best to ensure addresses are sequential
-		public static new VWord Ref(Address addr, ushort len) {
+		public static new VWord Ref(Address addr, ushort len, string name) {
 			//return (VWord)VarN.Ref(addr, len);
 			var v = new VWord {
-				Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray()
+				Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray(),
+				Name = name
 			};
 			//v.Index = new index param? if needed
 			return v;

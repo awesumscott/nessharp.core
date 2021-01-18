@@ -10,25 +10,23 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public static class ROMManager {
-		public static IMapper Mapper;
-		public static HeaderOptions Header;
-		public static List<Bank> PrgBank = new List<Bank>();
-		public static List<Bank> ChrBank = new List<Bank>();
-		public static List<Label?> Interrupts = new List<Label?>();
-		public static Bank									CurrentBank;
-		public static U8									CurrentBankId;
-		//public static string AsmOutput = string.Empty;
-
+		public static IMapper		Mapper;
+		public static HeaderOptions	Header;
+		public static List<Bank>	PrgBank = new List<Bank>();
+		public static List<Bank>	ChrBank = new List<Bank>();
+		public static List<Label?>	Interrupts = new List<Label?>();
+		public static Bank			CurrentBank;
+		public static U8			CurrentBankId;
 
 		internal static class Tools {
-			private static IEnumerable<IAssemblerOutput> _asmOutputs;
-			public static IEnumerable<IAssemblerOutput>	AssemblerOutputOld => _asmOutputs ??= _Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().ToList();
-
 			public static _AssemblerOutput AssemblerOutput = new(_Tools.Where(x => x is IAssemblerOutput).Cast<IAssemblerOutput>().ToList());
 
-			//private static readonly List<IDebugFile>	_debugFile				= new();
-			private static IEnumerable<IDebugFile> _debugFiles;
-			public static IEnumerable<IDebugFile> DebugFiles => _debugFiles ??= _Tools.Where(x => x is IDebugFile).Cast<IDebugFile>().ToList();
+			//Lists for ConsoleLoggers and FileLoggers separate from the instances of the other interfaces.
+			//This allows two tools of the same type to have different output styles. For example, one ROM analyzer
+			//that logs a percentage used, and another that outputs a rendered image.
+			public static _DebugFile DebugFiles = new(_Tools.Where(x => x is IDebugFile).Cast<IDebugFile>().ToList());
+			public static _FileLogger FileLoggers = new(_Tools.Where(x => x is IFileLogTool).Cast<IFileLogTool>().ToList());
+
 			public class _AssemblerOutput : IAssemblerOutput {
 				private IEnumerable<IAssemblerOutput> _instances;
 				public _AssemblerOutput(IEnumerable<IAssemblerOutput> instances) => _instances = instances;
@@ -36,10 +34,15 @@ namespace NESSharp.Core {
 				public void AppendComment(string comment) => _instances.ForEach(x => x.AppendComment(comment));
 				public void AppendLabel(string name) => _instances.ForEach(x => x.AppendLabel(name));
 				public void AppendOp(Asm.OpRef opref, OpCode opcode) => _instances.ForEach(x => x.AppendOp(opref, opcode));
-				public void WriteFile(Action<string, string> fileWriteMethod) => _instances.ForEach(x => x.WriteFile(fileWriteMethod));
 			}
 			public class _DebugFile : IDebugFile {
-				public void WriteFile(Action<string, string> fileWriteMethod) {}
+				private IEnumerable<IDebugFile> _instances;
+				public _DebugFile(IEnumerable<IDebugFile> instances) => _instances = instances;
+			}
+			public class _FileLogger : IFileLogTool {
+				private IEnumerable<IFileLogTool> _instances;
+				public _FileLogger(IEnumerable<IFileLogTool> instances) => _instances = instances;
+				public void WriteFile(Action<string, string> fileWriteMethod) => _instances.ForEach(x => x.WriteFile(fileWriteMethod));
 			}
 		}
 
@@ -105,27 +108,22 @@ namespace NESSharp.Core {
 				CurrentBank = bank;
 
 				var outputIndex = 0;
-				for (var i = 0; i < bank.AsmWithRefs.Count; i++) {
-					var item = bank.AsmWithRefs[i];
-					var type = item.GetType();
-					if (type == typeof(byte)) {
-						bank.Rom[outputIndex++] = (byte)item;
-						continue;
-					}
-					//TODO: add condition for U8s
-					var interfaces = type.GetInterfaces();
-					if (interfaces.Contains(typeof(IResolvable<Address>))) {
-						var addr = ((IResolvable<Address>)item).Resolve();
+				foreach (var item in bank.AsmWithRefs) {
+					if (item is byte b) {
+						bank.Rom[outputIndex++] = b;
+					} else if (item is IResolvable<U8> iru8) {
+						bank.Rom[outputIndex++] = iru8.Resolve();
+					} else if (item is IResolvable<Address> ira) {
+						var addr = ira.Resolve();
 						bank.Rom[outputIndex++] = addr.Lo;
 						bank.Rom[outputIndex++] = addr.Hi;
-					} else if (interfaces.Contains(typeof(IResolvable<U8>))) {
-						bank.Rom[outputIndex++] = ((IResolvable<U8>)item).Resolve();
-					} else if (item is U8 u8) {													//TODO: simplify these after AddrLo and AddrHi are removed
-						bank.Rom[outputIndex++] = u8;
 					} else if (item is IOperand<U8> iopu8) {
 						bank.Rom[outputIndex++] = iopu8.Value;
+					} else if (item is IOperand<Address> iopaddr) {
+						bank.Rom[outputIndex++] = iopaddr.Lo().Value;
+						bank.Rom[outputIndex++] = iopaddr.Hi().Value;
 					} else
-						throw new Exception($"Incorrect type in AsmWithRefs: {type}");
+						throw new Exception($"Incorrect type in AsmWithRefs: {item.GetType()}");
 				}
 
 				//If it's a sizeless bank, remove all unused padding
@@ -161,9 +159,8 @@ namespace NESSharp.Core {
 				WriteFile(fileName + ".mlb", DebugFileNESASM.Contents);
 			}
 
-			//WriteFile(fileName + ".asm", AsmOutput);
-
-			Tools.AssemblerOutput.WriteFile(WriteFile);
+			//TODO: ConsoleLoggers
+			Tools.FileLoggers.WriteFile(WriteFile);
 		}
 
 		private static void WriteFile(string filename, string contents) {

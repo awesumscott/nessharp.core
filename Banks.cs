@@ -24,7 +24,7 @@ namespace NESSharp.Core {
 		public void WriteContext() {
 			var codeLength = AL.Code[CodeContextIndex].Count;
 			if (Size != 0 && codeLength > Size) throw new Exception("Overflow in bank " + CodeContextIndex);
-			//var outputIndex = 0;
+
 			var offset = 0;
 			for (var i = 0; i < codeLength; i++) {
 				var op = AL.Code[CodeContextIndex][i];
@@ -34,9 +34,8 @@ namespace NESSharp.Core {
 						label.Address = Addr((U16)(Origin + offset));
 
 						var name = Labels.NameByRef(label);
-						if (!string.IsNullOrEmpty(name)) {
+						if (!string.IsNullOrEmpty(name))
 							ROMManager.Tools.AssemblerOutput.AppendLabel(name);
-						}
 					} else if (op is OpRaw raw) {
 						AsmWithRefs.AddRange(raw.Value.Cast<object>());
 						var bytes = raw.Value.Cast<object>().Select(x => x.ToString() ?? string.Empty).ToList();
@@ -51,38 +50,11 @@ namespace NESSharp.Core {
 				AsmWithRefs.Add(opCode.Value);
 				offset++;
 
-				if (opCode.Length == 2) {
-					if (opCode.Param?.IsResolvable() ?? false)	AsmWithRefs.Add(opCode.Param);
-					else if ((opCode.Param is IOperand<U8> ou8) && (opCode.Param is not AddrLo) && (opCode.Param is not AddrHi))	AsmWithRefs.Add(ou8.Value);
-					else										AsmWithRefs.Add(((U8)opCode.Param).Value);
-					offset++;
-				} else if (opCode.Length == 3) {
-					if (opCode.Param is Label lbl)				AsmWithRefs.Add(lbl);
-					else if (opCode.Param is LabelIndexed li)	AsmWithRefs.Add(li.Label);
-					else { //assume the parameters are for a 2 byte value
-						//var addr = (U16)opCode.Param;
-						//AsmWithRefs.Add(((U16)opCode.Param).Lo.Value);
-						//AsmWithRefs.Add(((U16)opCode.Param).Hi.Value);
-						
-						if (opCode.Param?.IsResolvable() ?? false) {
-							var addr = (IResolvable<Address>)opCode.Param;
-							AsmWithRefs.Add(opCode.Param);
-							//AsmWithRefs.Add(addr.Lo());
-							//AsmWithRefs.Add(addr.Hi());
-						} else if (opCode.Param is IOperand<Address> iopAddr) {
-							AsmWithRefs.Add(iopAddr.Lo());
-							AsmWithRefs.Add(iopAddr.Hi());
-						} else {
-							var addr = (U16)opCode.Param;
-							AsmWithRefs.Add(addr.Lo);
-							AsmWithRefs.Add(addr.Hi);
-						}
-					}
-					offset += 2;
+				if (opCode.Length > 1) {
+					AsmWithRefs.Add(opCode.Param);
+					offset += opCode.Length - 1;
 				}
 
-				////ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().Format, opCode.Param) + "\n";
-				//ROMManager.AsmOutput += "\t" + string.Format(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First().ToAsm(DebugFileNESASM.OpToAsm), opCode.Param) + "\n";
 				ROMManager.Tools.AssemblerOutput.AppendOp(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First(), opCode);
 			}
 			InitCode();

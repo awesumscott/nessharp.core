@@ -7,12 +7,13 @@ namespace NESSharp.Core {
 	public class VDecimal : VarN {
 		//private VarN _int, _frac;
 		public ushort IntLen, FracLen;
-		public VarN Integer {get; protected set;}// => _int;
-		public VarN Fractional {get; protected set;}// => _frac;
+		public VarN Integer {get; protected set;}
+		public VarN Fractional {get; protected set;}
 		public override VDecimal Dim(RAMRange ram, string name) {
 			base.Dim(ram, name);
-			Integer = VarN.Ref(Address[FracLen], IntLen);
-			Fractional = VarN.Ref(Address[0], FracLen);
+			Name = name;
+			Integer = VarN.Ref(Address[FracLen], IntLen, $"{name}_Int");
+			Fractional = VarN.Ref(Address[0], FracLen, $"{name}_Frac");
 			return this;
 		}
 		public static VDecimal New(RAMRange ram, ushort intLen, ushort fracLen, string name) => new VDecimal() {
