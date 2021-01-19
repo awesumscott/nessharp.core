@@ -12,8 +12,8 @@ namespace NESSharp.Core.Mappers {
 		}
 
 		public void Init(List<Bank> Prg, List<Bank> Chr, HeaderOptions headerOpts) {
-			Prg.Add(new Bank(MemorySizes.KB_32, 0x8000, true));
-			Chr.Add(new Bank(MemorySizes.KB_8, 0, true));
+			Prg.Add(new Bank(0, MemorySizes.KB_32, 0x8000, true));
+			Chr.Add(new Bank(0, MemorySizes.KB_8, 0, true));
 			headerOpts.PrgRomBanks = 2;
 			headerOpts.ChrRomBanks = 1;
 			headerOpts.Mirroring = _mirroring;

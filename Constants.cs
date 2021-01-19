@@ -19,6 +19,7 @@ namespace NESSharp.Core {
 		}
 		
 		public bool CanResolve() => true;
+		public object Source => Value;
 		public U8 Resolve() => (U8)Value;
 	}
 	public class ConstU16 : IConstant, IResolvable<U16> {
@@ -33,6 +34,7 @@ namespace NESSharp.Core {
 		}
 		
 		public bool CanResolve() => true;
+		public object Source => Value;
 		public U16 Resolve() => (U16)Value;
 	}
 	public class ConstantCollection {

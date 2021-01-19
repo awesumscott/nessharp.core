@@ -42,7 +42,11 @@ namespace NESSharp.Core {
 		Address IOperand<Address>.Value => Resolve();
 		public Address? Address;
 
+		public bool IsUsed { get; private set; }
+		public void Use() => IsUsed = true;
+
 		public bool CanResolve() => Address is not null;
+		public object Source => this;
 		public Address Resolve() {
 			if (Address == null) throw new Exception($"Address not yet resolvable for label {this}");
 			return Address;

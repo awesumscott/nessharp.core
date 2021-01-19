@@ -11,10 +11,11 @@ namespace NESSharp.Core.Mappers {
 		}
 
 		public void Init(List<Bank> Prg, List<Bank> Chr, HeaderOptions headerOpts) {
-			for (var i = 0; i < 31; i++) {
-				Prg.Add(new Bank(MemorySizes.KB_16, 0x8000));
+			U8 i;
+			for (i = 0; i < 31; i++) {
+				Prg.Add(new Bank(i, MemorySizes.KB_16, 0x8000));
 			}
-			Prg.Add(new Bank(MemorySizes.KB_16, 0xC000, true));
+			Prg.Add(new Bank(++i, MemorySizes.KB_16, 0xC000, true));
 			headerOpts.PrgRomBanks = 32;
 			headerOpts.ChrRomBanks = 0;
 			

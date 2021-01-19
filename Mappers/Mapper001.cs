@@ -47,19 +47,20 @@ namespace NESSharp.Core.Mappers {
 		public void Init(List<Bank> Prg, List<Bank> Chr, HeaderOptions headerOpts) {
 			if (_prgRom == MemorySizes.KB_512) {
 				//TODO: two of these loops divided between 0xA000 and {0x8000 | 0xC000}
-				for (var i = 0; i < 62; i++) {
-					Prg.Add(new Bank(MemorySizes.KB_8, 0x8000));
+				U8 i;
+				for (i = 0; i < 62; i++) {
+					Prg.Add(new Bank(i, MemorySizes.KB_8, 0x8000));
 				}
-				Prg.Add(new Bank(MemorySizes.KB_8, 0xC000, true));
-				Prg.Add(new Bank(MemorySizes.KB_8, 0xE000, true));
+				Prg.Add(new Bank(++i, MemorySizes.KB_8, 0xC000, true));
+				Prg.Add(new Bank(++i, MemorySizes.KB_8, 0xE000, true));
 				headerOpts.PrgRomBanks = 32; //32 * 16KB/bank = 512
 			} else throw new NotImplementedException(); //TODO: wait until 512 works to finish the rest
 
 			if (_chrRom > 0) {
 				if (_chrRom == MemorySizes.KB_256) {
-					
-					for (var i = 0; i < 256; i++) {
-						Chr.Add(new Bank(MemorySizes.KB_1, 0x0000));
+					U8 i;
+					for (i = 0; i < 256; i++) {
+						Chr.Add(new Bank(i, MemorySizes.KB_1, 0x0000));
 					}
 					headerOpts.ChrRomBanks = 32; //32 * 8KB/bank = 256
 				} else throw new NotImplementedException(); //TODO: wait until 512 works to finish the rest

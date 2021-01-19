@@ -57,7 +57,7 @@ namespace NESSharp.Core {
 
 
 		public static void SetInfinite() {
-			PrgBank.Add(new Bank(0, 0));
+			PrgBank.Add(new Bank(0, 0, 0));
 		}
 
 		public static void SetMapper(IMapper mapper) {
@@ -104,26 +104,48 @@ namespace NESSharp.Core {
 			var bankId = 0;
 			var bytesUsed = 0;
 			var bytesTotal = 0;
-			foreach (var bank in PrgBank.Concat(ChrBank)) {
+			var allBanks = PrgBank.Concat(ChrBank).ToList();
+			foreach (var bank in allBanks) {
 				CurrentBank = bank;
+				//CurrentBankId = bank.Id;
+				//CurrentBank.WriteContext();
 
 				var outputIndex = 0;
-				foreach (var item in bank.AsmWithRefs) {
-					if (item is byte b) {
+				void addObjectToAssembly(object o) {
+					if (o is byte b) {
 						bank.Rom[outputIndex++] = b;
-					} else if (item is IResolvable<U8> iru8) {
+					} else if (o is IResolvable<U8> iru8) {
 						bank.Rom[outputIndex++] = iru8.Resolve();
-					} else if (item is IResolvable<Address> ira) {
+					} else if (o is IResolvable<Address> ira) {
 						var addr = ira.Resolve();
 						bank.Rom[outputIndex++] = addr.Lo;
 						bank.Rom[outputIndex++] = addr.Hi;
-					} else if (item is IOperand<U8> iopu8) {
+					} else if (o is IOperand<U8> iopu8) {
 						bank.Rom[outputIndex++] = iopu8.Value;
-					} else if (item is IOperand<Address> iopaddr) {
+					} else if (o is IOperand<Address> iopaddr) {
 						bank.Rom[outputIndex++] = iopaddr.Lo().Value;
 						bank.Rom[outputIndex++] = iopaddr.Hi().Value;
-					} else
-						throw new Exception($"Incorrect type in AsmWithRefs: {item.GetType()}");
+					}
+				}
+				foreach (var item in bank.AsmWithRefs) {
+					var op = item;
+					if (op is OpRaw raw) {
+						raw.Value.Cast<object>().ForEach(addObjectToAssembly);
+					} else if (op is OpCode opCode) {
+						bank.Rom[outputIndex++] = opCode.Value;
+
+						if (opCode.Length > 1) {
+							addObjectToAssembly(opCode.Param);
+
+							//Label tally to determine if labels are actually used
+							Label? lbl = null;
+							if (opCode.Param is Label l)
+								lbl = l;
+							else if (opCode.Param is IResolvable r && r.Source is Label resolveSource)
+								lbl = resolveSource;
+							lbl?.Use();
+						}
+					}
 				}
 
 				//If it's a sizeless bank, remove all unused padding
@@ -140,6 +162,11 @@ namespace NESSharp.Core {
 			
 			Console.WriteLine($"ZP:\t\t{ NES.zp.Used,-5		} / { NES.zp.Size,-5	}\t{ Math.Round((decimal)NES.zp.Used / NES.zp.Size * 100),-4	}%");
 			Console.WriteLine($"RAM:\t\t{ NES.ram.Used,-5	} / { NES.ram.Size,-5	}\t{ Math.Round((decimal)NES.ram.Used / NES.ram.Size * 100),-4	}%");
+
+			
+			foreach (var bank in allBanks) {
+				bank.WriteAsmOutput();	//TODO: wait til bank WriteContext is refactored, or asm output will be messed up in the meantime
+			}
 
 			if (Interrupts.Any())
 				WriteInterrupts();
@@ -201,21 +228,21 @@ namespace NESSharp.Core {
 		}
 
 		//TODO: this sucks and is inefficient as hell. Figure out a better API for including code at a specified offset!
-		public static void Merge(U8 id, Bank newBank) {
-			var mergeOrigin = newBank.Origin;
-			var targetBank = PrgBank[id];
-			var targetEnd = targetBank.Origin + targetBank.AsmWithRefs.Count + targetBank.AsmWithRefs.Where(x => x.GetType().GetInterfaces().Contains(typeof(IResolvable<Address>))).Count();
+		//public static void Merge(U8 id, Bank newBank) {
+		//	var mergeOrigin = newBank.Origin;
+		//	var targetBank = PrgBank[id];
+		//	var targetEnd = targetBank.Origin + targetBank.AsmWithRefs.Count + targetBank.AsmWithRefs.Where(x => x.GetType().GetInterfaces().Contains(typeof(IResolvable<Address>))).Count();
 
-			if (targetEnd >= mergeOrigin)
-				throw new Exception("Data already exists in merge location");
+		//	if (targetEnd >= mergeOrigin)
+		//		throw new Exception("Data already exists in merge location");
 
-			var brkVal = Asm.OC["BRK"][Asm.Mode.Implied].Use().Value;
-			for (var i = targetEnd; i < mergeOrigin; i++)
-				targetBank.AsmWithRefs.Add(brkVal);
+		//	var brkVal = Asm.OC["BRK"][Asm.Mode.Implied].Use().Value;
+		//	for (var i = targetEnd; i < mergeOrigin; i++)
+		//		targetBank.AsmWithRefs.Add(brkVal);
 				
-			for (var i = 0; i < newBank.AsmWithRefs.Count; i++)
-				targetBank.AsmWithRefs.Add(newBank.AsmWithRefs[i]);
-		}
+		//	for (var i = 0; i < newBank.AsmWithRefs.Count; i++)
+		//		targetBank.AsmWithRefs.Add(newBank.AsmWithRefs[i]);
+		//}
 
 		public static void CompileBin(Action PrgBankDef) {
 			CurrentBank = PrgBank[0];

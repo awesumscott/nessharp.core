@@ -3,6 +3,7 @@
 namespace NESSharp.Core {
 	public interface IResolvable {
 		bool CanResolve();
+		object Source { get; }
 	}
 	public interface IResolvable<T> : IOperand<T>, IResolvable {
 		T Resolve();
@@ -60,6 +61,7 @@ namespace NESSharp.Core {
 		}
 		public Address Value => Resolve();
 		public bool CanResolve() => _addr.CanResolve();
+		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)((U16)_addr.Resolve() << _shiftAmt));
 		public override string? ToString() => $"{ _addr }<<{_shiftAmt}";
 	}
@@ -72,6 +74,7 @@ namespace NESSharp.Core {
 		}
 		public Address Value => Resolve();
 		public bool CanResolve() => _addr.CanResolve();
+		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)((U16)_addr.Resolve() >> _shiftAmt));
 		public override string? ToString() => $"{ _addr }>>{_shiftAmt}";
 	}
@@ -80,6 +83,7 @@ namespace NESSharp.Core {
 		public High(IResolvable<Address> addr) => _addr = addr;
 		public U8 Value => Resolve();
 		public bool CanResolve() => _addr.CanResolve();
+		public object Source => _addr.Source;
 		public U8 Resolve() => _addr.Resolve().Hi;
 		public override string? ToString() => $"HIGH({ _addr })";
 	}
@@ -88,6 +92,7 @@ namespace NESSharp.Core {
 		public Low(IResolvable<Address> addr) => _addr = addr;
 		public U8 Value => Resolve();
 		public bool CanResolve() => _addr.CanResolve();
+		public object Source => _addr.Source;
 		public U8 Resolve() => _addr.Resolve().Lo;
 		public override string? ToString() => $"LOW({ _addr })";
 	}
@@ -100,6 +105,7 @@ namespace NESSharp.Core {
 		}
 		public U8 Value => Resolve();
 		public bool CanResolve() => _byte.CanResolve();
+		public object Source => _byte.Source;
 		public U8 Resolve() => _byte.Resolve() + _offset;
 		public override string? ToString() => $"{ _byte }{ (_offset > 0 ? "+" : "") }{_offset }";
 	}
@@ -112,6 +118,7 @@ namespace NESSharp.Core {
 		}
 		public Address Value => Resolve();
 		public bool CanResolve() => _addr.CanResolve();
+		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)(_addr.Resolve() + _offset));
 		public override string? ToString() => $"{ _addr }{ (_offset > 0 ? "+" : "") }{_offset }";
 	}
