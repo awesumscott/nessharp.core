@@ -7,11 +7,19 @@ namespace NESSharp.Core {
 	/// Create a new scoped block of operations. This keeps track of references needed for branching, and is useful for loops and conditions.
 	/// </summary>
 	public static class Context {
+		private static List<List<IOperation>>	_ops;
+		private static short					_scopeIndex;
 		/*public enum StateMaintain {
 			None,
 			Entry
 		};*/
+		public static IEnumerable<IOperation> Operations => _ops[_scopeIndex];
 		private static readonly Stack<Label> _startLabels = new Stack<Label>();
+		public static void InitCode() {
+			_ops = new List<List<IOperation>>(); //clear code to prepare for next bank definition
+			_scopeIndex = 0;
+			_ops.Add(new List<IOperation>());
+		}
 		public static void New(Action body/*, StateMaintain maintainState = StateMaintain.None*/) {
 			Push(/*maintainState*/);
 			body.Invoke();
@@ -19,35 +27,35 @@ namespace NESSharp.Core {
 		}
 		/// <summary>Append code to scope right before current scope body</summary>
 		public static void Parent(Action body) {
-			AL.CodeContextIndex--;
+			_scopeIndex--;
 			body.Invoke();
-			AL.CodeContextIndex++;
+			_scopeIndex++;
 		}
 		public static void Push(/*StateMaintain maintainState = StateMaintain.None*/) {
 			/*if (maintainState != StateMaintain.Entry)*/
 			AL.Reset();
-			AL.CodeContextIndex++;
-			AL.Code.Add(new List<IOperation>());
+			_scopeIndex++;
+			_ops.Add(new List<IOperation>());
 			var lbl = AL.Labels.New();
 			_startLabels.Push(lbl);
-			AL.Use(lbl);
+			Write(lbl);
 		}
 		public static void Pop() {
-			AL.Code[AL.CodeContextIndex - 1].AddRange(AL.Code[AL.CodeContextIndex]);
-			AL.Code.RemoveAt(AL.CodeContextIndex);
-			AL.CodeContextIndex--;
+			_ops[_scopeIndex - 1].AddRange(_ops[_scopeIndex]);
+			_ops.RemoveAt(_scopeIndex);
+			_scopeIndex--;
 			_startLabels.Pop();
 			AL.Reset();
 		}
 		public static void Delete() {
 			AL.Reset();
-			AL.Code.RemoveAt(AL.CodeContextIndex);
-			AL.CodeContextIndex--;
+			_ops.RemoveAt(_scopeIndex);
+			_scopeIndex--;
 		}
 		public static int Length {
 			get {
 				int len = 0;
-				foreach (var o in AL.Code[AL.CodeContextIndex]) {
+				foreach (var o in _ops[_scopeIndex]) {
 					if (o.GetType().GetInterfaces().Contains(typeof(IOperation)))
 						len += o.Length;
 				}
@@ -57,5 +65,6 @@ namespace NESSharp.Core {
 		public static bool StartBranchable => Length <= 126; //128 - 2, branches are 2 bytes
 		public static U8 Start => (byte)(254 - Length); //256 - length - 2 (the branch opcode is included in the jump distance)
 		public static Label StartLabel => _startLabels.Peek();
+		public static void Write(IOperation op) => _ops[_scopeIndex].Add(op);
 	}
 }

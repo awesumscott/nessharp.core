@@ -56,22 +56,22 @@ namespace NESSharp.Core {
 			Contents += $"P:{ startAddr.ToString().Substring(1) }-{ endAddr.ToString().Substring(1) }:{ name }\n";
 		}
 
-		public static string OpToAsm(Asm.OpRef op) =>
+		public static string OpToAsm(CPU6502.Asm.OpRef op) =>
 			string.Format(
 				op.Mode switch {
-					Asm.Mode.Immediate			=> "{0} #{{0}}",
-					Asm.Mode.Absolute			=> "{0} {{0}}",
-					Asm.Mode.ZeroPage			=> "{0} {{0}}",
-					Asm.Mode.Implied			=> "{0}",
-					Asm.Mode.IndirectAbsolute	=> "{0} ({{0}})",
-					Asm.Mode.AbsoluteX			=> "{0} {{0}}, X",
-					Asm.Mode.AbsoluteY			=> "{0} {{0}}, Y",
-					Asm.Mode.ZeroPageX			=> "{0} {{0}}, X",
-					Asm.Mode.ZeroPageY			=> "{0} {{0}}, Y",
-					Asm.Mode.IndirectX			=> "{0} ({{0}}, X)",
-					Asm.Mode.IndirectY			=> "{0} ({{0}}), Y",
-					Asm.Mode.Relative			=> "{0} {{0}}",
-					Asm.Mode.Accumulator		=> "{0} A",
+					CPU6502.Asm.Mode.Immediate			=> "{0} #{{0}}",
+					CPU6502.Asm.Mode.Absolute			=> "{0} {{0}}",
+					CPU6502.Asm.Mode.ZeroPage			=> "{0} {{0}}",
+					CPU6502.Asm.Mode.Implied			=> "{0}",
+					CPU6502.Asm.Mode.IndirectAbsolute	=> "{0} ({{0}})",
+					CPU6502.Asm.Mode.AbsoluteX			=> "{0} {{0}}, X",
+					CPU6502.Asm.Mode.AbsoluteY			=> "{0} {{0}}, Y",
+					CPU6502.Asm.Mode.ZeroPageX			=> "{0} {{0}}, X",
+					CPU6502.Asm.Mode.ZeroPageY			=> "{0} {{0}}, Y",
+					CPU6502.Asm.Mode.IndirectX			=> "{0} ({{0}}, X)",
+					CPU6502.Asm.Mode.IndirectY			=> "{0} ({{0}}), Y",
+					CPU6502.Asm.Mode.Relative			=> "{0} {{0}}",
+					CPU6502.Asm.Mode.Accumulator		=> "{0} A",
 					_ => throw new Exception("Invalid addressing mode")
 				},
 				op.Token

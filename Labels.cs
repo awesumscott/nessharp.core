@@ -42,8 +42,10 @@ namespace NESSharp.Core {
 		Address IOperand<Address>.Value => Resolve();
 		public Address? Address;
 
-		public bool IsUsed { get; private set; }
-		public void Use() => IsUsed = true;
+		public bool IsReferenced { get; private set; }
+		public void Reference() => IsReferenced = true;
+
+		public Label Write() { Context.Write(this); return this; }
 
 		public bool CanResolve() => Address is not null;
 		public object Source => this;
@@ -54,6 +56,7 @@ namespace NESSharp.Core {
 
 		public LabelIndexed this[IndexingRegister reg] => new LabelIndexed(this, reg);
 		public override string ToString() => Labels.NameByRef(this);
+		public string ToAsmString(Tools.INESAsmFormatting formats) => Labels.NameByRef(this);
 	}
 
 	public class LabelIndexed : IOperand<LabelIndexed>, IIndexable {
@@ -73,5 +76,6 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public override string ToString() => $"{ Labels.NameByRef(Label) } [{ ((IIndexable)this).Index }]";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => Labels.NameByRef(Label);
 	}
 }

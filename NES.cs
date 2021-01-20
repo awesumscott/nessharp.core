@@ -92,7 +92,7 @@ namespace NESSharp.Core {
 					Loop.Repeat(X.Set(0), 256, _ => {
 						Object[X].Hide();
 						X.State.Unsafe(() => {
-							X++; X++; X++;
+							X.Inc().Inc().Inc();
 						});
 					});
 				}

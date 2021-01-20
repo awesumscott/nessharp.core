@@ -16,6 +16,6 @@
 
 		public static implicit operator U16(ushort s) => new U16(s);
 		public static implicit operator ushort(U16 p) => (ushort)((p.Hi << 8) + p.Lo);
-		public override string ToString() => $"${ Hi.ToString()[1..] }{ Lo.ToString()[1..] }";
+		public override string ToString() => $"{ Hi.ToString()[1..] }{ Lo.ToString()[1..] }";
 	}
 }

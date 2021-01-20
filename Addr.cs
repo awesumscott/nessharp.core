@@ -1,9 +1,10 @@
-﻿using System;
+﻿using NESSharp.Core.Tools;
+using System;
 using System.Linq;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
-	public class Address : U16, IOperand<Address>, IOperable<Address> {
+	public class Address : U16, IOperand<Address> {//, IOperable<Address> {
 		public Address(ushort value) : base(value) {}
 		public Address Value => this;
 
@@ -18,17 +19,19 @@ namespace NESSharp.Core {
 		}
 		public virtual Address Set(U8 v) { A.Set(v).STA(this); return this; }
 
-		public override string ToString() {
-			var matchName = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Hi && x.Lo == Lo)).FirstOrDefault().Key;
+		//public override string ToString() {
+			//var matchName = VarRegistry.Where(x => x.Value.Address.Any(x => x.Hi == Hi && x.Lo == Lo)).FirstOrDefault().Key;
 
-			if (string.IsNullOrEmpty(matchName))
-				return base.ToString();
+			//if (string.IsNullOrEmpty(matchName))
+			//	return base.ToString();
 
-			var matchVar = VarRegistry[matchName];
-			var matchByteInstance = matchVar.Address.Where(x => x.Hi == Hi && x.Lo == Lo).FirstOrDefault(); //necessary instead of "this" because instance refs may be different
-			int? index = (matchVar.Address.Length > 1  && matchByteInstance != null) ? matchVar.Address.ToList().IndexOf(matchByteInstance) : (int?)null;
-			return matchName + (index!=null ? $"[{index}]" : "");
-		}
+			//var matchVar = VarRegistry[matchName];
+			//var matchByteInstance = matchVar.Address.Where(x => x.Hi == Hi && x.Lo == Lo).FirstOrDefault(); //necessary instead of "this" because instance refs may be different
+			//int? index = (matchVar.Address.Length > 1  && matchByteInstance != null) ? matchVar.Address.ToList().IndexOf(matchByteInstance) : (int?)null;
+			//return matchName + (index!=null ? $"[{index}]" : "");
+		//}
+
+		public string ToAsmString(INESAsmFormatting formats) => string.Format(formats.AddressFormat, this);
 
 		public Address IncrementedValue => new Address((ushort)((U16)this + 1));
 

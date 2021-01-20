@@ -21,6 +21,7 @@ namespace NESSharp.Core {
 		public bool CanResolve() => true;
 		public object Source => Value;
 		public U8 Resolve() => (U8)Value;
+		public string ToAsmString(Tools.INESAsmFormatting formats) => ((U8)Value).ToString();
 	}
 	public class ConstU16 : IConstant, IResolvable<U16> {
 		public string Name { get; set; }
@@ -36,6 +37,7 @@ namespace NESSharp.Core {
 		public bool CanResolve() => true;
 		public object Source => Value;
 		public U16 Resolve() => (U16)Value;
+		public string ToAsmString(Tools.INESAsmFormatting formats) => ((U16)Value).ToString();
 	}
 	public class ConstantCollection {
 		private readonly Dictionary<string, IConstant> _consts = new Dictionary<string, IConstant>();

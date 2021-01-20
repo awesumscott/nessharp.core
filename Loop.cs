@@ -16,7 +16,7 @@ namespace NESSharp.Core {
 		//TODO: implement AL.LastUsedRegister for determining if a CMP is still needed before a branch operation
 		public void While(Func<Condition> condition) {
 			//An outer context to account for conditions that output some code
-			Use(_labels.ContinueLabel);
+			Context.Write(_labels.ContinueLabel);
 			Context.New(() => {
 				_block?.Invoke(_labels);
 				var c = condition.Invoke();
@@ -24,11 +24,11 @@ namespace NESSharp.Core {
 				if (len >= LOWEST_BRANCH_VAL) {
 					Branch(c, len);
 				} else {
-					Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length, true);
-					CPU6502.JMP(Context.StartLabel); //Use(Asm.JMP.Absolute, Context.StartLabel);
+					Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, true);
+					CPU6502.JMP(Context.StartLabel);
 				}
 			});
-			Use(_labels.BreakLabel);
+			Context.Write(_labels.BreakLabel);
 		}
 	}
 
@@ -129,12 +129,12 @@ namespace NESSharp.Core {
 		public static void Infinite(Action<LoopLabels>? block = null) {
 			var labels = new LoopLabels();
 			//var lbl = Labels.New();
-			Use(labels.ContinueLabel);
+			Context.Write(labels.ContinueLabel);
 			if (block != null) {
 				Context.New(() => block(labels));
 			}
 			GoTo(labels.ContinueLabel);
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		public static DoLoop Do_old(Action<LoopLabels>? block = null) => new DoLoop(block);
 		public static void Descend_Post(IndexingRegister reg, Action<LoopLabels> block) {
@@ -143,21 +143,21 @@ namespace NESSharp.Core {
 				var before = reg.State.Hash;
 				block?.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.ContinueLabel);
-				reg--;
+				Context.Write(labels.ContinueLabel);
+				reg.Dec();
 			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		public static void Descend_Pre(IndexingRegister reg, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
 			Do_old(_ => {
-				Use(labels.ContinueLabel);
-				reg--;
+				Context.Write(labels.ContinueLabel);
+				reg.Dec();
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
 			}).While(() => reg is RegisterX ? X.NotEquals(0) : Y.NotEquals(0));
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		public static void AscendWhile(IndexingRegister reg, Func<Condition> condition, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
@@ -165,15 +165,14 @@ namespace NESSharp.Core {
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.ContinueLabel);
-				reg++;
+				Context.Write(labels.ContinueLabel);
+				reg.Inc();
 			}).While(condition);
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		public static void While_Pre(Func<Condition> condition, Action<LoopLabels> block) {
 			var labels = new LoopLabels();
-			//var lblStart = Labels.New();
-			Use(labels.ContinueLabel);
+			Context.Write(labels.ContinueLabel);
 			var c = condition.Invoke();
 			Context.New(() => {
 				block(labels);
@@ -181,19 +180,19 @@ namespace NESSharp.Core {
 				var len = Context.Length;
 				if (len <= HIGHEST_BRANCH_VAL) {
 					Context.Parent(() => {
-						Branch(c, (U8)len, true);
+						Branch(c, len, true);
 					});
 				} else {
 					var lblEnd = Labels.New();
 					var lblOptionEnd = Labels.New();
 					Context.Parent(() => {
-						Branch(c, Asm.OC["JMP"][Asm.Mode.Absolute].Length);
+						Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length);
 						GoTo(lblEnd);
 					});
-					Use(lblEnd);
+					Context.Write(lblEnd);
 				}
 			});
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		/// <summary>
 		/// 
@@ -205,64 +204,48 @@ namespace NESSharp.Core {
 			var labels = new LoopLabels();
 			//X.Reset();
 			var lblStart = Labels.New();
-			Use(lblStart);
+			Context.Write(lblStart);
 			Context.New(() => {
 				var before = reg.State.Hash;
 				block.Invoke(labels);
 				reg.State.Verify(before);
-				Use(labels.ContinueLabel);
-				reg++;
+				Context.Write(labels.ContinueLabel);
+				reg.Inc();
 				if (Context.StartBranchable) {
 					if (length < 256) {
-						if (reg is RegisterX)	CPU6502.CPX((U8)length);	//TODO: verify (U8)length == (int)length
-						else					CPU6502.CPY((U8)length);	//TODO: verify (U8)length == (int)length
+						if (reg is RegisterX)	CPU6502.CPX((U8)length);
+						else					CPU6502.CPY((U8)length);
 					}
 					CPU6502.BNE(Context.Start);
 				} else {
 					//TODO: verify this works!
 					if (length < 256) {
-						if (reg is RegisterX)	CPU6502.CPX((U8)length);	//TODO: verify (U8)length == (int)length
-						else					CPU6502.CPY((U8)length);	//TODO: verify (U8)length == (int)length
+						if (reg is RegisterX)	CPU6502.CPX((U8)length);
+						else					CPU6502.CPY((U8)length);
 					}
 					CPU6502.BEQ(3);
 					GoTo(lblStart);
 				}
 			});
-			Use(labels.BreakLabel);
+			Context.Write(labels.BreakLabel);
 		}
 		
-		public static void ForEach<T>(IndexingRegister index, Array<T> items, Action<T> block) where T : Var, new() {
+		public static void ForEach<T>(IndexingRegister index, Array<T> items, Action<T, LoopLabels> block) where T : Var, new() {
 			if (index is RegisterX) {
-				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
+				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), lblsX => {
 					var before = X.State.Hash;
-					block?.Invoke(items[X]);
+					block?.Invoke(items[X], lblsX);
 					X.State.Verify(before);
 				});
 			} else { 
-				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
+				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), lblsY => {
 					var before = Y.State.Hash;
-					block?.Invoke(items[Y]);
+					block?.Invoke(items[Y], lblsY);
 					Y.State.Verify(before);
 				});
 			}
 		}
-		[Obsolete("Include loop labels")]
-		public static void ForEach<T>(IndexingRegister index, StructOfArrays<T> items, Action<T> block) where T : Struct, new() {
-			if (index is RegisterX) {
-				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
-					var before = X.State.Hash;
-					block?.Invoke(items[X]);
-					X.State.Verify(before);
-				});
-			} else { 
-				AscendWhile(Y.Set(0), () => Y.NotEquals(items.Length == 256 ? 0 : items.Length), _ => {
-					var before = Y.State.Hash;
-					block?.Invoke(items[Y]);
-					Y.State.Verify(before);
-				});
-			}
-		}
-		
+
 		public static void ForEach<T>(IndexingRegister index, StructOfArrays<T> items, Action<T, LoopLabels> block) where T : Struct, new() {
 			if (index is RegisterX) {
 				AscendWhile(X.Set(0), () => X.NotEquals(items.Length == 256 ? 0 : items.Length), lblsX => {

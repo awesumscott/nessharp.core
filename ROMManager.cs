@@ -26,6 +26,7 @@ namespace NESSharp.Core {
 			//that logs a percentage used, and another that outputs a rendered image.
 			public static _DebugFile DebugFiles = new(_Tools.Where(x => x is IDebugFile).Cast<IDebugFile>().ToList());
 			public static _FileLogger FileLoggers = new(_Tools.Where(x => x is IFileLogTool).Cast<IFileLogTool>().ToList());
+			public static _ConsoleLogger ConsoleLoggers = new(_Tools.Where(x => x is IConsoleLogTool).Cast<IConsoleLogTool>().ToList());
 
 			public class _AssemblerOutput : IAssemblerOutput {
 				private IEnumerable<IAssemblerOutput> _instances;
@@ -33,7 +34,7 @@ namespace NESSharp.Core {
 				public void AppendBytes(IEnumerable<string> bytes) => _instances.ForEach(x => x.AppendBytes(bytes));
 				public void AppendComment(string comment) => _instances.ForEach(x => x.AppendComment(comment));
 				public void AppendLabel(string name) => _instances.ForEach(x => x.AppendLabel(name));
-				public void AppendOp(Asm.OpRef opref, OpCode opcode) => _instances.ForEach(x => x.AppendOp(opref, opcode));
+				public void AppendOp(OpCode opCode) => _instances.ForEach(x => x.AppendOp(opCode));
 			}
 			public class _DebugFile : IDebugFile {
 				private IEnumerable<IDebugFile> _instances;
@@ -43,6 +44,11 @@ namespace NESSharp.Core {
 				private IEnumerable<IFileLogTool> _instances;
 				public _FileLogger(IEnumerable<IFileLogTool> instances) => _instances = instances;
 				public void WriteFile(Action<string, string> fileWriteMethod) => _instances.ForEach(x => x.WriteFile(fileWriteMethod));
+			}
+			public class _ConsoleLogger : IConsoleLogTool {
+				private IEnumerable<IConsoleLogTool> _instances;
+				public _ConsoleLogger(IEnumerable<IConsoleLogTool> instances) => _instances = instances;
+				public void WriteToConsole() => _instances.ForEach(x => x.WriteToConsole());
 			}
 		}
 
@@ -76,30 +82,6 @@ namespace NESSharp.Core {
 		}
 
 		public static void WriteToFile(string fileName) {
-			var header = new byte[0];
-			if (Header != null) {
-				var battery = Header.Battery ? 0b10 : 0;
-				var mirroring = Header.Mirroring == MirroringOptions.MapperControlled
-					? Header.MapperControlledMirroring
-					: Header.Mirroring == MirroringOptions.Vertical
-						? 0b1
-						: 0b0;
-				var trainer = Header.Trainer ? 0b100 : 0;
-				header = new byte[] {
-					(byte)'N',(byte)'E',(byte)'S',
-					26,
-					Header.PrgRomBanks,
-					Header.ChrRomBanks, //byte 5
-					(byte)(((Mapper.Number & 0x0F) << 4) + (mirroring | battery | trainer)),
-					//(byte)((Mapper & 0xF0) + 0b1000), //xxxx10xx = iNES 2.0
-					(byte)((Mapper.Number & 0xF0) + 0b0000), //xxxx10xx = iNES 2.0
-					0, 0, 0,
-					//0b1001, //byte 11, set to 9 for (64 << 9 = 32768 KB CHR-RAM) https://wiki.nesdev.com/w/index.php/NES_2.0
-					0b0000, //byte 11, set to 9 for (64 << 9 = 32768 KB CHR-RAM) https://wiki.nesdev.com/w/index.php/NES_2.0
-					0, 0, 0, 0
-				};
-			}
-
 			Console.WriteLine("BANKS-----------------");
 			var bankId = 0;
 			var bytesUsed = 0;
@@ -107,19 +89,17 @@ namespace NESSharp.Core {
 			var allBanks = PrgBank.Concat(ChrBank).ToList();
 			foreach (var bank in allBanks) {
 				CurrentBank = bank;
-				//CurrentBankId = bank.Id;
-				//CurrentBank.WriteContext();
 
 				var outputIndex = 0;
 				void addObjectToAssembly(object o) {
 					if (o is byte b) {
 						bank.Rom[outputIndex++] = b;
 					} else if (o is IResolvable<U8> iru8) {
-						bank.Rom[outputIndex++] = iru8.Resolve();
+						bank.Rom[outputIndex++] = iru8.Resolve().Value;
 					} else if (o is IResolvable<Address> ira) {
 						var addr = ira.Resolve();
-						bank.Rom[outputIndex++] = addr.Lo;
-						bank.Rom[outputIndex++] = addr.Hi;
+						bank.Rom[outputIndex++] = addr.Lo.Value;
+						bank.Rom[outputIndex++] = addr.Hi.Value;
 					} else if (o is IOperand<U8> iopu8) {
 						bank.Rom[outputIndex++] = iopu8.Value;
 					} else if (o is IOperand<Address> iopaddr) {
@@ -143,7 +123,7 @@ namespace NESSharp.Core {
 								lbl = l;
 							else if (opCode.Param is IResolvable r && r.Source is Label resolveSource)
 								lbl = resolveSource;
-							lbl?.Use();
+							lbl?.Reference();
 						}
 					}
 				}
@@ -165,7 +145,16 @@ namespace NESSharp.Core {
 
 			
 			foreach (var bank in allBanks) {
-				bank.WriteAsmOutput();	//TODO: wait til bank WriteContext is refactored, or asm output will be messed up in the meantime
+				foreach (var op in bank.AsmWithRefs) {
+					if (op is Label label) {
+						var name = AL.Labels.NameByRef(label);
+						if (string.IsNullOrEmpty(name)) continue;
+						if (!label.IsReferenced && name.StartsWith("_") && int.TryParse(name.Substring(1), out _)) continue;
+						Tools.AssemblerOutput.AppendLabel(name);
+					} else if (op is OpRaw raw)			Tools.AssemblerOutput.AppendBytes(raw.Value.Cast<object>().Select(x => x.ToString() ?? string.Empty).ToList());
+					else if (op is OpComment comment)	Tools.AssemblerOutput.AppendComment(comment.Text);
+					else if (op is OpCode opCode)		Tools.AssemblerOutput.AppendOp(opCode);
+				}
 			}
 
 			if (Interrupts.Any())
@@ -175,6 +164,7 @@ namespace NESSharp.Core {
 				DebugFileNESASM.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
 
 			using (var f = File.Open(fileName + ".nes", FileMode.Create)) {
+				var header = _setupHeader();
 				f.Write(header, 0, header.Length);
 				foreach (var prg in PrgBank)
 					f.Write(prg.Rom, 0, prg.Rom.Length);
@@ -187,6 +177,7 @@ namespace NESSharp.Core {
 			}
 
 			//TODO: ConsoleLoggers
+			Tools.ConsoleLoggers.WriteToConsole();
 			Tools.FileLoggers.WriteFile(WriteFile);
 		}
 
@@ -248,6 +239,31 @@ namespace NESSharp.Core {
 			CurrentBank = PrgBank[0];
 			PrgBankDef();
 			CurrentBank.WriteContext();
+		}
+
+		private static byte[] _setupHeader() {
+			if (Header == null) return new byte[0];
+
+			var battery = Header.Battery ? 0b10 : 0;
+			var mirroring = Header.Mirroring == MirroringOptions.MapperControlled
+				? Header.MapperControlledMirroring
+				: Header.Mirroring == MirroringOptions.Vertical
+					? 0b1
+					: 0b0;
+			var trainer = Header.Trainer ? 0b100 : 0;
+			return new byte[] {
+				(byte)'N',(byte)'E',(byte)'S',
+				26,
+				Header.PrgRomBanks,
+				Header.ChrRomBanks, //byte 5
+				(byte)(((Mapper.Number & 0x0F) << 4) + (mirroring | battery | trainer)),
+				//(byte)((Mapper & 0xF0) + 0b1000), //xxxx10xx = iNES 2.0
+				(byte)((Mapper.Number & 0xF0) + 0b0000), //xxxx10xx = iNES 2.0
+				0, 0, 0,
+				//0b1001, //byte 11, set to 9 for (64 << 9 = 32768 KB CHR-RAM) https://wiki.nesdev.com/w/index.php/NES_2.0
+				0b0000, //byte 11, set to 9 for (64 << 9 = 32768 KB CHR-RAM) https://wiki.nesdev.com/w/index.php/NES_2.0
+				0, 0, 0, 0
+			};
 		}
 	}
 }

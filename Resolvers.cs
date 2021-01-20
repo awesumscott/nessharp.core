@@ -29,6 +29,7 @@ namespace NESSharp.Core {
 			_addr = addr;
 		}
 		public override string? ToString() => $">{ _addr }";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.OperandHigh, _addr.ToAsmString(formats));
 	}
 	public class Low_Operand : IOperand<U8> {
 		public U8 Value => _addr.Value.Lo;
@@ -37,6 +38,7 @@ namespace NESSharp.Core {
 			_addr = addr;
 		}
 		public override string? ToString() => $"<{ _addr }";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.OperandLow, _addr.ToAsmString(formats));
 	}
 
 
@@ -64,6 +66,7 @@ namespace NESSharp.Core {
 		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)((U16)_addr.Resolve() << _shiftAmt));
 		public override string? ToString() => $"{ _addr }<<{_shiftAmt}";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ExpressionLShift, _addr.ToAsmString(formats), _shiftAmt);
 	}
 	public class ShiftRight : IResolvable<Address>, IOperand<Address> {
 		private IResolvable<Address> _addr;
@@ -77,6 +80,7 @@ namespace NESSharp.Core {
 		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)((U16)_addr.Resolve() >> _shiftAmt));
 		public override string? ToString() => $"{ _addr }>>{_shiftAmt}";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ExpressionRShift, _addr.ToAsmString(formats), _shiftAmt);
 	}
 	public class High : IResolvable<U8>, IOperand<U8> {
 		private IResolvable<Address> _addr;
@@ -86,6 +90,7 @@ namespace NESSharp.Core {
 		public object Source => _addr.Source;
 		public U8 Resolve() => _addr.Resolve().Hi;
 		public override string? ToString() => $"HIGH({ _addr })";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ResolveHigh, _addr.ToAsmString(formats));
 	}
 	public class Low : IResolvable<U8>, IOperand<U8> {
 		private IResolvable<Address> _addr;
@@ -95,6 +100,7 @@ namespace NESSharp.Core {
 		public object Source => _addr.Source;
 		public U8 Resolve() => _addr.Resolve().Lo;
 		public override string? ToString() => $"LOW({ _addr })";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ResolveLow, _addr.ToAsmString(formats));
 	}
 	public class Offset8 : IResolvable<U8>, IOperand<U8> {
 		private IResolvable<U8> _byte;
@@ -108,6 +114,9 @@ namespace NESSharp.Core {
 		public object Source => _byte.Source;
 		public U8 Resolve() => _byte.Resolve() + _offset;
 		public override string? ToString() => $"{ _byte }{ (_offset > 0 ? "+" : "") }{_offset }";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => _offset > 0
+			? string.Format(formats.ExpressionAdd, _byte.ToAsmString(formats), _offset)
+			: string.Format(formats.ExpressionSubtract, _byte.ToAsmString(formats), System.Math.Abs(_offset));
 	}
 	public class Offset16 : IResolvable<Address>, IOperand<Address> {
 		private IResolvable<Address> _addr;
@@ -121,5 +130,8 @@ namespace NESSharp.Core {
 		public object Source => _addr.Source;
 		public Address Resolve() => Addr((U16)(_addr.Resolve() + _offset));
 		public override string? ToString() => $"{ _addr }{ (_offset > 0 ? "+" : "") }{_offset }";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => _offset > 0
+			? string.Format(formats.ExpressionAdd, _addr.ToAsmString(formats), _offset)
+			: string.Format(formats.ExpressionSubtract, _addr.ToAsmString(formats), System.Math.Abs(_offset));
 	}
 }

@@ -14,6 +14,7 @@ namespace NESSharp.Core {
 
 		public static new Ptr New(RAMRange Zp, string name) => new Ptr(Zp, name);
 		public PtrY this[RegisterY offset] => new PtrY(this);
+		public string ToAsmString(Tools.INESAsmFormatting formats) => Name;
 	}
 
 	public interface IPtrIndexed {}
@@ -27,5 +28,6 @@ namespace NESSharp.Core {
 			CPU6502.STA(this);
 			return this;
 		}
+		public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.OperandLow, Ptr.ToAsmString(formats));
 	}
 }

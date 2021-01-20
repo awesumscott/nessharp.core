@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NESSharp.Core.Tools;
+using System;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -51,11 +52,11 @@ namespace NESSharp.Core {
 			if (operand is IOperand<Address> addr)
 				A.Set(addr).STA(this);
 			else if (operand is PtrY p) {
-				if (Index is RegisterY) throw new Exception("NYI for var8[Y] = [ptr],y -- possible with stack backup");
-					A.Set(p).STA(this);
+				if (Index is RegisterY) throw new Exception("Cannot set var8[Y] to [ptr],y -- possible with stack backup");	//TODO: would this actually be a problem?
+				A.Set(p).STA(this);
 			} else if (operand is IndexingRegister reg) {
-				if (Index != null && Index == reg) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
-					A.Set(reg).STA(this);
+				if (Index != null && Index == reg) throw new NotImplementedException();
+				A.Set(reg).STA(this);
 			} else
 				A.Set(operand).STA(this);
 			return this;
@@ -63,33 +64,33 @@ namespace NESSharp.Core {
 		public VByte Set(Func<VByte, RegisterA> func) => Set(func.Invoke(this));
 		public VByte Set(U8 u8) => Set((IOperand)u8);
 		public VByte Set(IndexingRegister reg) {
-			if (Index != null && Index == reg) throw new NotImplementedException(); //do some swapping to preserve X if this is worth it
+			if (Index != null && Index == reg) throw new NotImplementedException();
 			if (reg is RegisterX)	CPU6502.STX(this);
 			else					CPU6502.STY(this);
 			return this;
 		}
 
-		public RegisterA Add(IOperand v) =>				A.Set(this).Add(v);
-		public RegisterA Add(U8 v) =>					A.Set(this).Add(v);
-		public RegisterA Add(RegisterA _) =>			A.Add(this);
+		public RegisterA Add(IOperand v) =>			A.Set(this).Add(v);
+		public RegisterA Add(U8 v) =>				A.Set(this).Add(v);
+		public RegisterA Add(RegisterA _) =>		A.Add(this);
 
-		public RegisterA Subtract(IOperand v) =>		A.Set(this).Subtract(v);
-		public RegisterA Subtract(U8 v) =>				A.Set(this).Subtract(v);
+		public RegisterA Subtract(IOperand v) =>	A.Set(this).Subtract(v);
+		public RegisterA Subtract(U8 v) =>			A.Set(this).Subtract(v);
 		public RegisterA Subtract(RegisterA _) {
 			Temp[0].Set(A);
 			return A.Set(this).Subtract(Temp[0]);
 		}
 
-		public RegisterA And(IOperand v) =>				A.Set(this).And(v);
-		public RegisterA And(U8 v) =>					A.Set(this).And(v);
-		public RegisterA Or(IOperand v) =>				A.Set(this).Or(v);
-		public RegisterA Or(U8 v) =>					A.Set(this).Or(v);
+		public RegisterA And(IOperand v) =>			A.Set(this).And(v);
+		public RegisterA And(U8 v) =>				A.Set(this).And(v);
+		public RegisterA Or(IOperand v) =>			A.Set(this).Or(v);
+		public RegisterA Or(U8 v) =>				A.Set(this).Or(v);
 		public RegisterA Or(RegisterA _) {
 			Temp[0].Set(A);
 			return A.Set(this).Or(Temp[0]);
 		}
-		public RegisterA Xor(IOperand v) =>				A.Set(this).Xor(v);
-		public RegisterA Xor(U8 v) =>					A.Set(this).Xor(v);
+		public RegisterA Xor(IOperand v) =>			A.Set(this).Xor(v);
+		public RegisterA Xor(U8 v) =>				A.Set(this).Xor(v);
 
 		public VByte SetROL() {
 			if (Index is RegisterY) throw new Exception("Cannot SetROL with index Y");
@@ -102,13 +103,13 @@ namespace NESSharp.Core {
 			return this;
 		}
 		public VByte SetLSR() {
-			if (Index == null || Index is RegisterX)	CPU6502.LSR(this);
-			else										throw new NotImplementedException();
+			if (Index is RegisterY) throw new Exception("Cannot SetLSR with index Y");
+			CPU6502.LSR(this);
 			return this;
 		}
 		public VByte SetASL() {
-			if (Index == null || Index is RegisterX)	CPU6502.ASL(this);
-			else										throw new NotImplementedException();
+			if (Index is RegisterY) throw new Exception("Cannot SetASL with index Y");
+			CPU6502.ASL(this);
 			return this;
 		}
 		public Condition Equals(U8 v) =>						A.Set(this).Equals(v);
@@ -138,21 +139,18 @@ namespace NESSharp.Core {
 			return Condition.IsLessThanOrEqualTo;
 		}
 
-		public static VByte operator ++(VByte addr) => addr.Increment();
-		public VByte Increment() {
+		public VByte Inc() {
 			CPU6502.INC(this);
 			return this;
 		}
-		public static VByte operator --(VByte addr) => addr.Decrement();
-		public VByte Decrement() {
+		public VByte Dec() {
 			CPU6502.DEC(this);
 			return this;
 		}
 
-		public AddressIndexed this[IndexingRegister r] => Address[0][r];
+		public VByte this[IndexingRegister r] => Ref(Address[0], r, Name);
 
-		public override string ToString() {
-			return string.IsNullOrEmpty(Name) ? this[0].ToString() : Name;
-		}
+		public override string ToString() => string.IsNullOrEmpty(Name) ? this[0].ToString() : Name;
+		public string ToAsmString(INESAsmFormatting formats) => Name;
 	}
 }

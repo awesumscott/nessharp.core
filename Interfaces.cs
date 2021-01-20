@@ -6,7 +6,9 @@ namespace NESSharp.Core {
 	/// <summary>
 	/// Operands are used as values for ASM opcodes
 	/// </summary>
-	public interface IOperand {}
+	public interface IOperand {
+		string ToAsmString(Tools.INESAsmFormatting formats);
+	}
 
 	public interface IOperand<T> : IOperand {
 		public T Value {get;}

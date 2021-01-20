@@ -24,5 +24,6 @@ namespace NESSharp.Core {
 		public static bool operator ==(U8 a, U8 b) => a.Value == b.Value;
 		public static bool operator !=(U8 a, U8 b) => a.Value != b.Value;
 		public override string ToString() => $"${Value:X2}";
+		public string ToAsmString(Tools.INESAsmFormatting formats) => $"${Value:X2}";
 	}
 }

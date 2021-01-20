@@ -60,7 +60,7 @@ namespace NESSharp.Core {
 				if (hasElse)
 					optionDefault[0].Block?.Invoke();
 				if (lblEnd != null) //always true in this block, suppressing nullable complaint
-					Use(lblEnd);
+					Context.Write(lblEnd);
 			}
 			Reset();
 		}
@@ -172,7 +172,7 @@ namespace NESSharp.Core {
 				//Skip to "EndIf" if the condition succeeded
 				if (lblEndIf != null) {
 					if (fallThroughCondition != null)
-						Branch(fallThroughCondition.Invoke(), Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
+						Branch(fallThroughCondition.Invoke(), CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
 					GoTo(lblEndIf);
 				}
 				var len = Context.Length;
@@ -183,10 +183,10 @@ namespace NESSharp.Core {
 				} else {
 					var lblOptionEnd = Labels.New();
 					Context.Parent(() => {
-						Branch(condition, Asm.OC["JMP"][Asm.Mode.Absolute].Length, invert);
+						Branch(condition, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
 						GoTo(lblOptionEnd);
 					});
-					Use(lblOptionEnd);
+					Context.Write(lblOptionEnd);
 				}
 			});
 		}
@@ -203,7 +203,7 @@ namespace NESSharp.Core {
 			//TODO: determine if this lblShortCircuitSuccess business is even needed. Who the hell needs to nest Any() conditions?! they could be merged and have the same effect. Maybe if helpers return an Any(), and that's used within another?
 			if (lblShortCircuitSuccess == null) {
 				GoTo(lblEnd);
-				Use(lblSuccess);
+				Context.Write(lblSuccess);
 				block.Invoke();
 			}
 			
@@ -214,7 +214,7 @@ namespace NESSharp.Core {
 				GoTo(lblEndIf);
 			}
 			Comment("after goto endif and before writeany's lblend");
-			Use(lblEnd);
+			Context.Write(lblEnd);
 		}
 		public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null) {
 			var currentCondition = conditions.First();

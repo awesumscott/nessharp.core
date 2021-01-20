@@ -136,7 +136,7 @@ namespace NESSharp.Core.Parsers {
 					case string x when (x.Length == 1 && _Operators.Contains(x[0])) || _Operators_TwoChar.Contains(x):
 						objs.Add(new Unit(UnitType.Operator, x));
 						break;
-					case string x when Asm.OpRefs.Any(y => y.Token == x):
+					case string x when CPU6502.Asm.OpRefs.Any(y => y.Token == x):
 						objs.Add(new Unit(UnitType.Reserved, x));
 						break;
 					case string x when _NumberPrefixes.Contains(x[0]) || int.TryParse(x, out _):
@@ -293,15 +293,15 @@ namespace NESSharp.Core.Parsers {
 								break;
 						}
 					} else {
-						if (Asm.OC.TryGetValue(tokens[0], out var options)) {
+						if (CPU6502.Asm.OC.TryGetValue(tokens[0], out var options)) {
 							if (tokens.Count == 1) {
 								//if (options.Count > 1) throw new Exception();
-								if (options.TryGetValue(Asm.Mode.Implied, out var opRef)) {
+								if (options.TryGetValue(CPU6502.Asm.Mode.Implied, out var opRef)) {
 									parsed.Add(new Instruction(){ Op = opRef.Use() });
 								} else throw new Exception($"No Implied mode for instruction { tokens[0] }");
 							} else if (tokens.Count == 2) {
 								if (tokens[1].StartsWith("#")) {
-									if (options.TryGetValue(Asm.Mode.Immediate, out var opRef)) {
+									if (options.TryGetValue(CPU6502.Asm.Mode.Immediate, out var opRef)) {
 										//parsed.Add(new Instruction(){ Op = opRef.Use(), Params = new List<Param>(){ tokens[1].Substring(1) } });
 									} else throw new Exception($"No Implied mode for instruction { tokens[0] }");
 								}
@@ -352,7 +352,7 @@ namespace NESSharp.Core.Parsers {
 				} else if (p is WordList wl) {
 					AL.Raw(wl.List.SelectMany(getWordParam).ToArray());
 				} else if (p is Label lbl) {
-					AL.Use(AL.Labels[lbl.Name]);
+					Context.Write(AL.Labels[lbl.Name]);
 				} else if (p is Instruction) {
 				
 				}

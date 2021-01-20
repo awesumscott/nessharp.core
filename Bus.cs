@@ -12,7 +12,7 @@ namespace NESSharp.Core {
 			X.Set(0);
 			Loop.Do_old(_ => {
 				Set(LabelFor(dataSection)[X]);
-				X++;
+				X.Inc();
 			}).While(() => X.NotEquals(len == 256 ? 0 : len));
 
 			//TODO: use ptr to send 256 at a time, rebaselining ptr after each pass
@@ -22,11 +22,11 @@ namespace NESSharp.Core {
 		}
 		public void Write(params U8[] vals) {
 			foreach (var val in vals)
-				Set(val);
+				A.Set(val).STA(this);
 		}
 		public void Write(params IOperand[] vals) {
 			foreach (var val in vals)
-				Set(val);
+				A.Set(val).STA(this);
 		}
 		public void Write(RegisterA a) => Set(a);
 	}

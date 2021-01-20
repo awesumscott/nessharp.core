@@ -23,12 +23,8 @@ namespace NESSharp.Core {
 		}
 
 		public void WriteContext() {
-			var codeLength = AL.Code[AL.CodeContextIndex].Count;
-			if (Size != 0 && codeLength > Size) throw new Exception("Overflow in bank " + AL.CodeContextIndex);
-
 			var offset = 0;
-			for (var i = 0; i < codeLength; i++) {
-				var op = AL.Code[AL.CodeContextIndex][i];
+			foreach(var op in Context.Operations) {
 				AsmWithRefs.Add(op);
 
 				//Determine label addresses by keeping a count of bytes to be output
@@ -36,20 +32,7 @@ namespace NESSharp.Core {
 				else if (op is OpRaw raw)		offset += raw.Length;
 				else if (op is OpCode opCode)	offset += opCode.Length;
 			}
-			AL.InitCode();
-		}
-
-		public void WriteAsmOutput() {
-			foreach (var op in AsmWithRefs) {
-				if (op is Label label) {
-					var name = AL.Labels.NameByRef(label);
-					if (string.IsNullOrEmpty(name)) continue;
-					if (!label.IsUsed && name.StartsWith("_") && int.TryParse(name.Substring(1), out _)) continue;
-					ROMManager.Tools.AssemblerOutput.AppendLabel(name);
-				} else if (op is OpRaw raw)			ROMManager.Tools.AssemblerOutput.AppendBytes(raw.Value.Cast<object>().Select(x => x.ToString() ?? string.Empty).ToList());
-				else if (op is OpComment comment)	ROMManager.Tools.AssemblerOutput.AppendComment(comment.Text);
-				else if (op is OpCode opCode)		ROMManager.Tools.AssemblerOutput.AppendOp(Asm.OpRefs.Where(x => x.Byte == opCode.Value).First(), opCode);
-			}
+			Context.InitCode();
 		}
 	}
 }

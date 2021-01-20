@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NESSharp.Core {
 	public class UniquenessState {
@@ -56,6 +57,19 @@ namespace NESSharp.Core {
 			Negative.Alter();
 		}
 	}
+	public enum CarryState {
+		Set,
+		Cleared,
+		Unknown
+	};
+	public static class Carry {
+		public static CarryState State;
+		public static void Clear() =>			CPU6502.CLC();
+		public static void Set() =>				CPU6502.SEC();
+		public static Condition IsClear() =>	Condition.IsCarryClear;
+		public static Condition IsSet() =>		Condition.IsCarrySet;
+		public static void Reset() =>			State = CarryState.Unknown;
+	}
 	/// <summary>
 	/// Central object for operations that indicates states of flags and last used registers to inform proceeding operations
 	/// </summary>
@@ -91,14 +105,14 @@ namespace NESSharp.Core {
 			Flags.Carry.Alter(reg);
 		}
 
-		public static void BPL(U8 len) => AL.Use(Asm.OC["BPL"][Asm.Mode.Relative].Use(), len);
-		public static void BMI(U8 len) => AL.Use(Asm.OC["BMI"][Asm.Mode.Relative].Use(), len);
-		public static void BVC(U8 len) => AL.Use(Asm.OC["BVC"][Asm.Mode.Relative].Use(), len);
-		public static void BVS(U8 len) => AL.Use(Asm.OC["BVS"][Asm.Mode.Relative].Use(), len);
-		public static void BCC(U8 len) => AL.Use(Asm.OC["BCC"][Asm.Mode.Relative].Use(), len);
-		public static void BCS(U8 len) => AL.Use(Asm.OC["BCS"][Asm.Mode.Relative].Use(), len);
-		public static void BNE(U8 len) => AL.Use(Asm.OC["BNE"][Asm.Mode.Relative].Use(), len);
-		public static void BEQ(U8 len) => AL.Use(Asm.OC["BEQ"][Asm.Mode.Relative].Use(), len);
+		public static void BPL(U8 len) => Context.Write(Asm.OC["BPL"][Asm.Mode.Relative].Use(len));
+		public static void BMI(U8 len) => Context.Write(Asm.OC["BMI"][Asm.Mode.Relative].Use(len));
+		public static void BVC(U8 len) => Context.Write(Asm.OC["BVC"][Asm.Mode.Relative].Use(len));
+		public static void BVS(U8 len) => Context.Write(Asm.OC["BVS"][Asm.Mode.Relative].Use(len));
+		public static void BCC(U8 len) => Context.Write(Asm.OC["BCC"][Asm.Mode.Relative].Use(len));
+		public static void BCS(U8 len) => Context.Write(Asm.OC["BCS"][Asm.Mode.Relative].Use(len));
+		public static void BNE(U8 len) => Context.Write(Asm.OC["BNE"][Asm.Mode.Relative].Use(len));
+		public static void BEQ(U8 len) => Context.Write(Asm.OC["BEQ"][Asm.Mode.Relative].Use(len));
 
 		public static void BIT(IOperand o) {					//N V Z
 			GenericAssembler(Asm.OC["BIT"], o);
@@ -107,18 +121,18 @@ namespace NESSharp.Core {
 			Flags.Zero.Alter();
 		}
 		public static void BRK() {								//B
-			AL.Use(Asm.OC["BRK"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["BRK"][Asm.Mode.Implied].Use());
 		}
 		public static void CLC() {								//C
-			AL.Use(Asm.OC["CLC"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["CLC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Cleared;
 			Flags.Carry.Alter();
 		}
 		public static void CLD() {								//none
-			AL.Use(Asm.OC["CLD"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["CLD"][Asm.Mode.Implied].Use());
 		}
 		public static void CLI() {								//none
-			AL.Use(Asm.OC["CLI"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["CLI"][Asm.Mode.Implied].Use());
 		}
 		public static void CMP(IOperand o) {					//N Z C
 			GenericAssembler(Asm.OC["CMP"], o);
@@ -147,13 +161,13 @@ namespace NESSharp.Core {
 			Flags.Zero.Alter();
 		}
 		public static void DEX() {								//N Z
-			AL.Use(Asm.OC["DEX"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["DEX"][Asm.Mode.Implied].Use());
 			X.State.Alter();
 			Flags.Negative.Alter(X);
 			Flags.Zero.Alter(X);
 		}
 		public static void DEY() {								//N Z
-			AL.Use(Asm.OC["DEY"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["DEY"][Asm.Mode.Implied].Use());
 			Y.State.Alter();
 			Flags.Negative.Alter(Y);
 			Flags.Zero.Alter(Y);
@@ -170,13 +184,13 @@ namespace NESSharp.Core {
 			Flags.Zero.Alter();
 		}
 		public static void INX() {								//N Z
-			AL.Use(Asm.OC["INX"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["INX"][Asm.Mode.Implied].Use());
 			X.State.Alter();
 			Flags.Negative.Alter(X);
 			Flags.Zero.Alter(X);
 		}
 		public static void INY() {								//N Z
-			AL.Use(Asm.OC["INY"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["INY"][Asm.Mode.Implied].Use());
 			Y.State.Alter();
 			Flags.Negative.Alter(Y);
 			Flags.Zero.Alter(Y);
@@ -232,20 +246,20 @@ namespace NESSharp.Core {
 			Flags.Carry.Alter(reg);
 		}
 		public static void NOP() {								//none
-			AL.Use(Asm.OC["NOP"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["NOP"][Asm.Mode.Implied].Use());
 		}
 		public static void PHA() {
-			AL.Use(Asm.OC["PHA"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["PHA"][Asm.Mode.Implied].Use());
 		}
 		public static void PHP() {
-			AL.Use(Asm.OC["PHP"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["PHP"][Asm.Mode.Implied].Use());
 		}
 		public static void PLA() {
-			AL.Use(Asm.OC["PLA"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["PLA"][Asm.Mode.Implied].Use());
 			A.State.Alter();
 		}
 		public static void PLP() {
-			AL.Use(Asm.OC["PLP"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["PLP"][Asm.Mode.Implied].Use());
 			A.State.Alter();
 		}
 		public static void ORA(IOperand o) {					//N Z
@@ -273,11 +287,11 @@ namespace NESSharp.Core {
 			Flags.Carry.Alter(reg);
 		}
 		public static void RTI() {								//all
-			AL.Use(Asm.OC["RTI"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["RTI"][Asm.Mode.Implied].Use());
 			AL.Reset();
 		}
 		public static void RTS() {								//all
-			AL.Use(Asm.OC["RTS"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["RTS"][Asm.Mode.Implied].Use());
 			AL.Reset();
 		}
 		public static void SBC(IOperand o) {					//N V Z C
@@ -290,12 +304,12 @@ namespace NESSharp.Core {
 			Flags.Carry.Alter(A);
 		}
 		public static void SEC() {								//C
-			AL.Use(Asm.OC["SEC"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["SEC"][Asm.Mode.Implied].Use());
 			Carry.State = CarryState.Set;
 			Flags.Carry.Alter();
 		}
 		public static void SEI() {								//I
-			AL.Use(Asm.OC["SEI"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["SEI"][Asm.Mode.Implied].Use());
 			Flags.InterruptDisable.Alter();
 		}
 		public static void STA(IOperand o) {					//none
@@ -320,32 +334,32 @@ namespace NESSharp.Core {
 			Y.LastStoredFlagZ = Flags.Zero.Hash;
 		}
 		public static void TAX() {								//N Z
-			AL.Use(Asm.OC["TAX"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TAX"][Asm.Mode.Implied].Use());
 			X.State.Alter();
 			Flags.Negative.Alter(A);
 			Flags.Zero.Alter(A);
 		}
 		public static void TAY() {								//N Z
-			AL.Use(Asm.OC["TAY"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TAY"][Asm.Mode.Implied].Use());
 			Y.State.Alter();
 			Flags.Negative.Alter(A);
 			Flags.Zero.Alter(A);
 		}
 		public static void TSX() {								//?
-			AL.Use(Asm.OC["TSX"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TSX"][Asm.Mode.Implied].Use());
 			X.State.Alter();
 		}
 		public static void TXA() {								//N Z
-			AL.Use(Asm.OC["TXA"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TXA"][Asm.Mode.Implied].Use());
 			A.State.Alter();
 			Flags.Negative.Alter(X);
 			Flags.Zero.Alter(X);
 		}
 		public static void TXS() {								//?
-			AL.Use(Asm.OC["TXS"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TXS"][Asm.Mode.Implied].Use());
 		}
 		public static void TYA() {								//N Z
-			AL.Use(Asm.OC["TYA"][Asm.Mode.Implied].Use());
+			Context.Write(Asm.OC["TYA"][Asm.Mode.Implied].Use());
 			A.State.Alter();
 			Flags.Negative.Alter(Y);
 			Flags.Zero.Alter(Y);
@@ -354,8 +368,6 @@ namespace NESSharp.Core {
 			if (o is IResolvable res && !res.CanResolve())
 				return o;
 			else if (o is IOperand<U8> u8) {
-				if (u8 is not U8)
-					Console.WriteLine($"####{u8.GetType()}####");
 				return u8.Value;}
 			else if (o is IOperand<Address> addr)
 				return o;
@@ -373,55 +385,257 @@ namespace NESSharp.Core {
 			switch (o) {
 				case RegisterA _:
 					if (opModes.ContainsKey(Asm.Mode.Accumulator))
-						AL.Use(opModes[Asm.Mode.Accumulator].Use());
+						Context.Write(opModes[Asm.Mode.Accumulator].Use());
 					break;
 				case LabelIndexed oli and IIndexable lblInd:
 					if (lblInd.Index is RegisterX && opModes.ContainsKey(Asm.Mode.AbsoluteX))
-						AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), oli.Label);
+						Context.Write(opModes[Asm.Mode.AbsoluteX].Use(oli.Label));
 					else if (lblInd.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY))
-						AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), oli.Label);
+						Context.Write(opModes[Asm.Mode.AbsoluteY].Use(oli.Label));
 					else throw new Exception("Invalid addressing mode");
 					break;
 				case Label lbl:
 					if (opModes.ContainsKey(Asm.Mode.Absolute))
-						AL.Use(opModes[Asm.Mode.Absolute].Use(), lbl);
+						Context.Write(opModes[Asm.Mode.Absolute].Use(lbl));
 					break;
 				case IOperand<Address> addr:
 					if (o is IIndexable addrInd) {
 						if (addrInd.Index is RegisterX) {
 							if (addr.Value.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPageX))
-								AL.Use(opModes[Asm.Mode.ZeroPageX].Use(), addr.Lo());
+								Context.Write(opModes[Asm.Mode.ZeroPageX].Use(addr.Lo()));
 							else if (opModes.ContainsKey(Asm.Mode.AbsoluteX))
-								AL.Use(opModes[Asm.Mode.AbsoluteX].Use(), addr);
+								Context.Write(opModes[Asm.Mode.AbsoluteX].Use(addr));
 							else throw new Exception("Invalid addressing mode");
 							break;
 						} else if (addrInd.Index is RegisterY && opModes.ContainsKey(Asm.Mode.AbsoluteY)) {
-							AL.Use(opModes[Asm.Mode.AbsoluteY].Use(), addr); //no ZPY mode
+							Context.Write(opModes[Asm.Mode.AbsoluteY].Use(addr)); //no ZPY mode
 							break;
 						}
 					}
 					if (addr.Value.IsZP() && opModes.ContainsKey(Asm.Mode.ZeroPage))
-						AL.Use(opModes[Asm.Mode.ZeroPage].Use(), addr.Lo());
+						Context.Write(opModes[Asm.Mode.ZeroPage].Use(addr.Lo()));
 					else if (opModes.ContainsKey(Asm.Mode.Absolute))
-						AL.Use(opModes[Asm.Mode.Absolute].Use(), addr);
+						Context.Write(opModes[Asm.Mode.Absolute].Use(addr));
 					break;
 				case PtrY ptrY:
 					if (opModes.ContainsKey(Asm.Mode.IndirectY))
-						AL.Use(opModes[Asm.Mode.IndirectY].Use(), ptrY.Ptr.Lo.Lo());
+						Context.Write(opModes[Asm.Mode.IndirectY].Use(ptrY.Ptr.Lo.Lo()));
 					else
 						throw new Exception("No addressing mode for pointers");
 					break;
 				case U8 u8:
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
-						AL.Use(opModes[Asm.Mode.Immediate].Use(), u8);
+						Context.Write(opModes[Asm.Mode.Immediate].Use(u8));
 					break;
 				case IResolvable<U8> ru:
 					if (opModes.ContainsKey(Asm.Mode.Immediate))
-						AL.Use(opModes[Asm.Mode.Immediate].Use(), ru); //Immediate, because label his/los will be used to set up pointers
+						Context.Write(opModes[Asm.Mode.Immediate].Use(ru)); //Immediate, because label his/los will be used to set up pointers
 					break;
 				default:
 					throw new Exception($"Type {o.GetType()} not supported for op"); //TODO: elaborate
 			}
+		}
+
+		public static class Asm {
+			public enum Mode {
+				Immediate,
+				Absolute,
+				ZeroPage,
+				Implied,
+				IndirectAbsolute,
+				AbsoluteX,
+				AbsoluteY,
+				ZeroPageX,
+				ZeroPageY,
+				IndirectX,
+				IndirectY,
+				Relative,
+				Accumulator
+			}
+			public class OpRef {
+				public byte Byte;
+				public string Token;
+				public Mode Mode;
+				public U8 Length => Mode switch {
+					Mode.Immediate			=> 2,
+					Mode.Absolute			=> 3,
+					Mode.ZeroPage			=> 2,
+					Mode.Implied			=> 1,
+					Mode.IndirectAbsolute	=> 3,
+					Mode.AbsoluteX			=> 3,
+					Mode.AbsoluteY			=> 3,
+					Mode.ZeroPageX			=> 2,
+					Mode.ZeroPageY			=> 2,
+					Mode.IndirectX			=> 2,
+					Mode.IndirectY			=> 2,
+					Mode.Relative			=> 2,
+					Mode.Accumulator		=> 1,
+					_						=> throw new Exception("Invalid addressing mode")
+				};
+				public OpRef(byte b, string token, Mode mode) {
+					Byte = b;
+					Token = token;
+					Mode = mode;
+				}
+				public OpCode Use(IOperand? param = null) => new OpCode(Byte, Length, param);
+				public string ToAsm(Func<OpRef, string> formatter) => formatter(this);
+			}
+
+			public static readonly List<OpRef> OpRefs = new List<OpRef>{
+				new (0x00, "BRK", Mode.Implied),
+				new (0x01, "ORA", Mode.IndirectX),
+				new (0x05, "ORA", Mode.ZeroPage),
+				new (0x06, "ASL", Mode.ZeroPage),
+				new (0x08, "PHP", Mode.Implied),
+				new (0x09, "ORA", Mode.Immediate),
+				new (0x0A, "ASL", Mode.Accumulator),
+				new (0x0D, "ORA", Mode.Absolute),
+				new (0x0E, "ASL", Mode.Absolute),
+				new (0x10, "BPL", Mode.Relative),
+				new (0x11, "ORA", Mode.IndirectY),
+				new (0x15, "ORA", Mode.ZeroPageX),
+				new (0x16, "ASL", Mode.ZeroPageX),
+				new (0x18, "CLC", Mode.Implied),
+				new (0x19, "ORA", Mode.AbsoluteY),
+				new (0x1D, "ORA", Mode.AbsoluteX),
+				new (0x1E, "ASL", Mode.AbsoluteX),
+				new (0x20, "JSR", Mode.Absolute),
+				new (0x21, "AND", Mode.IndirectX),
+				new (0x24, "BIT", Mode.ZeroPage),
+				new (0x25, "AND", Mode.ZeroPage),
+				new (0x26, "ROL", Mode.ZeroPage),
+				new (0x28, "PLP", Mode.Implied),
+				new (0x29, "AND", Mode.Immediate),
+				new (0x2A, "ROL", Mode.Accumulator),
+				new (0x2C, "BIT", Mode.Absolute),
+				new (0x2D, "AND", Mode.Absolute),
+				new (0x2E, "ROL", Mode.Absolute),
+				new (0x30, "BMI", Mode.Relative),
+				new (0x31, "AND", Mode.IndirectY),
+				new (0x35, "AND", Mode.ZeroPageX),
+				new (0x36, "ROL", Mode.ZeroPageX),
+				new (0x38, "SEC", Mode.Implied),
+				new (0x39, "AND", Mode.AbsoluteY),
+				new (0x3D, "AND", Mode.AbsoluteX),
+				new (0x3E, "ROL", Mode.AbsoluteX),
+				new (0x40, "RTI", Mode.Implied),
+				new (0x41, "EOR", Mode.IndirectX),
+				new (0x45, "EOR", Mode.ZeroPage),
+				new (0x46, "LSR", Mode.ZeroPage),
+				new (0x48, "PHA", Mode.Implied),
+				new (0x49, "EOR", Mode.Immediate),
+				new (0x4A, "LSR", Mode.Accumulator),
+				new (0x4C, "JMP", Mode.Absolute),
+				new (0x4D, "EOR", Mode.Absolute),
+				new (0x4E, "LSR", Mode.Absolute),
+				new (0x50, "BVC", Mode.Relative),
+				new (0x51, "EOR", Mode.IndirectY),
+				new (0x55, "EOR", Mode.ZeroPageX),
+				new (0x56, "LSR", Mode.ZeroPageX),
+				new (0x58, "CLI", Mode.Implied),
+				new (0x59, "EOR", Mode.AbsoluteY),
+				new (0x5D, "EOR", Mode.AbsoluteX),
+				new (0x5E, "LSR", Mode.AbsoluteX),
+				new (0x60, "RTS", Mode.Implied),
+				new (0x61, "ADC", Mode.IndirectX),
+				new (0x65, "ADC", Mode.ZeroPage),
+				new (0x66, "ROR", Mode.ZeroPage),
+				new (0x68, "PLA", Mode.Implied),
+				new (0x69, "ADC", Mode.Immediate),
+				new (0x6A, "ROR", Mode.Accumulator),
+				new (0x6C, "JMP", Mode.IndirectAbsolute),
+				new (0x6D, "ADC", Mode.Absolute),
+				new (0x6E, "ROR", Mode.Absolute),
+				new (0x70, "BVS", Mode.Relative),
+				new (0x71, "ADC", Mode.IndirectY),
+				new (0x75, "ADC", Mode.ZeroPageX),
+				new (0x76, "ROR", Mode.ZeroPageX),
+				new (0x78, "SEI", Mode.Implied),
+				new (0x79, "ADC", Mode.AbsoluteY),
+				new (0x7D, "ADC", Mode.AbsoluteX),
+				new (0x7E, "ROR", Mode.AbsoluteX),
+				new (0x81, "STA", Mode.IndirectX),
+				new (0x84, "STY", Mode.ZeroPage),
+				new (0x85, "STA", Mode.ZeroPage),
+				new (0x86, "STX", Mode.ZeroPage),
+				new (0x88, "DEY", Mode.Implied),
+				new (0x8A, "TXA", Mode.Implied),
+				new (0x8C, "STY", Mode.Absolute),
+				new (0x8D, "STA", Mode.Absolute),
+				new (0x8E, "STX", Mode.Absolute),
+				new (0x90, "BCC", Mode.Relative),
+				new (0x91, "STA", Mode.IndirectY),
+				new (0x94, "STY", Mode.ZeroPageX),
+				new (0x95, "STA", Mode.ZeroPageX),
+				new (0x96, "STX", Mode.ZeroPageY),
+				new (0x98, "TYA", Mode.Implied),
+				new (0x99, "STA", Mode.AbsoluteY),
+				new (0x9A, "TXS", Mode.Implied),
+				new (0x9D, "STA", Mode.AbsoluteX),
+				new (0xA0, "LDY", Mode.Immediate),
+				new (0xA1, "LDA", Mode.IndirectX),
+				new (0xA2, "LDX", Mode.Immediate),
+				new (0xA4, "LDY", Mode.ZeroPage),
+				new (0xA5, "LDA", Mode.ZeroPage),
+				new (0xA6, "LDX", Mode.ZeroPage),
+				new (0xA8, "TAY", Mode.Implied),
+				new (0xA9, "LDA", Mode.Immediate),
+				new (0xAA, "TAX", Mode.Implied),
+				new (0xAC, "LDY", Mode.Absolute),
+				new (0xAD, "LDA", Mode.Absolute),
+				new (0xAE, "LDX", Mode.Absolute),
+				new (0xB0, "BCS", Mode.Relative),
+				new (0xB1, "LDA", Mode.IndirectY),
+				new (0xB4, "LDY", Mode.ZeroPageX),
+				new (0xB5, "LDA", Mode.ZeroPageX),
+				new (0xB6, "LDX", Mode.ZeroPageY),
+				new (0xB8, "CLV", Mode.Implied),
+				new (0xB9, "LDA", Mode.AbsoluteY),
+				new (0xBA, "TSX", Mode.Implied),
+				new (0xBC, "LDY", Mode.AbsoluteX),
+				new (0xBD, "LDA", Mode.AbsoluteX),
+				new (0xBE, "LDX", Mode.AbsoluteY),
+				new (0xC0, "CPY", Mode.Immediate),
+				new (0xC1, "CMP", Mode.IndirectX),
+				new (0xC4, "CPY", Mode.ZeroPage),
+				new (0xC5, "CMP", Mode.ZeroPage),
+				new (0xC6, "DEC", Mode.ZeroPage),
+				new (0xC8, "INY", Mode.Implied),
+				new (0xC9, "CMP", Mode.Immediate),
+				new (0xCA, "DEX", Mode.Implied),
+				new (0xCC, "CPY", Mode.Absolute),
+				new (0xCD, "CMP", Mode.Absolute),
+				new (0xCE, "DEC", Mode.Absolute),
+				new (0xD0, "BNE", Mode.Relative),
+				new (0xD1, "CMP", Mode.IndirectY),
+				new (0xD5, "CMP", Mode.ZeroPageX),
+				new (0xD6, "DEC", Mode.ZeroPageX),
+				new (0xD8, "CLD", Mode.Implied),
+				new (0xD9, "CMP", Mode.AbsoluteY),
+				new (0xDD, "CMP", Mode.AbsoluteX),
+				new (0xDE, "DEC", Mode.AbsoluteX),
+				new (0xE0, "CPX", Mode.Immediate),
+				new (0xE1, "SBC", Mode.IndirectX),
+				new (0xE4, "CPX", Mode.ZeroPage),
+				new (0xE5, "SBC", Mode.ZeroPage),
+				new (0xE6, "INC", Mode.ZeroPage),
+				new (0xE8, "INX", Mode.Implied),
+				new (0xE9, "SBC", Mode.Immediate),
+				new (0xEA, "NOP", Mode.Implied),
+				new (0xEC, "CPX", Mode.Absolute),
+				new (0xED, "SBC", Mode.Absolute),
+				new (0xEE, "INC", Mode.Absolute),
+				new (0xF0, "BEQ", Mode.Relative),
+				new (0xF1, "SBC", Mode.IndirectY),
+				new (0xF5, "SBC", Mode.ZeroPageX),
+				new (0xF6, "INC", Mode.ZeroPageX),
+				new (0xF8, "SED", Mode.Implied),
+				new (0xF9, "SBC", Mode.AbsoluteY),
+				new (0xFD, "SBC", Mode.AbsoluteX),
+				new (0xFE, "INC", Mode.AbsoluteX),
+			};
+
+			public static Dictionary<string, Dictionary<Mode, OpRef>> OC = OpRefs.Select(x => x.Token).Distinct().ToDictionary(x => x, x => OpRefs.Where(y => y.Token == x).ToDictionary(y => y.Mode, y => y));
 		}
 	}
 }

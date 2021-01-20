@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NESSharp.Core.Tools;
+using System;
 using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
@@ -20,20 +21,21 @@ namespace NESSharp.Core {
 			LastStoredHash = -1;
 		}
 	}
-	//TODO: figure out how to get this to work with IOperand
 	public abstract class IndexingRegister : RegisterBase, IOperand<IndexingRegister> {
 		public IndexingRegister Value => this;
 
-		public static IndexingRegister operator ++(IndexingRegister reg) {
-			if (reg is RegisterX)	X++;
-			else					Y++;
-			return reg;
+		public IndexingRegister Inc() {
+			if (this is RegisterX)	CPU6502.INX();
+			else					CPU6502.INY();
+			return this;
 		}
-		public static IndexingRegister operator --(IndexingRegister reg) {
-			if (reg is RegisterX)	X--;
-			else					Y--;
-			return reg;
+		public IndexingRegister Dec() {
+			if (this is RegisterX)	CPU6502.DEX();
+			else					CPU6502.DEY();
+			return this;
 		}
+
+		public string ToAsmString(INESAsmFormatting formats) => ToString() ?? nameof(IndexingRegister);
 	}
 	public class RegisterX : IndexingRegister, IOperand<RegisterX> {
 		public new RegisterX Value => this;
@@ -51,13 +53,13 @@ namespace NESSharp.Core {
 		}
 		public RegisterX Set(U8 v) => Set((IOperand)v);
 
-		public static RegisterX operator ++(RegisterX x) {
+		public new RegisterX Inc() {
 			CPU6502.INX();
-			return x;
+			return this;
 		}
-		public static RegisterX operator --(RegisterX x) {
+		public new RegisterX Dec() {
 			CPU6502.DEX();
-			return x;
+			return this;
 		}
 		public Condition Equals(IOperand o) {
 			CPU6502.CPX(o);
@@ -92,7 +94,7 @@ namespace NESSharp.Core {
 
 		public RegisterY Set(U8 v) => LDY(v);
 		public RegisterY Set(IOperand o) => LDY(o);
-		public RegisterY LDY(IOperand o) {
+		private RegisterY LDY(IOperand o) {
 			if (o is RegisterA)
 				CPU6502.TAY();
 			else if (o is RegisterX) {
@@ -103,14 +105,15 @@ namespace NESSharp.Core {
 			return this;
 		}
 
-		public static RegisterY operator ++(RegisterY y) {
+		public new RegisterY Increment() {
 			CPU6502.INY();
-			return y;
+			return this;
 		}
-		public static RegisterY operator --(RegisterY y) {
+		public new RegisterY Decrement() {
 			CPU6502.DEY();
-			return y;
+			return this;
 		}
+
 		public Condition Equals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPY(v);
@@ -262,5 +265,6 @@ namespace NESSharp.Core {
 			GreaterThan(v);
 			return Condition.IsLessThanOrEqualTo;
 		}
+		public string ToAsmString(INESAsmFormatting formats) => "A";
 	}
 }
