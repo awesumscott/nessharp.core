@@ -56,14 +56,14 @@ namespace NESSharp.Core {
 
 		public static Label LabelFor(Action method) => Labels[ROMManager.LabelNameFromMethodInfo(method.GetMethodInfo())];
 
-		public static void Raw(U16 u16)								=> Context.Write(new OpRaw(u16.Lo, u16.Hi));
-		public static void Raw(params byte[] bytes)					=> Context.Write(new OpRaw(bytes));
+		public static void Raw(params IOperand[] bytes)				=> Context.Write(new OpRaw(bytes));
+		public static void Raw(params U8[] bytes)					=> Context.Write(new OpRaw(bytes));
+		//public static void Raw(params byte[] bytes)					=> Context.Write(new OpRaw(bytes));
 		public static void Raw(params IResolvable<U8>[] u8s)		=> Context.Write(new OpRaw(u8s));
 		public static void Raw(params IResolvable<Address>[] addrs)	=> Context.Write(new OpRaw(addrs));
-		public static void Raw(params object[] objs)				=> Context.Write(new OpRaw(objs));
+		//public static void Raw(params object[] objs)				=> Context.Write(new OpRaw(objs));
 
-		public static void GoTo_Indirect(Ptr p) => Context.Write(CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.IndirectAbsolute].Use(p.Lo));//CPU6502.JMP(p.Lo)); //Use(Asm.JMP.Indirect, p.Lo);
-		//public static void GoTo_Indirect(Ptr p) => Use(Asm.OC["JMP"][Asm.Mode.IndirectAbsolute].Use(), (IResolvable<Address>)p.Lo);
+		public static void GoTo_Indirect(Ptr p) => Context.Write(CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.IndirectAbsolute].Use(p.Lo));
 		public static void GoTo_Indirect(VWord vn) {
 			if (vn.Address[0].Lo == 0xFF) throw new Exception("Var16 used for an indirect JMP has a lo value at the end of a page. Allocate it at a different address for this to work.");
 			//CPU6502.JMP(vn.Lo);

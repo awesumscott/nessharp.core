@@ -82,7 +82,7 @@ namespace NESSharp.Core {
 		public static void File(string fileName) {
 			//TODO: figure out how to pass along attribute's bank ID as the ChrBank index
 			//CurrentBank.Write(File.ReadAllBytes(fileName));
-			AL.Raw(System.IO.File.ReadAllBytes(fileName));
+			AL.Raw(System.IO.File.ReadAllBytes(fileName).Select(x => (U8)x).ToArray());
 		}
 		public static void Asm(string fileName) {
 			//TODO: figure out how to pass along attribute's bank ID as the ChrBank index

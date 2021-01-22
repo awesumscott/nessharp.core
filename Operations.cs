@@ -7,14 +7,18 @@ namespace NESSharp.Core {
 	}
 	public class OpRaw : IOperation {
 		public int Length {get;set;}
-		public object[] Value;
+		public IOperand[] Value;
+		public OpRaw(params IOperand[] v) {
+			Length = v.Length;
+			Value = v.ToArray();
+		}
+		public OpRaw(params U8[] v) {
+			Length = v.Length;
+			Value = v.ToArray();
+		}
 		public OpRaw(params byte[] v) {
 			Length = v.Length;
-			Value = v.Cast<object>().ToArray();
-		}
-		public OpRaw(object[] v) {
-			Length = v.Length;
-			Value = v;
+			Value = v.Cast<U8>().ToArray();
 		}
 	}
 	public class OpComment : IOperation {

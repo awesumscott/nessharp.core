@@ -7,7 +7,7 @@ namespace NESSharp.Core {
 			if (value)
 				Set(Or(0b1 << position));
 			else
-				Set(And(0b11111110 << position));
+				Set(And(255 - (1 << position)));
 		}
 		public void ToggleBit(int position) => Set(Xor(0b1 << position));
 		public Condition TestBit(int position, bool value) {

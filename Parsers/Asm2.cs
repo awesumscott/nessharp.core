@@ -223,50 +223,50 @@ namespace NESSharp.Core.Parsers {
 
 			return token;
 		}
-		private static object getByteParam(object o) {
+		private static IOperand getByteParam(object o) {
 			if (o is string s) {
 				if (isLabel(s)) return AL.Labels[s];//throw new Exception("Address cannot be printed as a byte--use HIGH or LOW, or write as a word: " + s);
 				if (isConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
-						return (byte)((U8)AL.Constants[s].Value).Value;
+						return (U8)AL.Constants[s].Value;
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
-				return (byte)0;//throw new Exception("Unknown value: " + o.ToString());
+				return (U8)0;//throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is Hi hi) {
 				var val = getByteParam(hi.Value);
-				if (val is Address a) return (byte)a.Hi;
+				if (val is Address a) return a.Hi;
 				if (val is Core.Label lbl) return lbl.Hi();
 				throw new NotImplementedException();
 			} else if (o is Lo lo) {
 				var val = getByteParam(lo.Value);
-				if (val is Address a) return (byte)a.Lo;
+				if (val is Address a) return a.Lo;
 				if (val is Core.Label lbl) return lbl.Lo();
 				throw new NotImplementedException();
 			} else if (o is U8 u8) {
-				return u8.Value;
+				return u8;
 			}
 			throw new NotImplementedException();
 		}
-		private static IEnumerable<object> getWordParam(object o) {
+		private static IEnumerable<IOperand> getWordParam(object o) {
 			if (o is string s) {
-				if (isLabel(s)) return new List<object>{AL.Labels[s].Lo(), AL.Labels[s].Hi()};
+				if (isLabel(s)) return new List<IOperand>{AL.Labels[s].Lo(), AL.Labels[s].Hi()};
 				if (isConstant(s)) {
 					if (AL.Constants[s].GetType() == typeof(ConstU8))
-						return new List<object>{(byte)AL.Constants[s].Value};
+						return new List<IOperand>{(U8)AL.Constants[s].Value};
 					else if (AL.Constants[s].GetType() == typeof(ConstU8))
-						return new List<object>{(byte)((U16)AL.Constants[s].Value).Lo, (byte)((U16)AL.Constants[s].Value).Hi};
+						return new List<IOperand>{((U16)AL.Constants[s].Value).Lo, ((U16)AL.Constants[s].Value).Hi };
 							
 					throw new Exception("Value is a word, expected a byte: " + o.ToString());
 				}
 				//if (isConstant(s)) return new List<object>{AL.Constants[s].Value};
 				throw new Exception("Unknown value: " + o.ToString());
 			} else if (o is U8 u8) {
-					return new List<object>{(byte)u8, (byte)0};
+					return new List<IOperand>{u8, (U8)0};
 			} else if (o is U16 u16) {
-					return new List<object>{(byte)u16.Lo, (byte)u16.Hi};
+					return new List<IOperand>{u16.Lo, u16.Hi};
 			}
-			return new List<object>{o};
+			return new List<IOperand>{(U8)o};
 		}
 
 		//public static object Categorize
