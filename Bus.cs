@@ -21,8 +21,14 @@ namespace NESSharp.Core {
 			Send(dataSection, Length(dataSection));
 		}
 		public void Write(params U8[] vals) {
-			foreach (var val in vals)
-				A.Set(val).STA(this);
+			//TODO: clean this up when LDA duplication is handled in CPU6502
+			var prevVal = vals[0] + 1;
+			foreach (var val in vals) {
+				if (val != prevVal)
+					A.Set(val);
+				prevVal = val;
+				A.STA(this);
+			}
 		}
 		public void Write(params IOperand[] vals) {
 			foreach (var val in vals)

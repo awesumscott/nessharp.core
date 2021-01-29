@@ -49,6 +49,12 @@ namespace NESSharp.Core {
 				NMIDisabled		= 0,
 				NMIEnabled		= 0b10000000,
 			};
+			public enum NTAddress : int {
+				NT0 = 0x2000,
+				NT1 = 0x2400,
+				NT2 = 0x2800,
+				NT3 = 0x2C00
+			}
 			public static readonly VByte	Control =		VByte.Ref(0x2000,	$"{nameof(PPU)}_{nameof(Control)}");
 			public static readonly VByte	LazyControl =	VByte.New(zp,		$"{nameof(PPU)}_{nameof(LazyControl)}");
 			public static readonly VByte	Mask =			VByte.Ref(0x2001,	$"{nameof(PPU)}_{nameof(Mask)}");

@@ -54,7 +54,7 @@ namespace NESSharp.Core {
 			var lastCondition = optionConditions.Last();
 			foreach (var oc in optionConditions) {
 				var isLast = oc == lastCondition;
-				Branching._WriteCondition(oc.Condition, oc.Block, hasElse || !isLast ? lblEnd : null); //don't output "GoTo EndIf" if this is the last condition
+				Branching._WriteCondition(oc.Condition, oc.Block, hasElse || !isLast ? lblEnd : null, null, oc.Invert); //don't output "GoTo EndIf" if this is the last condition
 			}
 			if (numOptions > 1) {
 				if (hasElse)
@@ -104,11 +104,13 @@ namespace NESSharp.Core {
 			public class _Option : IOption {
 				public object Condition;
 				public Action Block;
+				public bool Invert;
 				public Func<Condition>? FallThroughCondition;
 
-				public _Option(object condition, Action block) {
+				public _Option(object condition, Action block, bool invert = false) {
 					Condition = condition;
 					Block = block;
+					Invert = invert;
 				}
 			}
 			public class _Default : IOption {
@@ -127,9 +129,17 @@ namespace NESSharp.Core {
 				_options.Add(new _Option(condition, block));
 				return this;
 			}
-
 			public _IfBlock True(Func<Condition> condition, Action block) {
 				_options.Add(new _Option(condition, block));
+				return this;
+			}
+
+			public _IfBlock False(Func<object> condition, Action block) {
+				_options.Add(new _Option(condition, block, true));
+				return this;
+			}
+			public _IfBlock False(Func<Condition> condition, Action block) {
+				_options.Add(new _Option(condition, block, true));
 				return this;
 			}
 
