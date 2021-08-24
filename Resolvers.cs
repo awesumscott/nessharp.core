@@ -9,16 +9,16 @@ namespace NESSharp.Core {
 		T Resolve();
 	}
 	public static class ResolverExtensions {
-		public static High			Hi(this IResolvable<Address> addr) => new High(addr);
-		public static Low			Lo(this IResolvable<Address> addr) => new Low(addr);
-		public static Offset8		Offset(this IResolvable<U8> b, int offset) => new Offset8(b, offset);
-		public static Offset16		Offset(this IResolvable<Address> addr, int offset) => new Offset16(addr, offset);
-		public static ShiftLeft		ShiftLeft(this IResolvable<Address> addr, U8 bits) => new ShiftLeft(addr, bits);
-		public static ShiftRight	ShiftRight(this IResolvable<Address> addr, U8 bits) => new ShiftRight(addr, bits);
+		public static High			Hi(this IResolvable<Address> addr) => new(addr);
+		public static Low			Lo(this IResolvable<Address> addr) => new(addr);
+		public static Offset8		Offset(this IResolvable<U8> b, int offset) => new(b, offset);
+		public static Offset16		Offset(this IResolvable<Address> addr, int offset) => new(addr, offset);
+		public static ShiftLeft		ShiftLeft(this IResolvable<Address> addr, U8 bits) => new(addr, bits);
+		public static ShiftRight	ShiftRight(this IResolvable<Address> addr, U8 bits) => new(addr, bits);
 	}
 	public static class OperandExtensions {
-		public static High_Operand	Hi(this IOperand<Address> addr) => new High_Operand(addr);
-		public static Low_Operand	Lo(this IOperand<Address> addr) => new Low_Operand(addr);
+		public static High_Operand	Hi(this IOperand<Address> addr) => new(addr);
+		public static Low_Operand	Lo(this IOperand<Address> addr) => new(addr);
 	}
 
 

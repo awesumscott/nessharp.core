@@ -4,7 +4,6 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	public abstract class RegisterBase {
-		//public byte? Number;
 		public IOperand? LastLoaded = null;
 		/// <summary>
 		/// Reference to the var to which this register was last stored
@@ -16,24 +15,23 @@ namespace NESSharp.Core {
 		public UniquenessState State = new UniquenessState();
 
 		public void Reset() {
-			//Number = null;
 			LastStored = null;
 			LastStoredHash = -1;
 		}
+		public abstract RegisterBase Set(IOperand o);
+		public abstract RegisterBase Set(U8 v);
+		public abstract Condition Equals(IOperand o);
+		public abstract Condition Equals(U8 v);
+		public abstract Condition NotEquals(IOperand o);
+		public abstract Condition NotEquals(U8 v);
 	}
 	public abstract class IndexingRegister : RegisterBase, IOperand<IndexingRegister> {
 		public IndexingRegister Value => this;
 
-		public IndexingRegister Inc() {
-			if (this is RegisterX)	CPU6502.INX();
-			else					CPU6502.INY();
-			return this;
-		}
-		public IndexingRegister Dec() {
-			if (this is RegisterX)	CPU6502.DEX();
-			else					CPU6502.DEY();
-			return this;
-		}
+		public override abstract IndexingRegister Set(IOperand o);
+		public override abstract IndexingRegister Set(U8 v);
+		public abstract IndexingRegister Inc();
+		public abstract IndexingRegister Dec();
 
 		public string ToAsmString(INESAsmFormatting formats) => ToString() ?? nameof(IndexingRegister);
 	}
@@ -41,7 +39,7 @@ namespace NESSharp.Core {
 		public new RegisterX Value => this;
 		public override string ToString() => "X";
 
-		public RegisterX Set(IOperand o) {
+		public override RegisterX Set(IOperand o) {
 			if (o is RegisterA)
 				CPU6502.TAX();
 			else if (o is RegisterY) {
@@ -51,31 +49,31 @@ namespace NESSharp.Core {
 				CPU6502.LDX(o);
 			return this;
 		}
-		public RegisterX Set(U8 v) => Set((IOperand)v);
+		public override RegisterX Set(U8 v) => Set((IOperand)v);
 
-		public new RegisterX Inc() {
+		public override RegisterX Inc() {
 			CPU6502.INX();
 			return this;
 		}
-		public new RegisterX Dec() {
+		public override RegisterX Dec() {
 			CPU6502.DEX();
 			return this;
 		}
-		public Condition Equals(IOperand o) {
+		public override Condition Equals(IOperand o) {
 			CPU6502.CPX(o);
 			return Condition.EqualsZero;
 		}
-		public Condition Equals(U8 v) {
+		public override Condition Equals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPX(v);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(U8 v) {
+		public override Condition NotEquals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPX(v);
 			return Condition.NotEqualsZero;
 		}
-		public Condition NotEquals(IOperand o) {
+		public override Condition NotEquals(IOperand o) {
 			CPU6502.CPX(o);
 			return Condition.NotEqualsZero;
 		}
@@ -92,8 +90,8 @@ namespace NESSharp.Core {
 		public new RegisterY Value => this;
 		public override string ToString() => "Y";
 
-		public RegisterY Set(U8 v) => LDY(v);
-		public RegisterY Set(IOperand o) => LDY(o);
+		public override RegisterY Set(U8 v) => LDY(v);
+		public override RegisterY Set(IOperand o) => LDY(o);
 		private RegisterY LDY(IOperand o) {
 			if (o is RegisterA)
 				CPU6502.TAY();
@@ -105,31 +103,31 @@ namespace NESSharp.Core {
 			return this;
 		}
 
-		public new RegisterY Increment() {
+		public override RegisterY Inc() {
 			CPU6502.INY();
 			return this;
 		}
-		public new RegisterY Decrement() {
+		public override RegisterY Dec() {
 			CPU6502.DEY();
 			return this;
 		}
 
-		public Condition Equals(U8 v) {
+		public override Condition Equals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPY(v);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(U8 v) {
+		public override Condition NotEquals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CPU6502.CPY(v);
 			return Condition.NotEqualsZero;
 		}
-		public Condition Equals(IOperand addr) {
-			CPU6502.CPY(addr);
+		public override Condition Equals(IOperand o) {
+			CPU6502.CPY(o);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(IOperand addr) {
-			CPU6502.CPY(addr);
+		public override Condition NotEquals(IOperand o) {
+			CPU6502.CPY(o);
 			return Condition.NotEqualsZero;
 		}
 		public Condition LessThan(IOperand o) {
@@ -139,17 +137,14 @@ namespace NESSharp.Core {
 	}
 	public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA> {
 		public RegisterA Value => this;
-		public RegisterA Set(IOperand operand) {
+		public override RegisterA Set(IOperand operand) {
 			if (operand is RegisterA)		return this; //do nothing, this should be okay to support IOperands this way //throw new Exception("Attempting to set A to A");
 			else if (operand is RegisterX)	CPU6502.TXA();
 			else if (operand is RegisterY)	CPU6502.TYA();
 			else							CPU6502.LDA(operand);
 			return this;
 		}
-		//TODO: figure out how to handle indexing reg's. They should never get into GenericAssembler, but they should also act as operands for higher level stuff.
-		//Vars shouldn't have to specify a second Set function just for specifying IndexingRegister params.
-		public RegisterA Set(IndexingRegister u8) => Set((IOperand)u8);
-		public RegisterA Set(U8 u8) => Set((IOperand)u8);
+		public override RegisterA Set(U8 u8) => Set((IOperand)u8);
 
 		public RegisterA Add(IOperand o) {
 			Carry.Clear();
@@ -202,20 +197,20 @@ namespace NESSharp.Core {
 		public RegisterA ROL() {					CPU6502.ROL(this);	return this; }
 		public void CMP(IOperand o) => CPU6502.CMP(o);
 
-		public Condition Equals(IOperand addr) {
-			CMP(addr);
+		public override Condition Equals(IOperand o) {
+			CMP(o);
 			return Condition.EqualsZero;
 		}
-		public Condition Equals(U8 v) {
+		public override Condition Equals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CMP(v);
 			return Condition.EqualsZero;
 		}
-		public Condition NotEquals(IOperand addr) {
-			CMP(addr);
+		public override Condition NotEquals(IOperand o) {
+			CMP(o);
 			return Condition.NotEqualsZero;
 		}
-		public Condition NotEquals(U8 v) {
+		public override Condition NotEquals(U8 v) {
 			if (v != 0 || Flags.Zero.LastReg != this)
 				CMP(v);
 			return Condition.NotEqualsZero;
@@ -223,48 +218,40 @@ namespace NESSharp.Core {
 		//TODO: check LastReg for these
 		public Condition IsPositive() => Condition.IsPositive;
 		public Condition IsNegative() => Condition.IsNegative;
-		public Condition GreaterThan(U8 v) {
-			Temp[0].Set(A);
-			A.Set(v).CMP(Temp[0]);
-			return Condition.IsGreaterThan;
-		}
 		public Condition GreaterThan(IOperand v) {
 			Temp[0].Set(A);
 			A.Set(v).CMP(Temp[0]);
 			return Condition.IsGreaterThan;
 		}
-		public Condition GreaterThanOrEqualTo(U8 v) {
-			CMP(v);
-			return Condition.IsGreaterThanOrEqualTo;
-		}
+		public Condition GreaterThan(U8 v) => GreaterThan((IOperand)v);
 		public Condition GreaterThanOrEqualTo(IOperand v) {
 			CMP(v);
 			return Condition.IsGreaterThanOrEqualTo;
 		}
+		public Condition GreaterThanOrEqualTo(U8 v) => GreaterThanOrEqualTo((IOperand)v);
 		//TODO: fix and test this one:
-		public Condition GreaterThanOrEqualTo(Func<RegisterA> a) {
-			Temp[0].Set(A);
-			Temp[1].Set(a.Invoke());
-			A.Set(Temp[0]).CMP(Temp[1]);
-			return Condition.IsGreaterThanOrEqualTo;
-		}
+		//public Condition GreaterThanOrEqualTo(Func<RegisterA> a) {
+		//	Temp[0].Set(A);
+		//	Temp[1].Set(a.Invoke());
+		//	A.Set(Temp[0]).CMP(Temp[1]);
+		//	return Condition.IsGreaterThanOrEqualTo;
+		//}
 		public Condition LessThan(Func<RegisterA> a) {
 			Temp[0].Set(A);
 			Temp[1].Set(a.Invoke());
 			A.Set(Temp[0]).CMP(Temp[1]);
 			return Condition.IsLessThan;
 		}
-		public Condition LessThan(U8 v) => LessThan((IOperand)v);
 		public Condition LessThan(IOperand v) {
 			CMP(v);
 			return Condition.IsLessThan;
 		}
-		//public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
-		public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
+		public Condition LessThan(U8 v) => LessThan((IOperand)v);
 		public Condition LessThanOrEqualTo(IOperand v) {
 			GreaterThan(v);
 			return Condition.IsLessThanOrEqualTo;
 		}
+		public Condition LessThanOrEqualTo(U8 v) => LessThanOrEqualTo((IOperand)v);
 		public string ToAsmString(INESAsmFormatting formats) => "A";
 	}
 }

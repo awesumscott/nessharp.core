@@ -28,7 +28,7 @@ namespace NESSharp.Core {
 		public static readonly FlagStates Flags	= CPU6502.Flags;
 
 		public static readonly LabelDictionary				Labels				= new();
-		public static readonly Dictionary<string, Var>		VarRegistry			= new();
+		public static readonly Dictionary<string, Var>		VarRegistry			= new();	//TODO: move to RAM class
 		public static readonly ConstantCollection			Constants			= new();
 		private static readonly Dictionary<Type, Module>	_Modules			= new();
 		public static VByte[] Temp;

@@ -64,9 +64,9 @@ namespace NESSharp.Core {
 		}
 		public RAMRange Allocate(Address start, Address end, string name) {
 			var length = end - start;
-			if (Taken.Where(x => (start >= x.Start && start <= x.End) || //start is within an existing range
+			if (Taken.Any(x => (start >= x.Start && start <= x.End) || //start is within an existing range
 								(end >= x.Start && end <= x.End) || //end is within an existing range
-								(x.Start >= start && x.End <= end)).Any()) //existing range is within new range
+								(x.Start >= start && x.End <= end))) //existing range is within new range
 				throw new Exception("Range already in use");
 
 			Taken.Add(new RAMChunk(start, end));

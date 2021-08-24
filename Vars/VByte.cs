@@ -4,7 +4,7 @@ using static NESSharp.Core.AL;
 
 namespace NESSharp.Core {
 	[VarSize(1)]
-	public class VByte : Var, IOperand<Address>, IOperable<VByte> {//, IResolvable<Address> {
+	public class VByte : Var, IOperand<Address>, IOperable<VByte> {
 		public override int Size => 1;
 
 		public VByte() {}

@@ -34,5 +34,10 @@ namespace NESSharp.Core {
 			}
 			Context.InitCode();
 		}
+
+		public void Include(Type classType) => Core.Include.Module(classType);
+		public void Include<T>(T obj) => Core.Include.Module(obj);
+		public void IncludeAsm(string fileName) => Core.Include.Asm(fileName);
+		public void IncludeFile(string fileName) => Core.Include.File(fileName);
 	}
 }

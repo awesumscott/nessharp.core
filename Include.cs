@@ -79,15 +79,7 @@ namespace NESSharp.Core {
 			foreach (var t in classTypes)
 				Module(t);
 		}
-		public static void File(string fileName) {
-			//TODO: figure out how to pass along attribute's bank ID as the ChrBank index
-			//CurrentBank.Write(File.ReadAllBytes(fileName));
-			AL.Raw(System.IO.File.ReadAllBytes(fileName).Select(x => (U8)x).ToArray());
-		}
-		public static void Asm(string fileName) {
-			//TODO: figure out how to pass along attribute's bank ID as the ChrBank index
-			//CurrentBank.Write(File.ReadAllBytes(fileName));
-			Parsers.Common.Parse(System.IO.File.ReadAllText(fileName));
-		}
+		public static void File(string fileName) => AL.Raw(System.IO.File.ReadAllBytes(fileName).Select(x => (U8)x).ToArray());
+		public static void Asm(string fileName) => Parsers.Common.Parse(System.IO.File.ReadAllText(fileName));
 	}
 }

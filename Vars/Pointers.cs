@@ -2,6 +2,7 @@
 
 namespace NESSharp.Core {
 	public class Ptr : VWord {
+		public Ptr() {}
 		public Ptr(RAMRange Zp, string name) {
 			//Bytes = new Address[2];//Address();
 			Name = name;
@@ -13,6 +14,10 @@ namespace NESSharp.Core {
 		}
 
 		public static new Ptr New(RAMRange Zp, string name) => new Ptr(Zp, name);
+		public static Ptr Ref(VWord word) => new Ptr {
+			Name = word.Name,
+			Address = word.Address
+		};
 		public PtrY this[RegisterY offset] => new PtrY(this);
 		public string ToAsmString(Tools.INESAsmFormatting formats) => Name;
 	}

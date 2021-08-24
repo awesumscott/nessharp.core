@@ -16,8 +16,8 @@ namespace NESSharp.Core.Tools {
 			public string ExpressionLShift		=> "{0} << {1}";
 			public string ExpressionRShift		=> "{0} >> {1}";
 		}
-		private Formatting _nesasm3Formatter = new Formatting();
-		private readonly StringBuilder _output = new StringBuilder();
+		private Formatting _nesasm3Formatter = new();
+		private readonly StringBuilder _output = new();
 		private string _fileName = string.Empty;
 
 		public void Setup(string fileName) => _fileName = fileName;

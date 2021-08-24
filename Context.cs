@@ -9,19 +9,15 @@ namespace NESSharp.Core {
 	public static class Context {
 		private static List<List<IOperation>>	_ops;
 		private static short					_scopeIndex;
-		/*public enum StateMaintain {
-			None,
-			Entry
-		};*/
 		public static IEnumerable<IOperation> Operations => _ops[_scopeIndex];
-		private static readonly Stack<Label> _startLabels = new Stack<Label>();
+		private static readonly Stack<Label> _startLabels = new();
 		public static void InitCode() {
 			_ops = new List<List<IOperation>>(); //clear code to prepare for next bank definition
 			_scopeIndex = 0;
 			_ops.Add(new List<IOperation>());
 		}
 		public static void New(Action body/*, StateMaintain maintainState = StateMaintain.None*/) {
-			Push(/*maintainState*/);
+			Push();
 			body.Invoke();
 			Pop();
 		}
@@ -31,8 +27,7 @@ namespace NESSharp.Core {
 			body.Invoke();
 			_scopeIndex++;
 		}
-		public static void Push(/*StateMaintain maintainState = StateMaintain.None*/) {
-			/*if (maintainState != StateMaintain.Entry)*/
+		public static void Push() {
 			AL.Reset();
 			_scopeIndex++;
 			_ops.Add(new List<IOperation>());
