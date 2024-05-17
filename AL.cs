@@ -22,12 +22,6 @@ public abstract class Module {
 }
 
 public static class AL {
-	//TODO: transition "using static NESSharp.Core.AL" statements to "using static NESSharp.Core.CPU6502" everywhere to get these out of here
-	public static readonly RegisterA A		= CPU6502.A;
-	public static readonly RegisterX X		= CPU6502.X;
-	public static readonly RegisterY Y		= CPU6502.Y;
-	public static readonly FlagStates Flags	= CPU6502.Flags;
-
 	public static readonly LabelDictionary				Labels				= new();
 	public static readonly Dictionary<string, Var>		VarRegistry			= new();	//TODO: move to RAM class
 	public static readonly ConstantCollection			Constants			= new();
@@ -94,10 +88,10 @@ public static class AL {
 	public static Address Addr(U16 address) => new Address(address);
 
 	public static void Reset() {
-		A.Reset();
-		X.Reset();
-		Y.Reset();
-		Flags.Reset();
+		CPU6502.A.Reset();
+		CPU6502.X.Reset();
+		CPU6502.Y.Reset();
+		CPU6502.Flags.Reset();
 	}
 
 	//For reference:
@@ -239,7 +233,7 @@ public static class AL {
 
 public static class LinqExtensions {
 	public static void ForEach<T>(this IEnumerable<T> source, Action<T> action) {
-            foreach (var element in source)
-                action(element);
-        }
+		foreach (var element in source)
+			action(element);
+	}
 }

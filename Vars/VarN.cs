@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -12,13 +12,13 @@ public class VarN : Var {
 		Address = ram.Dim(Size);
 		Name = name;
 		DebugFileNESASM.WriteVariable(ram, Address[0], Address[Size - 1], name);
-		VarRegistry.Add(name, this);
+		AL.VarRegistry.Add(name, this);
 		return this;
 	}
 
 	public static VarN New(RAMRange ram, int len, string name) => new VarN() { Size = len }.Dim(ram, name);
 	public static VarN Ref(Address addr, ushort len, string name) => new() {
-		Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray(),
+		Address = Enumerable.Range(addr, len).Select(x => AL.Addr((U16)x)).ToArray(),
 		Name = name
 	};
 

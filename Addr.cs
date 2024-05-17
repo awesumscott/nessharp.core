@@ -1,5 +1,5 @@
 ﻿using NESSharp.Core.Tools;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -11,8 +11,8 @@ public class Address : U16, IOperand<Address> {//, IOperable<Address> {
 	public Address Set(IOperand operand) {
 		//These must be in here for things like generic IndexingRegister refs, which wouldn't get picked up by Set(RegisterX/Y)
 		if (operand is RegisterA)		A.STA(this);
-		else if (operand is RegisterX)	CPU6502.STX(this);
-		else if (operand is RegisterY)	CPU6502.STY(this);
+		else if (operand is RegisterX)	STX(this);
+		else if (operand is RegisterY)	STY(this);
 		else							A.Set(operand).STA(this);
 		return this;
 	}

@@ -1,6 +1,6 @@
 ﻿using NESSharp.Core.Tools;
 using System;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -152,11 +152,11 @@ public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA>
 		if (o is RegisterA)
 			throw new Exception("Attempting to add A to A");
 		else if (o is RegisterX) {
-			Temp[0].Set(X);
-			ADC(Temp[0]);
+			AL.Temp[0].Set(X);
+			ADC(AL.Temp[0]);
 		} else if (o is RegisterY) {
-			Temp[0].Set(Y);
-			ADC(Temp[0]);
+			AL.Temp[0].Set(Y);
+			ADC(AL.Temp[0]);
 		} else
 			ADC(o);
 		return this;
@@ -166,11 +166,11 @@ public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA>
 	public RegisterA Subtract(IOperand o) {
 		Carry.Set();
 		if (o is RegisterX) {
-			Temp[0].Set(X);
-			SBC(Temp[0]);
+			AL.Temp[0].Set(X);
+			SBC(AL.Temp[0]);
 		} else if (o is RegisterY) {
-			Temp[0].Set(Y);
-			SBC(Temp[0]);
+			AL.Temp[0].Set(Y);
+			SBC(AL.Temp[0]);
 		} else
 			SBC(o);
 		return this;
@@ -220,8 +220,8 @@ public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA>
 	public Condition IsPositive() => Condition.IsPositive;
 	public Condition IsNegative() => Condition.IsNegative;
 	public Condition GreaterThan(IOperand v) {
-		Temp[0].Set(A);
-		A.Set(v).CMP(Temp[0]);
+		AL.Temp[0].Set(A);
+		A.Set(v).CMP(AL.Temp[0]);
 		return Condition.IsGreaterThan;
 	}
 	public Condition GreaterThan(U8 v) => GreaterThan((IOperand)v);
@@ -238,9 +238,9 @@ public class RegisterA : RegisterBase, IOperand<RegisterA>, IOperable<RegisterA>
 	//	return Condition.IsGreaterThanOrEqualTo;
 	//}
 	public Condition LessThan(Func<RegisterA> a) {
-		Temp[0].Set(A);
-		Temp[1].Set(a.Invoke());
-		A.Set(Temp[0]).CMP(Temp[1]);
+		AL.Temp[0].Set(A);
+		AL.Temp[1].Set(a.Invoke());
+		A.Set(AL.Temp[0]).CMP(AL.Temp[1]);
 		return Condition.IsLessThan;
 	}
 	public Condition LessThan(IOperand v) {

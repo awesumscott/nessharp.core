@@ -66,6 +66,8 @@ public static class Common {
 	public static string RemoveComment(string line) => line.Split(';').First();
 	public static bool IsLabelLine(string line) => line.Last() == ':';
 
+	private const string OPERATOR_SHIFT_LEFT = "<<";
+	private const string OPERATOR_SHIFT_RIGHT = ">>";
 	private static readonly List<string> labels = new List<string>();
 	private static bool IsExistingLabel(string s) => labels.Contains(s);
 	private static bool IsConstant(string s) => AL.Constants.Contains(s);
@@ -103,13 +105,13 @@ public static class Common {
 			else if (token.StartsWith("high("))	return new Hi(ParseParam(token[5..^1]));
 		}
 
-		if (token.Contains(">>")) {
-			var subTokens = token.Split(">>");
+		if (token.Contains(OPERATOR_SHIFT_RIGHT)) {
+			var subTokens = token.Split(OPERATOR_SHIFT_RIGHT);
 			var tokenLeft = ParseToken(subTokens[0]);
 			if (tokenLeft is Core.Label lbl)
 				return lbl.ShiftRight((U8)short.Parse(subTokens[1]));
-		} else if (token.Contains("<<")) {
-			var subTokens = token.Split("<<");
+		} else if (token.Contains(OPERATOR_SHIFT_LEFT)) {
+			var subTokens = token.Split(OPERATOR_SHIFT_LEFT);
 			var tokenLeft = ParseToken(subTokens[0]);
 			if (tokenLeft is Core.Label lbl)
 				return lbl.ShiftLeft(short.Parse(subTokens[1]));

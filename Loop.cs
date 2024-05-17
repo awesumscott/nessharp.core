@@ -1,5 +1,4 @@
 ﻿using System;
-using static NESSharp.Core.AL;
 
 namespace NESSharp.Core;
 
@@ -22,10 +21,10 @@ public class DoLoop {
 			_block?.Invoke(_labels);
 			var c = condition.Invoke();
 			var len = -Context.Length - 2; //-2 is to account for the branch instruction
-			if (len >= LOWEST_BRANCH_VAL) {
-				Branch(c, len);
+			if (len >= AL.LOWEST_BRANCH_VAL) {
+				AL.Branch(c, len);
 			} else {
-				Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, true);
+				AL.Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, true);
 				CPU6502.JMP(Context.StartLabel);
 			}
 		});
@@ -34,10 +33,10 @@ public class DoLoop {
 }
 
 public class LoopLabels {
-	public Label ContinueLabel = Labels.New();
-	public Label BreakLabel = Labels.New();
-	public Action Continue => () => GoTo(ContinueLabel);
-	public Action Break => () => GoTo(BreakLabel);
+	public Label ContinueLabel = AL.Labels.New();
+	public Label BreakLabel = AL.Labels.New();
+	public Action Continue => () => AL.GoTo(ContinueLabel);
+	public Action Break => () => AL.GoTo(BreakLabel);
 }
 //public delegate void LoopAction(LoopLabels? labels = null);
 
@@ -156,7 +155,7 @@ public static class Loop {
 		if (block != null) {
 			Context.New(() => block(labels));
 		}
-		GoTo(labels.ContinueLabel);
+		AL.GoTo(labels.ContinueLabel);
 		Context.Write(labels.BreakLabel);
 	}
 	public static DoLoop Do_old(Action<LoopLabels>? block = null) => new DoLoop(block);
@@ -199,18 +198,18 @@ public static class Loop {
 		var c = condition.Invoke();
 		Context.New(() => {
 			block.Invoke(labels);
-			GoTo(labels.ContinueLabel);
+			AL.GoTo(labels.ContinueLabel);
 			var len = Context.Length;
-			if (len <= HIGHEST_BRANCH_VAL) {
+			if (len <= AL.HIGHEST_BRANCH_VAL) {
 				Context.Parent(() => {
-					Branch(c, len, true);
+					AL.Branch(c, len, true);
 				});
 			} else {
-				var lblEnd = Labels.New();
-				var lblOptionEnd = Labels.New();
+				var lblEnd = AL.Labels.New();
+				var lblOptionEnd = AL.Labels.New();
 				Context.Parent(() => {
-					Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length);
-					GoTo(lblEnd);
+					AL.Branch(c, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length);
+					AL.GoTo(lblEnd);
 				});
 				Context.Write(lblEnd);
 			}
@@ -226,7 +225,7 @@ public static class Loop {
 	public static void Repeat_PostInc(IndexingRegister reg, int length, Action<LoopLabels> block) {
 		var labels = new LoopLabels();
 		//X.Reset();
-		var lblStart = Labels.New();
+		var lblStart = AL.Labels.New();
 		Context.Write(lblStart);
 		Context.New((Action)(() => {
 			var before = reg.State.Hash;
@@ -247,7 +246,7 @@ public static class Loop {
 					else CPU6502.CPY((U8)length);
 				}
 				CPU6502.BEQ(3);
-				GoTo(lblStart);
+				AL.GoTo(lblStart);
 			}
 		}));
 		Context.Write(labels.BreakLabel);

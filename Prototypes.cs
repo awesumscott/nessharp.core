@@ -1,4 +1,4 @@
-﻿using static NESSharp.Core.AL;
+﻿using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -41,8 +41,8 @@ public static class TestNesClass {
 		X.Set(5);
 		Y.Set(6);
 
-		Comment("a==$10 && (x==0 || x == 1)");
-		If.True(All(Any(() => X.Equals(0), () => X.Equals(1)), () => A.Equals(0x10)), () => {
+		AL.Comment("a==$10 && (x==0 || x == 1)");
+		If.True(AL.All(AL.Any(() => X.Equals(0), () => X.Equals(1)), () => A.Equals(0x10)), () => {
 			A.Set(0x69);
 			X.Set(0x69);
 		});
@@ -53,35 +53,35 @@ public static class TestNesClass {
 		//	X.Set(0x69);
 		//});
 
-		Comment("Combined");
+		AL.Comment("Combined");
 		If.Block(c => c
-			.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+			.True(AL.All(() => A.Equals(0x10), AL.Any(() => X.Equals(0), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})
-			.True(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
+			.True(AL.Any(() => X.Equals(0), AL.All(() => A.Equals(0x10), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})
 		);
-		Comment("Combined");
+		AL.Comment("Combined");
 		If.Block(c => c
-			.True(Any(() => X.Equals(0), All(() => A.Equals(0x10), () => X.Equals(1))), () => {
+			.True(AL.Any(() => X.Equals(0), AL.All(() => A.Equals(0x10), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})
-			.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+			.True(AL.All(() => A.Equals(0x10), AL.Any(() => X.Equals(0), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})
 		);
-		Comment("First option has only Anys");
+		AL.Comment("First option has only Anys");
 		If.Block(c => c
-			.True(Any(() => X.Equals(0), Any(() => A.Equals(0x10), () => X.Equals(1))), () => {
+			.True(AL.Any(() => X.Equals(0), AL.Any(() => A.Equals(0x10), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})
-			.True(All(() => A.Equals(0x10), Any(() => X.Equals(0), () => X.Equals(1))), () => {
+			.True(AL.All(() => A.Equals(0x10), AL.Any(() => X.Equals(0), () => X.Equals(1))), () => {
 				A.Set(0x69);
 				X.Set(0x69);
 			})

@@ -1,6 +1,4 @@
-﻿using static NESSharp.Core.AL;
-
-namespace NESSharp.Core;
+﻿namespace NESSharp.Core;
 
 public class Ptr : VWord {
 	public Ptr() {}
@@ -11,7 +9,7 @@ public class Ptr : VWord {
 		//Lo = Address[0];
 		//Hi = Address[1];
 		DebugFileNESASM.WriteVariable(Zp, Address[0], Address[1], name);
-		VarRegistry.Add(name, this);
+		AL.VarRegistry.Add(name, this);
 	}
 
 	public static new Ptr New(RAMRange Zp, string name) => new Ptr(Zp, name);

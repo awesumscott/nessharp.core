@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -51,14 +51,14 @@ public class VWord : VarN {
 		return this;
 	}
 	public void PointTo(Action a) {
-		PointTo(LabelFor(a)); //TODO: check attribute with an IsSubroutine func?
+		PointTo(AL.LabelFor(a)); //TODO: check attribute with an IsSubroutine func?
 	}
 
 	//This format is best to ensure addresses are sequential
 	public static new VWord Ref(Address addr, ushort len, string name) {
 		//return (VWord)VarN.Ref(addr, len);
 		var v = new VWord {
-			Address = Enumerable.Range(addr, len).Select(x => Addr((U16)x)).ToArray(),
+			Address = Enumerable.Range(addr, len).Select(x => AL.Addr((U16)x)).ToArray(),
 			Name = name
 		};
 		//v.Index = new index param? if needed

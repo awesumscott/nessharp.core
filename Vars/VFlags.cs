@@ -1,4 +1,4 @@
-﻿using static NESSharp.Core.AL;
+﻿using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 

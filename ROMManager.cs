@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -74,12 +74,12 @@ public static class ROMManager {
 	}
 
 	public static string LabelNameFromMethodInfo(MethodInfo methodInfo) => $"{methodInfo.DeclaringType?.Name ?? "???"}_{methodInfo.Name}";
-	public static Label ToLabel(this MethodInfo methodInfo) => Labels[LabelNameFromMethodInfo(methodInfo)];
+	public static Label ToLabel(this MethodInfo methodInfo) => AL.Labels[LabelNameFromMethodInfo(methodInfo)];
 
 	public static void SetInterrupts(Action NMI, Action Reset, Action IRQ) {
-		Interrupts.Add(NMI != null ? LabelFor(NMI) : null);
-		Interrupts.Add(Reset != null ? LabelFor(Reset) : null);
-		Interrupts.Add(IRQ != null ? LabelFor(IRQ) : null);
+		Interrupts.Add(NMI != null ? AL.LabelFor(NMI) : null);
+		Interrupts.Add(Reset != null ? AL.LabelFor(Reset) : null);
+		Interrupts.Add(IRQ != null ? AL.LabelFor(IRQ) : null);
 	}
 
 	public static void WriteToFile(string fileName) {
@@ -161,7 +161,7 @@ public static class ROMManager {
 		if (Interrupts.Any())
 			WriteInterrupts();
 
-		foreach (var lbl in Labels)
+		foreach (var lbl in AL.Labels)
 			DebugFileNESASM.WriteLabel(lbl.Value.Address, lbl.Key); //TODO: pass in bank to add the offset for mesen MLBs
 
 		using (var f = File.Open(fileName + ".nes", FileMode.Create)) {

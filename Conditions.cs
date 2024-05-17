@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static NESSharp.Core.AL;
 
 namespace NESSharp.Core;
 
@@ -51,7 +50,7 @@ public static class If {
 		var hasElse = optionDefault.Any();
 		Label? lblEnd = null;
 		if (numOptions > 1 || hasElse)
-			lblEnd = Labels.New();
+			lblEnd = AL.Labels.New();
 		var lastCondition = optionConditions.Last();
 		foreach (var oc in optionConditions) {
 			var isLast = oc == lastCondition;
@@ -63,7 +62,7 @@ public static class If {
 			if (lblEnd != null) //always true in this block, suppressing nullable complaint
 				Context.Write(lblEnd);
 		}
-		Reset();
+		AL.Reset();
 	}
 
 	public class _AdvancedCondition {
@@ -183,19 +182,19 @@ internal static class Branching {
 			//Skip to "EndIf" if the condition succeeded
 			if (lblEndIf != null) {
 				if (fallThroughCondition != null)
-					Branch(fallThroughCondition.Invoke(), CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
-				GoTo(lblEndIf);
+					AL.Branch(fallThroughCondition.Invoke(), CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
+				AL.GoTo(lblEndIf);
 			}
 			var len = Context.Length;
-			if (len <= HIGHEST_BRANCH_VAL) {
+			if (len <= AL.HIGHEST_BRANCH_VAL) {
 				Context.Parent(() => {
-					Branch(condition, len, !invert);
+					AL.Branch(condition, len, !invert);
 				});
 			} else {
-				var lblOptionEnd = Labels.New();
+				var lblOptionEnd = AL.Labels.New();
 				Context.Parent(() => {
-					Branch(condition, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
-					GoTo(lblOptionEnd);
+					AL.Branch(condition, CPU6502.Asm.OC["JMP"][CPU6502.Asm.Mode.Absolute].Length, invert);
+					AL.GoTo(lblOptionEnd);
 				});
 				Context.Write(lblOptionEnd);
 			}
@@ -203,9 +202,9 @@ internal static class Branching {
 	}
 
 	public static void _WriteAnyCondition(object[] conditions, Action block, Label? lblEndIf = null, Label? lblShortCircuitSuccess = null) {
-		var lblSuccess = lblShortCircuitSuccess ?? Labels.New();
-		var lblEnd = Labels.New();
-		void successBlock() => GoTo(lblSuccess);
+		var lblSuccess = lblShortCircuitSuccess ?? AL.Labels.New();
+		var lblEnd = AL.Labels.New();
+		void successBlock() => AL.GoTo(lblSuccess);
 		var last = conditions.Last();
 		foreach (var condition in conditions) {
 			_WriteCondition(condition, successBlock, null, lblSuccess/*, true*/);//, condition == last ? lblEndIf : null);
@@ -213,7 +212,7 @@ internal static class Branching {
 		//If this is a nested Any, the GoTo(lblSuccess) used above will skip out to the parent Any's success label and this stuff won't be needed
 		//TODO: determine if this lblShortCircuitSuccess business is even needed. Who the hell needs to nest Any() conditions?! they could be merged and have the same effect. Maybe if helpers return an Any(), and that's used within another?
 		if (lblShortCircuitSuccess == null) {
-			GoTo(lblEnd);
+			AL.GoTo(lblEnd);
 			Context.Write(lblSuccess);
 			block.Invoke();
 		}
@@ -221,10 +220,10 @@ internal static class Branching {
 		if (lblEndIf != null) {
 			//if (fallThroughCondition != null)
 			//	Branch(fallThroughCondition.Invoke(), (U8)Asm.JMP.Absolute.Length);
-			Comment("right before goto endif");
-			GoTo(lblEndIf);
+			AL.Comment("right before goto endif");
+			AL.GoTo(lblEndIf);
 		}
-		Comment("after goto endif and before writeany's lblend");
+		AL.Comment("after goto endif and before writeany's lblend");
 		Context.Write(lblEnd);
 	}
 	public static void _WriteAllCondition(object[] conditions, Action block, Label? lblEndIf = null) {
@@ -255,12 +254,12 @@ internal static class Branching {
 				default:
 					throw new Exception("Invalid condition type");
 			}
-		} else if (condition is AdvancedCondition ac_old) {	//temporary until AL.Any/All are removed
+		} else if (condition is AL.AdvancedCondition ac_old) {	//temporary until AL.Any/All are removed
 			switch (ac_old.Type) {
-				case AdvancedCondition.ConditionType.Any:
+				case AL.AdvancedCondition.ConditionType.Any:
 					_WriteAnyCondition(ac_old.Conditions, block, lblEndIf, lblShortCircuitSuccess);
 					break;
-				case AdvancedCondition.ConditionType.All:
+				case AL.AdvancedCondition.ConditionType.All:
 					_WriteAllCondition(ac_old.Conditions, block, lblEndIf);
 					break;
 				default:

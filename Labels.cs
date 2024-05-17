@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -56,8 +56,8 @@ public class Label : IResolvable<Address>, IOperation, IOperand<Label> {
 	}
 
 	public LabelIndexed this[IndexingRegister reg] => new LabelIndexed(this, reg);
-	public override string ToString() => Labels.NameByRef(this);
-	public string ToAsmString(Tools.INESAsmFormatting formats) => Labels.NameByRef(this);
+	public override string ToString() => AL.Labels.NameByRef(this);
+	public string ToAsmString(Tools.INESAsmFormatting formats) => AL.Labels.NameByRef(this);
 }
 
 public class LabelIndexed : IOperand<LabelIndexed>, IIndexable {
@@ -76,6 +76,6 @@ public class LabelIndexed : IOperand<LabelIndexed>, IIndexable {
 		CPU6502.STA(this);
 		return this;
 	}
-	public override string ToString() => $"{ Labels.NameByRef(Label) } [{ ((IIndexable)this).Index }]";
-	public string ToAsmString(Tools.INESAsmFormatting formats) => Labels.NameByRef(Label);
+	public override string ToString() => $"{ AL.Labels.NameByRef(Label) } [{ ((IIndexable)this).Index }]";
+	public string ToAsmString(Tools.INESAsmFormatting formats) => AL.Labels.NameByRef(Label);
 }

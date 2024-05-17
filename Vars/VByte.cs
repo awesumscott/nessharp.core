@@ -1,6 +1,6 @@
 ﻿using NESSharp.Core.Tools;
 using System;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -20,7 +20,7 @@ public class VByte : Var, IOperand<Address>, IOperable<VByte> {
 		Address = ram.Dim(1);
 		Name = name;
 		DebugFileNESASM.WriteVariable(ram, Address[0], name);
-		VarRegistry.Add(name + vbytecount++, this);	//TODO: num is temporary til I move VarRegistry to RAM instances
+		AL.VarRegistry.Add(name + vbytecount++, this);	//TODO: num is temporary til I move VarRegistry to RAM instances
 		return this;
 	}
 	public static VByte New(RAMRange ram, string name) => new VByte().Dim(ram, name);
@@ -78,8 +78,8 @@ public class VByte : Var, IOperand<Address>, IOperable<VByte> {
 	public RegisterA Subtract(IOperand v) =>	A.Set(this).Subtract(v);
 	public RegisterA Subtract(U8 v) =>			A.Set(this).Subtract(v);
 	public RegisterA Subtract(RegisterA _) {
-		Temp[0].Set(A);
-		return A.Set(this).Subtract(Temp[0]);
+		AL.Temp[0].Set(A);
+		return A.Set(this).Subtract(AL.Temp[0]);
 	}
 
 	public RegisterA And(IOperand v) =>			A.Set(this).And(v);
@@ -87,8 +87,8 @@ public class VByte : Var, IOperand<Address>, IOperable<VByte> {
 	public RegisterA Or(IOperand v) =>			A.Set(this).Or(v);
 	public RegisterA Or(U8 v) =>				A.Set(this).Or(v);
 	public RegisterA Or(RegisterA _) {
-		Temp[0].Set(A);
-		return A.Set(this).Or(Temp[0]);
+		AL.Temp[0].Set(A);
+		return A.Set(this).Or(AL.Temp[0]);
 	}
 	public RegisterA Xor(IOperand v) =>			A.Set(this).Xor(v);
 	public RegisterA Xor(U8 v) =>				A.Set(this).Xor(v);
@@ -130,9 +130,9 @@ public class VByte : Var, IOperand<Address>, IOperable<VByte> {
 	public Condition LessThanOrEqualTo(IOperand v) =>		A.Set(this).LessThanOrEqualTo(v);
 
 	public Condition GreaterThan(RegisterA a) {
-		Temp[1].Set(A);
-		Temp[0].Set(this);
-		A.Set(Temp[1]).CMP(Temp[0]);
+		AL.Temp[1].Set(A);
+		AL.Temp[0].Set(this);
+		A.Set(AL.Temp[1]).CMP(AL.Temp[0]);
 		return Condition.IsGreaterThan;
 	}
 	public Condition LessThanOrEqualTo(RegisterA a) {

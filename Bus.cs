@@ -1,5 +1,5 @@
 ﻿using System;
-using static NESSharp.Core.AL;
+using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -12,14 +12,14 @@ public class Bus : Address {
 		if (len > 256) throw new Exception("Len > 256! Split up data until longer sends are supported.");
 		X.Set(0);
 		Loop.Do_old(_ => {
-			Set(LabelFor(dataSection)[X]);
+			Set(AL.LabelFor(dataSection)[X]);
 			X.Inc();
 		}).While(() => X.NotEquals(len == 256 ? 0 : len));
 
 		//TODO: use ptr to send 256 at a time, rebaselining ptr after each pass
 	}
 	public void Write(Action dataSection) {
-		Send(dataSection, Length(dataSection));
+		Send(dataSection, AL.Length(dataSection));
 	}
 	public void Write(params U8[] vals) {
 		//TODO: clean this up when LDA duplication is handled in CPU6502

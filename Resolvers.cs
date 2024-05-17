@@ -1,4 +1,4 @@
-﻿using static NESSharp.Core.AL;
+﻿using static NESSharp.Core.CPU6502;
 
 namespace NESSharp.Core;
 
@@ -65,7 +65,7 @@ public class ShiftLeft : IResolvable<Address>, IOperand<Address> {
 	public Address Value => Resolve();
 	public bool CanResolve() => _addr.CanResolve();
 	public object Source => _addr.Source;
-	public Address Resolve() => Addr((U16)((U16)_addr.Resolve() << _shiftAmt));
+	public Address Resolve() => AL.Addr((U16)((U16)_addr.Resolve() << _shiftAmt));
 	public override string? ToString() => $"{ _addr }<<{_shiftAmt}";
 	public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ExpressionLShift, _addr.ToAsmString(formats), _shiftAmt);
 }
@@ -79,7 +79,7 @@ public class ShiftRight : IResolvable<Address>, IOperand<Address> {
 	public Address Value => Resolve();
 	public bool CanResolve() => _addr.CanResolve();
 	public object Source => _addr.Source;
-	public Address Resolve() => Addr((U16)((U16)_addr.Resolve() >> _shiftAmt));
+	public Address Resolve() => AL.Addr((U16)((U16)_addr.Resolve() >> _shiftAmt));
 	public override string? ToString() => $"{ _addr }>>{_shiftAmt}";
 	public string ToAsmString(Tools.INESAsmFormatting formats) => string.Format(formats.ExpressionRShift, _addr.ToAsmString(formats), _shiftAmt);
 }
@@ -129,7 +129,7 @@ public class Offset16 : IResolvable<Address>, IOperand<Address> {
 	public Address Value => Resolve();
 	public bool CanResolve() => _addr.CanResolve();
 	public object Source => _addr.Source;
-	public Address Resolve() => Addr((U16)(_addr.Resolve() + _offset));
+	public Address Resolve() => AL.Addr((U16)(_addr.Resolve() + _offset));
 	public override string? ToString() => $"{ _addr }{ (_offset > 0 ? "+" : "") }{_offset }";
 	public string ToAsmString(Tools.INESAsmFormatting formats) => _offset > 0
 		? string.Format(formats.ExpressionAdd, _addr.ToAsmString(formats), _offset)
